@@ -1,0 +1,8 @@
+.scrollable-content {
+    max-height: 100vh;
+    /* Adjust the height as needed */
+    overflow-y: auto;
+    padding-right: 15px;
+    padding-bottom: 150px;
+    /* Optional: Add padding to account for scrollbar width */
+}

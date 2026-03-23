@@ -1,0 +1,4 @@
+- redirect user to WaitConfirm if it his account not verified
+- add back button on signup pages
+- reset password screen+logic
+- "Password Reset Request Error" on sending email rest passwor dwhile it is send successfully

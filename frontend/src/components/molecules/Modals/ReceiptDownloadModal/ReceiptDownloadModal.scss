@@ -1,0 +1,38 @@
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.modal-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .item-title {
+    font-weight: 600;
+  }
+
+  .item-buttons {
+    display: flex;
+    gap: 10px;
+  }
+}
+
+.modal-description {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 2rem;
+}
+
+.modal-footer {
+  margin-top: 20px;
+  text-align: center;
+  margin: 1rem 0;
+}
+.modal-image {
+  width: -webkit-fill-available;
+  margin: 2rem 0 1rem 0;
+  object-fit: cover;
+}

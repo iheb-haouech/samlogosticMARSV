@@ -1,0 +1,80 @@
+<html>
+
+  <head>
+    <meta charset='UTF-8' />
+    <title>Shipment Details</title>
+    <style>
+      body { font-family: Arial, sans-serif; padding: 20px; } table { width:
+      100%; border-collapse: collapse; margin-bottom: 20px; } td { border: 1px
+      solid #d7d5d5; padding: 2px; } .bold {font-size: 11px; font-weight: bold;
+      } p, span {font-size: 11px; }
+    </style>
+  </head>
+
+  <body>
+    <img
+      src='https://vanlog-express.com/png/vanloglogo-bgwhite.png'
+      alt='Company Logo'
+      height='50'
+      style='margin-bottom: 20px;'
+    />
+
+    <table>
+      <tr>
+        <td>
+          <p class='bold'>FROM:</p>
+          <p>{{this.source.companyName}}</p>
+          <p>{{this.source.phone}}</p>
+          <p>{{this.source.streetAddress}},
+            {{this.source.zipCode}}</p>
+          <p>
+            {{this.source.city}},
+            {{this.source.Country}}</p>
+        </td>
+        <td>
+          <p class='bold'>SHIP TO:</p>
+          <p>{{this.recipient.firstName}} {{this.recipient.lastName}}</p>
+          <p>{{this.recipient.companyName}}</p>
+          <p>{{this.recipient.phone}}</p>
+          <p>{{this.recipient.streetAddress}},
+            {{this.recipient.zipCode}}</p>
+          <p>
+            {{this.recipient.city}},
+            {{this.recipient.Country}}</p>
+        </td>
+      </tr>
+    </table>
+
+    <table>
+      <tr>
+        <td class='bold'>DATE:</td>
+        <td><p>{{createdAt}}</p></td>
+      </tr>
+      <tr>
+        <td class='bold'>TOTAL NUMBER OF PACKAGES:</td>
+        <td><p>{{totalQuantity}}</p></td>
+      </tr>
+      <tr>
+        <td class='bold'>TOTAL WEIGHT:</td>
+        <td><p>{{totalWeight}} Kg</p></td>
+      </tr>
+      <tr>
+        <td class='bold'>DESCRIPTION:</td>
+        <td><p>{{description}}</p></td>
+      </tr>
+      <tr>
+        <td class='bold'>REFERENCE:</td>
+        <td>
+          {{#each references}}
+            <span>{{this}} - </span>
+          {{/each}}</td>
+      </tr>
+      <tr>
+        <td class='bold'>TRACKING NUMBER:</td>
+        <td><p>{{trackingId}}</p></td>
+      </tr>
+    </table>
+
+  </body>
+
+</html>

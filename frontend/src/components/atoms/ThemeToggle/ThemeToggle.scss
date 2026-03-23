@@ -1,0 +1,28 @@
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  
+  .ant-switch {
+    background: #d9d9d9;
+    
+    &.ant-switch-checked {
+      background: linear-gradient(135deg, #0d2c58, #5890cc);
+    }
+    
+    &:hover {
+      box-shadow: 0 2px 8px rgba(88, 144, 204, 0.3);
+    }
+  }
+}
+
+[data-theme='dark'] {
+  .theme-toggle {
+    .ant-switch {
+      background: #2d3441;
+      
+      &.ant-switch-checked {
+        background: linear-gradient(135deg, #4a8fd9, #6fa8e3);
+      }
+    }
+  }
+}

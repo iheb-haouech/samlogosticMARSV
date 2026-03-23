@@ -1,0 +1,15 @@
+.message-section {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  &__messages {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+    min-width: 400px;
+  }
+}

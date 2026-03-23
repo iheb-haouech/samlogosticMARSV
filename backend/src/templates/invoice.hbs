@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; color: #333; }
+        .container { width: 100%; max-width: 800px; margin: 0 auto; padding: 40px; }
+        .header { display: flex; justify-content: space-between; margin-bottom: 40px; border-bottom: 3px solid #2563eb; padding-bottom: 20px; }
+        .company-info h1 { color: #2563eb; font-size: 28px; margin-bottom: 5px; }
+        .company-info p { font-size: 12px; line-height: 1.5; }
+        .invoice-details { text-align: right; }
+        .invoice-number { font-size: 24px; font-weight: bold; color: #2563eb; }
+        .payment-status { 
+            display: inline-block; 
+            padding: 5px 15px; 
+            border-radius: 4px; 
+            font-weight: bold; 
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        .paid { background-color: #dcfce7; color: #166534; }
+        .unpaid { background-color: #fee2e2; color: #991b1b; }
+        .addresses { display: flex; justify-content: space-between; margin: 30px 0; }
+        .address-block { flex: 1; margin-right: 20px; }
+        .address-block:last-child { margin-right: 0; }
+        .address-block h3 { color: #2563eb; margin-bottom: 10px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        .address-block p { font-size: 12px; line-height: 1.6; }
+        table { width: 100%; border-collapse: collapse; margin: 30px 0; }
+        th { background-color: #2563eb; color: white; padding: 12px; text-align: left; font-size: 12px; }
+        td { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; font-size: 11px; }
+        tbody tr:hover { background-color: #f9fafb; }
+        .totals { margin-left: auto; width: 300px; margin-top: 20px; }
+        .totals td { border-bottom: none; padding: 8px 12px; }
+        .totals tr td:first-child { font-weight: 600; text-align: left; }
+        .totals tr td:last-child { text-align: right; font-weight: 600; }
+        .total-row { font-size: 16px; font-weight: bold; color: #2563eb; border-top: 2px solid #2563eb; }
+        .total-row td { padding-top: 12px; }
+        .footer { margin-top: 50px; text-align: center; color: #6b7280; font-size: 11px; border-top: 1px solid #e5e7eb; padding-top: 20px; line-height: 1.6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="company-info">
+                <h1>{{companyName}}</h1>
+                <p>{{companyAddress}}</p>
+                <p>{{companyPhone}} | {{companyEmail}}</p>
+            </div>
+            <div class="invoice-details">
+                <div class="invoice-number">FACTURE #{{invoiceNumber}}</div>
+                <p style="font-size: 12px; margin-top: 5px;">Date: {{invoiceDate}}</p>
+                <span class="payment-status {{paymentStatusClass}}">{{paymentStatus}}</span>
+            </div>
+        </div>
+
+        <div class="addresses">
+            <div class="address-block">
+                <h3>Facturé à:</h3>
+                <p><strong>{{clientName}}</strong></p>
+                <p>{{clientAddress}}</p>
+                <p>{{clientCity}}, {{clientZipCode}}</p>
+                <p>{{clientEmail}}</p>
+            </div>
+            <div class="address-block">
+                <h3>Détails de livraison:</h3>
+                <p>Tracking: <strong>{{trackingId}}</strong></p>
+                <p>Transporteur: {{transporterName}}</p>
+                <p>Date d'expédition: {{shippingDate}}</p>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Dimensions</th>
+                    <th>Poids (kg)</th>
+                    <th>Qté</th>
+                    <th>Prix Unit.</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each items}}
+                <tr>
+                    <td>{{this.description}}</td>
+                    <td>{{this.dimensions}}</td>
+                    <td>{{this.weight}}</td>
+                    <td>{{this.quantity}}</td>
+                    <td>{{this.unitPrice}} TND</td>
+                    <td>{{this.total}} TND</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+
+        <table class="totals">
+            <tr>
+                <td>Sous-total HT:</td>
+                <td>{{subtotal}} TND</td>
+            </tr>
+            <tr>
+                <td>TVA ({{tvaRate}}%):</td>
+                <td>{{tvaAmount}} TND</td>
+            </tr>
+            <tr>
+                <td>Timbre Fiscal:</td>
+                <td>{{timbreFiscale}} TND</td>
+            </tr>
+            <tr class="total-row">
+                <td>TOTAL TTC:</td>
+                <td>{{totalTTC}} TND</td>
+            </tr>
+        </table>
+
+        <div class="footer">
+            <p>Merci pour votre confiance | Pour toute question, contactez-nous à {{companyEmail}}</p>
+            <p>{{companyRegistration}}</p>
+        </div>
+    </div>
+</body>
+</html>

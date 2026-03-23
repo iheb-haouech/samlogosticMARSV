@@ -1,0 +1,117 @@
+<html lang='en'>
+
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Facture</title>
+    <style>
+      * { font-size: 11px; } body { font-family: Arial, sans-serif; padding:
+      20px; } .invoice-container { max-width: 600px; margin: auto; } .footer {
+      text-align: center; position: absolute; bottom: 0; width: 100%; }
+      .client-info, .invoice-details { margin-bottom: 20px; } .table { width:
+      100%; border-collapse: collapse; font-size: 11px; margin-top: 30px; }
+      .table th, .table td { border: 1px solid #ddd; padding: 4px; text-align:
+      left; } .table th { background-color: #f2f2f2; } .totals-table { width:
+      100%; border-collapse: collapse; margin-top: 20px; } .totals-table td {
+      border: none; padding: 2px; text-align: right; } .totals-table
+      td:first-child { text-align: left; } .content-wrapper { position:
+      relative; min-height: 100vh; padding-bottom: 50px; } p { margin: 3px 0; }
+      .table p { margin: 0px 0; } /* Adjust the margin of paragraphs within
+      tables */ .signature{ text-align: right; margin-top: 25px; }
+    </style>
+  </head>
+
+  <body>
+    <div class='content-wrapper'>
+      <div class='invoice-container'>
+        <div class='header'>
+          <img
+            src='https://vanlog-express.com/png/vanloglogo-bgwhite.png'
+            alt='Company Logo'
+            height='50'
+            style='margin-bottom: 20px;'
+          />
+        </div>
+        <table style='width:100%'>
+          <tr>
+            <td style='width:50%'>
+              <p><strong>N° FACTURE:</strong>
+                {{this.generatedInvoice.matricule}}</p>
+              <p><strong>DATE:</strong></p>
+              <p>{{this.generatedInvoice.createdAt}}</p>
+              <p>De: {{this.from}}, A : {{this.to}}</p>
+            </td>
+            <td>
+              <p><strong>Raison Sociale:</strong>
+                {{this.provider.companyName}}</p>
+              <p><strong>Téléphone:</strong> {{this.provider.phone}}</p>
+              <p><strong>Adresse:</strong>
+                {{this.provider.streetAddress}},
+                {{this.provider.zipCode}},
+                {{this.provider.city}},
+                {{this.provider.Country}}</p>
+              <p><strong>Matricule fiscale:</strong>
+                {{this.provider.patent}}</p>
+            </td>
+          </tr>
+        </table>
+        <div class='invoice-details'>
+          <table class='table'>
+            <thead>
+              <tr>
+                <th>Numéro de suivi</th>
+                <th>Poids</th>
+                <th>Prix</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each orders}}
+                <tr>
+                  <td>
+                    {{this.trackingId}}
+
+                  </td>
+                  <td>{{this.totalWeight}}</td>
+                  <td>{{this.clientPrice}} TND</td>
+                </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+        <div class='totals'>
+          <table class='table'>
+            <tr>
+              <td><strong>Total H.T:</strong></td>
+              <td><strong>MONTANT TVA (7%):</strong></td>
+              <td><strong>TOTAL T.T.C:</strong></td>
+              <td><strong>Timbre Fiscale:</strong></td>
+              <td><strong>NET A PAYER:</strong></td>
+            </tr>
+            <tr>
+              <td>{{totalOrdersClientPrice}} TND</td>
+              <td>{{this.tva}} TND</td>
+              <td>{{this.ttc}} TND</td>
+              <td>{{this.timbreFiscale}} TND</td>
+              <td>{{this.net}} TND</td>
+            </tr>
+          </table>
+        </div>
+        <div class='signature'>
+          <p style="margin-right: 15px;"><strong>Signature</p>
+          <p style="margin-top: 8px;">. . . . . . . . . .</p>
+        </div>
+      </div>
+    </div>
+
+    <div class='footer'>
+      <p>12 Rue Tarek Ben zied cité Al Nassime N°M Ben Arous Tunisie – Tél :
+        +216 71 317 508</p>
+      <p>VANLOG SARL – Capital Social : 10.000 Dinars – RIB
+        .......................</p>
+      <p>M.F : .......................</p>
+      <p>Adresse e-mail : support@vanlog-express.com – Site Web :
+        www.vanlog-express.com</p>
+    </div>
+  </body>
+
+</html>

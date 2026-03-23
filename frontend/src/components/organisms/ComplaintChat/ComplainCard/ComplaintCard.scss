@@ -1,0 +1,27 @@
+.complaint-card {
+  background: white;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  min-width: 200px;
+  border: 1px solid var(--gray-200);
+
+  &--selected {
+    background-color: var(--gray-100);
+    border: 1px var(--primary-500) solid;
+  }
+
+  &--title {
+    margin: 0.5rem 0 0.5rem 0;
+  }
+
+  &--date {
+    font-size: 0.9rem;
+    color: var(--gray-500);
+    margin: 0;
+  }
+
+  .ant-card-body {
+    padding: 16px;
+  }
+}

@@ -1,0 +1,21 @@
+.user-stat-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border-radius: 8px;
+  gap: 0.5rem;
+  height: 100%;
+  border: 1px solid #f0f0f0;
+  padding: 18px;
+  min-width: 185px;
+  justify-content: space-between;
+  &-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--gray-700);
+    background-color: var(--primary-50);
+    padding: 4px 8px;
+    border-radius: 1rem;
+    height: fit-content;
+  }
+}

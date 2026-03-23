@@ -1,0 +1,25 @@
+.order-stat-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  flex: 1;
+  border: 1px solid #f0f0f0;
+  padding: 18px;
+  border-radius: 8px;
+  &-title {
+    margin-bottom: 1rem !important;
+  }
+  &-info {
+    display: flex;
+    justify-content: space-between;
+    .order-stat-card-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--gray-700);
+    }
+    .order-stat-card-icon {
+      font-size: 2.5rem;
+    }
+  }
+}

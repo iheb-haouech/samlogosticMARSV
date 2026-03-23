@@ -1,0 +1,28 @@
+@import "../../styles/general/mixins.scss";
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.download-apk-btn {
+  animation: pulse 1.5s infinite; // Pulsing animation
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
+
+  &:hover {
+    animation: none; // Stops animation on hover
+    transform: scale(1.05);
+  }
+}

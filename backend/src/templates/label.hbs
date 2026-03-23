@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; }
+        .label { 
+            width: 10cm; 
+            height: 15cm; 
+            padding: 15px; 
+            border: 3px solid #000; 
+            page-break-after: always;
+            position: relative;
+        }
+        .logo-section { 
+            text-align: center; 
+            border-bottom: 2px solid #000; 
+            padding-bottom: 10px; 
+            margin-bottom: 15px; 
+        }
+        .company-name { 
+            font-size: 22px; 
+            font-weight: bold; 
+            color: #2563eb; 
+            margin-bottom: 3px;
+        }
+        .company-website { 
+            font-size: 11px; 
+            color: #666; 
+        }
+        .tracking-section { 
+            text-align: center; 
+            margin: 15px 0; 
+            background-color: #f3f4f6; 
+            padding: 15px; 
+            border: 2px solid #000; 
+        }
+        .tracking-label { 
+            font-size: 11px; 
+            font-weight: bold; 
+            text-transform: uppercase; 
+            color: #666;
+        }
+        .tracking-number { 
+            font-size: 24px; 
+            font-weight: bold; 
+            letter-spacing: 2px; 
+            margin: 8px 0;
+            color: #000; 
+        }
+        .barcode { 
+            width: 100%; 
+            height: 50px; 
+            background: repeating-linear-gradient(90deg, #000 0px, #000 2px, #fff 2px, #fff 4px);
+            margin: 10px 0;
+            border: 1px solid #000;
+        }
+        .section { 
+            margin: 12px 0; 
+            padding: 10px; 
+            border: 2px solid #000; 
+        }
+        .section-title { 
+            font-size: 11px; 
+            font-weight: bold; 
+            text-transform: uppercase; 
+            background-color: #000; 
+            color: #fff; 
+            padding: 6px; 
+            margin: -10px -10px 10px -10px;
+        }
+        .address { 
+            font-size: 11px; 
+            line-height: 1.7; 
+        }
+        .address strong { 
+            display: block; 
+            font-size: 13px; 
+            margin-bottom: 4px; 
+            color: #000;
+        }
+        .info-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 6px; 
+            font-size: 10px; 
+            margin-top: 12px;
+        }
+        .info-item { 
+            padding: 6px; 
+            background-color: #f9fafb; 
+            border: 1px solid #ddd;
+        }
+        .info-label { 
+            font-weight: bold; 
+            display: block;
+            margin-bottom: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="label">
+        <div class="logo-section">
+            <div class="company-name">{{companyName}}</div>
+            <div class="company-website">www.{{companyWebsite}}</div>
+        </div>
+
+        <div class="tracking-section">
+            <div class="tracking-label">Numéro de Suivi</div>
+            <div class="tracking-number">{{trackingId}}</div>
+            <div class="barcode"></div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">📍 DESTINATION</div>
+            <div class="address">
+                <strong>{{recipientName}}</strong>
+                {{recipientAddress}}<br>
+                {{recipientCity}}, {{recipientZipCode}}<br>
+                {{recipientCountry}}<br>
+                Tel: {{recipientPhone}}
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">📦 EXPÉDITEUR</div>
+            <div class="address">
+                <strong>{{senderName}}</strong>
+                {{senderAddress}}<br>
+                {{senderCity}}, {{senderZipCode}}
+            </div>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Poids Total:</span>
+                {{totalWeight}} kg
+            </div>
+            <div class="info-item">
+                <span class="info-label">Nb Colis:</span>
+                {{packageCount}}
+            </div>
+            <div class="info-item">
+                <span class="info-label">Date Expéd:</span>
+                {{shippingDate}}
+            </div>
+            <div class="info-item">
+                <span class="info-label">Service:</span>
+                {{serviceType}}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

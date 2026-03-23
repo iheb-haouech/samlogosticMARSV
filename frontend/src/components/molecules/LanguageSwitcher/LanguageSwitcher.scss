@@ -1,0 +1,23 @@
+// LanguageSwitcher.scss
+
+.language-switcher {
+  .ant-btn {
+    background-color: #f56a00; // Customize button color
+    color: #fff;
+    border: none;
+    &:hover {
+      background-color: #fc7c34;
+    }
+  }
+
+  .ant-dropdown-menu-item {
+    &:hover {
+      background-color: #f5f5f5; // Hover color
+    }
+  }
+
+  .ant-dropdown-menu-item-disabled {
+    color: #bfbfbf;
+    cursor: not-allowed;
+  }
+}

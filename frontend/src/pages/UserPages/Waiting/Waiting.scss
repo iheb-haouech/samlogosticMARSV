@@ -1,0 +1,48 @@
+@import "../../../styles/general/mixins.scss";
+@import "../../../styles/colors/colors.scss";
+
+.waiting-page {
+  display: flex;
+  &--image {
+    width: 50vw;
+    height: 100vh;
+    object-fit: cover;
+    border-radius: 5px;
+    flex: 0 0 auto;
+    @include respond(md) {
+      display: none;
+      margin-top: 5rem;
+    }
+
+    @include respond(sm) {
+      display: none;
+    }
+  }
+  .waiting-description {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    .content {
+      width: 70%;
+      display: flex;
+      flex-direction: column;
+      gap: 3%;
+      height: 50%;
+      .waiting-title {
+        color: var(--primary-500);
+      }
+      p {
+        font-family: "Inter";
+        color: var(--gray-500);
+        font-weight: 400;
+        font-size: 20px;
+        line-height: 1.5;
+
+        .user-name {
+          color: #6c757d;
+          font-weight: 800;
+        }
+      }
+    }
+  }
+}

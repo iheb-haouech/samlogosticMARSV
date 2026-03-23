@@ -1,0 +1,186 @@
+.order {
+  .order-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    margin: 0px;
+    margin-bottom: 0.5rem;
+  }
+
+  .order-title--date {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary-400);
+    margin-bottom: 0.5rem;
+    margin-top: 0.8rem;
+  }
+  p {
+    margin: 0rem;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+  }
+  &--delivering {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    width: 100%;
+    align-items: stretch;
+    .ant-card {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+
+    &-info {
+      min-width: 500px;
+      flex: 1;
+      &--head {
+        display: flex;
+        flex-direction: row;
+        gap: 1.5rem;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+      }
+
+      &--dates {
+        display: flex;
+        flex-direction: row;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        &-item {
+          min-width: 200px;
+        }
+      }
+    }
+    &-person {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 400px;
+      &--container {
+        display: flex;
+        gap: 2.5rem;
+        flex-direction: column;
+
+        .delivering-person-title {
+          color: var(--gray-600);
+          font-size: 0.875rem;
+          font-weight: 500;
+        }
+        &-left-section {
+          display: flex;
+          flex-direction: row;
+          align-items: start;
+          gap: 1.5rem;
+          h4 {
+            margin: 0px;
+            margin-top: 0.75rem;
+            font-size: 1rem;
+          }
+        }
+        &-right-section {
+          &-phone {
+            display: flex;
+            gap: 1rem 2rem;
+            flex-wrap: wrap;
+            .phone-icon {
+              display: inline-flex;
+              border: 1px solid var(--green-200);
+              border-radius: 50%;
+              width: 1.5rem;
+              height: 1.5rem;
+              align-items: center;
+              justify-content: center;
+              color: var(--green-600);
+            }
+            .phone-number {
+              margin: 1rem 0;
+              display: flex;
+              align-items: center;
+              gap: 0.5rem;
+              h3 {
+                margin: 0px;
+                color: var(--green-700);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  .order--details {
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+  .order--details-packages {
+    margin-top: 40px;
+  }
+  .order--partners--items {
+    display: flex;
+    gap: 3rem;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: start;
+  }
+  .order--details-btns {
+    gap: 0.5rem;
+    display: flex;
+  }
+  .order--details-btns-download {
+    background-color: var(--gray-100);
+    color: var(--secondary-400);
+  }
+  .order--details-btns-view {
+    background-color: var(--primary-50);
+    color: var(--primary-500);
+  }
+  .order--details-title {
+    font-size: 18px;
+    margin: 0px;
+    margin-bottom: 1rem;
+  }
+  .order--details-general {
+    margin-bottom: 1.5rem;
+    &-top-section {
+      display: flex;
+      column-gap: 4rem;
+      row-gap: 2rem;
+      margin-top: 2.25rem;
+      flex-wrap: wrap;
+
+      &-right,
+      &-left {
+        flex: 1;
+        display: flex;
+        gap: 1.5rem;
+        flex-direction: column;
+      }
+    }
+    &-item {
+      display: flex;
+      column-gap: 2rem;
+      text-align: start;
+      justify-content: space-between;
+      .order--details-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+        flex-direction: row-reverse;
+      }
+    }
+  }
+  .order--complaint-content {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+    align-items: center;
+    &-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--gray-700);
+      margin: 0px;
+    }
+  }
+}

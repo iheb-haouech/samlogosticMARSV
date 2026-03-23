@@ -1,0 +1,63 @@
+.header-component {
+  padding: 1rem;
+  background-color: var(--gray-50);
+  border-bottom: 1px solid var(--gray-200);
+
+  &__admin,
+  &__user {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  &__admin-company {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .company-details {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .header-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .trackingNumberText {
+    margin-bottom: 0px;
+    color: var(--secondary-300);
+  }
+  .trackingNumber {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .green-button {
+    background-color: white;
+    border-color: var(--green-500);
+    color: var(--green-500);
+
+    &:hover,
+    &:focus {
+      border-color: var(--green-300) !important;
+      color: var(--green-500) !important;
+    }
+  }
+}

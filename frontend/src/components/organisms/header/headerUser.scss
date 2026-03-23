@@ -1,0 +1,87 @@
+/* ================================================
+   HEADER USER - RESPONSIVE & DARK MODE
+   ================================================ */
+
+.header-user {
+  .user-avatar-header {
+    &:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(13, 44, 88, 0.3);
+    }
+  }
+
+  // Bouton hamburger
+  .ant-btn-text {
+    &:hover {
+      background: rgba(88, 144, 204, 0.1);
+    }
+  }
+}
+
+// ===================================
+// DARK MODE HEADER
+// ===================================
+
+[data-theme='dark'] {
+  .header-user {
+    border-bottom: 1px solid var(--border-color);
+    
+    .ant-btn-text {
+      color: var(--text-primary);
+      
+      &:hover {
+        background: var(--bg-hover);
+      }
+    }
+    
+    .user-avatar-header {
+      background: linear-gradient(135deg, #4a8fd9, #6fa8e3);
+    }
+  }
+}
+
+// ===================================
+// RESPONSIVE MOBILE
+// ===================================
+
+@media (max-width: 768px) {
+  .header-user {
+    padding: 0 12px !important;
+    
+    // Cacher texte "SAMLOGISTICS" sur mobile
+    > div:first-child > div:last-child > div:first-child {
+      font-size: 16px;
+    }
+    
+    > div:first-child > div:last-child > div:last-child {
+      display: none;
+    }
+    
+    // Réduire taille logo
+    img {
+      height: 32px !important;
+    }
+    
+    // Avatar plus petit
+    .user-avatar-header {
+      width: 36px;
+      height: 36px;
+    }
+    
+    .theme-toggle {
+      .ant-switch {
+        min-width: 36px;
+        height: 20px;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .header-user {
+    // Logo seulement sur très petit écran
+    > div:first-child > div:last-child > div {
+      display: none;
+    }
+  }
+}

@@ -1,0 +1,90 @@
+.header-container {
+  background-color: var(--white);
+  border-bottom: 1px solid var(--gray-100);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0px 2rem;
+  .header--user {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    .header--user-name {
+      font-size: 1rem;
+      font-weight: 500;
+      margin-bottom: 2px;
+      color: var(--gray-800);
+    }
+  }
+  .header--page-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    &-icon {
+      font-size: 20px;
+    }
+    &--title {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--gray-900);
+    }
+  }
+  .header--right-section {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 1rem;
+  }
+  // ===================================
+// DARK MODE TOGGLE IN NAVBAR
+// ===================================
+
+.header-container {
+  .header--right-section {
+    display: flex;
+    align-items: center;
+    gap: 20px; // Espacement entre éléments
+    
+    // Style du toggle
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+    }
+  }
+}
+
+// ===================================
+// DARK MODE NAVBAR
+// ===================================
+
+[data-theme='dark'] {
+  .header-container {
+    background: var(--bg-secondary) !important;
+    border-bottom: 1px solid var(--border-color);
+    
+    .header--page-label--title,
+    .header--user-name {
+      color: var(--text-primary);
+    }
+    
+    .header--page-label-icon {
+      color: var(--text-secondary);
+    }
+  }
+}
+
+// Responsive mobile
+@media (max-width: 768px) {
+  .header-container {
+    .header--right-section {
+      gap: 12px;
+      
+      .header--user-name {
+        display: none; // Cacher nom sur mobile
+      }
+    }
+  }
+}
+}

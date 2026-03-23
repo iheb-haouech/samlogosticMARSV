@@ -1,0 +1,25 @@
+@import "antd/dist/reset.css";
+
+.notfound {
+  top: 0;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  gap: 20px;
+
+  &__image {
+    width: 500px;
+    height: 700px;
+  }
+
+  &__text {
+    font-size: 24px;
+    font-weight: bold;
+  }
+}

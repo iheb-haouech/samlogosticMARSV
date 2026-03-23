@@ -1,0 +1,498 @@
+/* ================================================
+   TABLES PROFESSIONNELLES - SAMLOGISTICS
+   Charte graphique : Bleu #0d2c58, #5890cc
+   ================================================ */
+
+// ✅ Variables couleurs Samlogistics
+$primary-dark: #0d2c58;
+$primary-light: #5890cc;
+$background-light: #f5f7fa;
+$border-color: #e8ecf0;
+$hover-bg: #f0f7ff;
+$text-dark: #2c3e50;
+$text-light: #6c757d;
+
+// ===================================
+// TABLES - STYLE DESKTOP
+// ===================================
+
+.ant-table-wrapper {
+  .ant-table {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(13, 44, 88, 0.06);
+    background: #ffffff;
+  }
+  
+  // Headers modernes avec gradient bleu
+  .ant-table-thead > tr > th {
+    background: linear-gradient(135deg, $primary-dark 0%, #1a4578 100%);
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 16px 12px;
+    border-bottom: 2px solid $primary-light;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      background: linear-gradient(135deg, #1a4578 0%, $primary-dark 100%);
+    }
+
+    // Icônes de tri
+    .ant-table-column-sorter {
+      color: rgba(255, 255, 255, 0.7);
+    }
+  }
+  
+  // Lignes avec hover élégant
+  .ant-table-tbody > tr {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &:hover:not(.ant-table-expanded-row) {
+      background: $hover-bg !important;
+      box-shadow: 0 2px 12px rgba(13, 44, 88, 0.08);
+      transform: translateX(3px);
+    }
+    
+    > td {
+      padding: 14px 12px;
+      font-size: 13px;
+      color: $text-dark;
+      border-bottom: 1px solid $border-color;
+      font-family: 'Inter', sans-serif;
+    }
+  }
+  
+  // Lignes alternées subtiles
+  .ant-table-tbody > tr:nth-child(even):not(:hover) {
+    background: #fafbfc;
+  }
+
+  // Empty state
+  .ant-empty-description {
+    color: $text-light;
+    font-size: 14px;
+  }
+}
+
+// ===================================
+// BOUTONS ACTIONS ÉLÉGANTS
+// ===================================
+
+.table--action-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid #e0e6ed;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  
+  &:hover {
+    border-color: $primary-light;
+    background: $hover-bg;
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 16px rgba(88, 144, 204, 0.25);
+  }
+  
+  &:active {
+    transform: translateY(0) scale(0.98);
+  }
+  
+  .anticon, svg {
+    font-size: 16px;
+    color: #5a6c7d;
+    transition: color 0.2s ease;
+  }
+  
+  &:hover .anticon,
+  &:hover svg {
+    color: $primary-dark;
+  }
+}
+
+// Bouton View (bleu)
+.table--action-btn:first-child {
+  &:hover {
+    border-color: #1890ff;
+    background: #e6f4ff;
+    
+    .anticon, svg {
+      color: #1890ff;
+    }
+  }
+}
+
+// Bouton Edit (bleu Samlogistics)
+.table--action-btn:nth-child(2) {
+  &:hover {
+    border-color: $primary-light;
+    background: #e6f0ff;
+  }
+}
+
+// Bouton Delete (rouge)
+.table--action-btn.ant-btn-dangerous,
+button[danger] {
+  &:hover {
+    border-color: #ff4d4f;
+    background: #fff1f0;
+    
+    .anticon, svg {
+      color: #ff4d4f;
+    }
+  }
+}
+
+// ===================================
+// PAGINATION MODERNE
+// ===================================
+
+.ant-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 0;
+  gap: 8px;
+  font-family: 'Inter', sans-serif;
+  
+  .ant-pagination-item {
+    min-width: 36px;
+    height: 36px;
+    line-height: 34px;
+    border-radius: 8px;
+    border: 1px solid #d9dfe5;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    a {
+      color: $text-dark;
+    }
+    
+    &:hover {
+      border-color: $primary-light;
+      background: $hover-bg;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(88, 144, 204, 0.15);
+    }
+    
+    &.ant-pagination-item-active {
+      background: linear-gradient(135deg, $primary-dark 0%, $primary-light 100%);
+      border-color: transparent;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(13, 44, 88, 0.25);
+      
+      a {
+        color: #ffffff;
+      }
+      
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(13, 44, 88, 0.3);
+      }
+    }
+  }
+  
+  .ant-pagination-prev,
+  .ant-pagination-next {
+    min-width: 36px;
+    height: 36px;
+    line-height: 34px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    
+    &:not(.ant-pagination-disabled):hover {
+      border-color: $primary-light;
+      background: $hover-bg;
+      
+      .ant-pagination-item-link {
+        color: $primary-dark;
+      }
+    }
+    
+    &.ant-pagination-disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+  
+  // Total count
+  .ant-pagination-total-text {
+    font-size: 13px;
+    color: $text-light;
+    font-weight: 500;
+  }
+  
+  // Select page size
+  .ant-select {
+    .ant-select-selector {
+      border-radius: 8px;
+      border-color: #d9dfe5;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        border-color: $primary-light;
+        box-shadow: 0 2px 8px rgba(88, 144, 204, 0.15);
+      }
+    }
+  }
+}
+
+// ===================================
+// TAGS STATUS COLORÉS
+// ===================================
+
+.ant-tag {
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  border: none;
+  
+  &.ant-tag-success {
+    background: linear-gradient(135deg, #52c41a, #73d13d);
+    color: #ffffff;
+  }
+  
+  &.ant-tag-warning {
+    background: linear-gradient(135deg, #faad14, #ffc53d);
+    color: #ffffff;
+  }
+  
+  &.ant-tag-error {
+    background: linear-gradient(135deg, #ff4d4f, #ff7875);
+    color: #ffffff;
+  }
+  
+  &.ant-tag-processing {
+    background: linear-gradient(135deg, #1890ff, #40a9ff);
+    color: #ffffff;
+  }
+}
+
+// ===================================
+// SELECT & INPUTS DANS TABLES
+// ===================================
+
+.ant-select-small {
+  .ant-select-selector {
+    border-radius: 6px;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      border-color: $primary-light;
+    }
+  }
+}
+
+.ant-input-number {
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    border-color: $primary-light;
+  }
+  
+  &:focus-within {
+    border-color: $primary-light;
+    box-shadow: 0 0 0 2px rgba(88, 144, 204, 0.15);
+  }
+  
+  input {
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+// ===================================
+// TOOLTIPS
+// ===================================
+
+.ant-tooltip {
+  .ant-tooltip-inner {
+    background: $primary-dark;
+    border-radius: 6px;
+    font-size: 12px;
+    padding: 6px 12px;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  .ant-tooltip-arrow-content {
+    background: $primary-dark;
+  }
+}
+
+// ===================================
+// DROPDOWN FILTRES
+// ===================================
+
+.ant-dropdown-menu {
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+  padding: 8px;
+  
+  .ant-dropdown-menu-item {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    padding: 10px 16px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: $hover-bg;
+      color: $primary-dark;
+    }
+    
+    &.ant-dropdown-menu-item-selected {
+      background: linear-gradient(90deg, #e6f0ff, $hover-bg);
+      color: $primary-dark;
+      font-weight: 600;
+    }
+  }
+}
+
+// ===================================
+// NUMÉROTATION ÉLÉGANTE
+// ===================================
+
+.table-row-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e6f0ff, $hover-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  font-weight: 600;
+  color: $primary-dark;
+  font-size: 13px;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: linear-gradient(135deg, $primary-light, $primary-dark);
+    color: #ffffff;
+    transform: scale(1.1);
+  }
+}
+
+// ===================================
+// RESPONSIVE MOBILE
+// ===================================
+
+@media (max-width: 768px) {
+  .ant-table-wrapper {
+    .ant-table-thead > tr > th {
+      padding: 10px 6px !important;
+      font-size: 11px;
+    }
+    
+    .ant-table-tbody > tr {
+      > td {
+        padding: 10px 6px !important;
+        font-size: 12px;
+      }
+      
+      &:hover {
+        transform: translateX(0);
+      }
+    }
+  }
+  
+  .table--action-btn {
+    width: 30px;
+    height: 30px;
+    
+    .anticon, svg {
+      font-size: 14px;
+    }
+  }
+  
+  .ant-pagination {
+    padding: 16px 0;
+    flex-wrap: wrap;
+    
+    .ant-pagination-item,
+    .ant-pagination-prev,
+    .ant-pagination-next {
+      min-width: 32px;
+      height: 32px;
+      line-height: 30px;
+      margin: 2px;
+    }
+  }
+  
+  .table-row-number {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+}
+
+// ===================================
+// ANIMATION LOADING
+// ===================================
+
+.ant-spin-container.ant-spin-blur {
+  &::after {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(4px);
+  }
+}
+
+.ant-spin-dot-item {
+  background-color: $primary-light;
+}
+
+// ===================================
+// CARDS CONTENANT LES TABLES
+// ===================================
+
+.ant-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid $border-color;
+  
+  .ant-card-head {
+    border-bottom: 2px solid $border-color;
+    background: linear-gradient(to right, #fafbfc, #ffffff);
+    border-radius: 12px 12px 0 0;
+    
+    .ant-card-head-title {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      color: $primary-dark;
+      font-size: 16px;
+    }
+  }
+  
+  .ant-card-body {
+    padding: 0;
+  }
+}
+
+// ===================================
+// POPCONFIRM STYLE
+// ===================================
+
+.ant-popconfirm {
+  .ant-popover-inner-content {
+    font-family: 'Inter', sans-serif;
+    
+    .ant-btn-primary {
+      background: $primary-dark;
+      border-color: $primary-dark;
+      
+      &:hover {
+        background: $primary-light;
+        border-color: $primary-light;
+      }
+    }
+  }
+}

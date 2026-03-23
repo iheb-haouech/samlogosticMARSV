@@ -1,0 +1,30 @@
+.table--action-btn {
+  border-color: transparent;
+  background-color: transparent;
+}
+.Assign-delivery-btn {
+  display: flex;
+  align-content: center;
+  align-items: center;
+  gap: 4px;
+  justify-content: flex-start;
+  cursor: pointer;
+}
+.ant-table-tbody > tr:nth-child(odd) > td {
+  background-color: #fafafa;
+}
+.assign-delivery-btn {
+  padding: 0;
+  color: #545ddb !important;
+  font-weight: 600;
+
+  &:hover {
+    color: #000000 !important;
+    background-color: transparent;
+  }
+}
+
+.orders-container .assign-delivery-btn {
+  color: #000;
+  font-weight: 600;
+}

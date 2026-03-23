@@ -1,0 +1,30 @@
+.transporter-info-section {
+  display: flex;
+  gap: 20px;
+  .with-avatar {
+    display: flex;
+    flex-direction: row;
+    padding: 5px;
+    gap: 20px;
+  }
+  .info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    .title {
+      color: grey;
+    }
+  }
+  .info-section {
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+}
+.Orders-delivered-section {
+  margin-top: 30px;
+}
+.name {
+  font-weight: bold;
+}

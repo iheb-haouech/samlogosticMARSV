@@ -1,0 +1,353 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model user_role {
+  id       Int    @id @default(autoincrement())
+  roleName String
+  users    user[]
+}
+
+model company_type {
+  id       Int    @id @default(autoincrement())
+  typeName String
+  users    user[]
+}
+
+model user_pack {
+  id       Int    @id @default(autoincrement())
+  packName String
+  users    user[]
+}
+
+model car_type {
+  id       Int    @id @default(autoincrement())
+  typeName String
+  user     user[]
+}
+
+model company_activity {
+  id       Int    @id @default(autoincrement())
+  typeName String
+  user     user[]
+}
+
+model user_dispo {
+  id       Int     @id @default(autoincrement())
+  goingTo  String?
+  startDay String?
+  endDay   String?
+  startAt  String?
+  endAt    String?
+  comment  String?
+  user     user?   @relation(fields: [userId], references: [id])
+  userId   Int?    @unique
+}
+
+model EmailVerificationCode {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+
+  user user @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model user {
+  id                 Int     @id @default(autoincrement())
+  firstName          String? @db.VarChar(20)
+  lastName           String? @db.VarChar(20)
+  phone              String? @db.VarChar(20)
+  phoneCountryCode   String? @db.VarChar(20)
+  email              String  @unique @db.VarChar(100)
+  companyName        String? @db.VarChar(50)
+  city               String? @db.VarChar(20)
+  country            String? @db.VarChar(20)
+  address            String? @db.VarChar(50)
+  zipCode            String? @db.VarChar(50)
+  websiteUrl         String? @db.VarChar(50)
+  commercialRegister String? @db.VarChar(20)
+  patent             String? @db.VarChar(20)
+  verified           Boolean @default(false)
+  password           String  @db.VarChar(255)
+  resetPasswordToken String? @db.VarChar(255)
+  carNumber          String?
+  carWidth           Float?
+  carHeight          Float?
+  carWeight          Float?
+
+  // company type relation
+  carType           car_type?         @relation(fields: [carTypeId], references: [id])
+  carTypeId         Int?
+  // company type relation
+  companyType       company_type?     @relation(fields: [companyTypeId], references: [id])
+  companyTypeId     Int?
+  // company type relation
+  companyActivity   company_activity? @relation(fields: [companyActivityId], references: [id])
+  companyActivityId Int?
+
+  // user pack
+  userPack   user_pack? @relation(fields: [userPackId], references: [id])
+  userPackId Int?
+  // role relation
+  role       user_role? @relation(fields: [roleId], references: [id])
+  roleId     Int?       @default(3)
+
+  // One-to-one
+  disponibility user_dispo?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // orders relations
+  deliverOrders          order[]                 @relation("deliverOrders")
+  createOrders           order[]                 @relation("createOrders")
+  claims                 claim[]                 @relation()
+  claim_message          claim_message[]         @relation()
+  // 👇 relation inverse vers les codes d’email
+  emailVerificationCodes EmailVerificationCode[]
+  vehicleNumber  String?  
+  vehicleSize    String?  // "small", "medium", "large"
+  maxWeightKg    Int?
+}
+
+// Order ***********************************
+
+model order_pod {
+  id        String   @id @default(uuid())
+  orderId   String // Foreign key referencing the `order` model
+  order     order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  podUrl    String   @db.VarChar(500) // Example field for the proof of delivery URL
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model order_invoice {
+  id            Int     @id @default(autoincrement())
+  matricule     String?
+  totalHt       Float? // Total price excluding tax
+  tva           Float? // Value-added tax
+  ttc           Float? // Total price including tax
+  timbreFiscale Float?
+  net           Float?
+  invoiceType   Int? // Role ID for invoice type
+
+  from        DateTime?
+  to          DateTime?
+  // Relations with user
+  generatedBy Int?
+
+  generatedFor Int?
+
+  orders    order[]   @relation("orderInvoices")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+model order_prices_status {
+  id               Int     @id @default(autoincrement())
+  statusName       String? @db.VarChar(20)
+  orderClient      order[] @relation("clientPriceStatus")
+  orderTransporter order[] @relation("transporterPriceStatus")
+}
+
+model order {
+  id          String  @id @default(uuid())
+  trackingId  String? @unique
+  description String? @db.VarChar(500)
+  totalWeight Float?
+  totalLength Float?
+  totalWidth  Float?
+  totalHeight Float?
+  totalPrice  Float?
+
+  clientPrice         Float?
+  clientPriceStatus   order_prices_status? @relation("clientPriceStatus", fields: [clientPriceStatusId], references: [id])
+  clientPriceStatusId Int?                 @default(1)
+
+  transporterPrice         Float?
+  transporterPriceStatus   order_prices_status? @relation("transporterPriceStatus", fields: [transporterPriceStatusId], references: [id])
+  transporterPriceStatusId Int?                 @default(1)
+
+  totalQuantity     Float?
+  shipmentPrice     Float?
+  etd               DateTime?
+  eta               DateTime?
+  refrences         String[]
+  // Status of order: created, delivered ...
+  status            order_status?    @relation(fields: [orderStatusId], references: [id])
+  orderStatusId     Int?             @default(1)
+  // who created it relation
+  createdBy         user?            @relation("createOrders", fields: [createdByUserId], references: [id], onDelete: Cascade)
+  createdByUserId   Int?
+  // who will deliver this order
+  deliveredBy       user?            @relation("deliverOrders", fields: [deliveredByUserId], references: [id], onDelete: Cascade)
+  deliveredByUserId Int?
+  // One-to-one relation with order_recipient
+  source            order_source?
+  recipient         order_recipient?
+  // packages relation: each order has many packages
+  packages          order_packages[]
+
+  // Relation: One order can have multiple proofs of delivery
+  pods order_pod[]
+
+  // claims
+  claims         claim[]
+  startTransitAt DateTime?
+  deliveredAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  order_invoice order_invoice[] @relation("orderInvoices")
+
+  paymentRequired   Boolean  @default(false)  // Admin coche
+  paymentAmount     Float?
+  paymentStatus     String?  // pending/paid/failed/manual
+  stripeSessionId   String?
+}
+
+model order_source {
+  id            Int     @id @default(autoincrement())
+  companyName   String?
+  phone         String?
+  city          String?
+  country       String?
+  streetAddress String?
+  secondAddress String?
+  zipCode       String?
+  email         String?
+
+  // One-to-one relation with order
+  order   order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId String @unique
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+model order_recipient {
+  id            Int     @id @default(autoincrement())
+  companyName   String?
+  phone         String?
+  city          String?
+  country       String?
+  streetAddress String?
+  secondAddress String?
+  zipCode       String?
+  email         String?
+
+  // One-to-one relation with order
+  order   order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId String @unique
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+model order_packages {
+  id       Int     @id @default(autoincrement())
+  width    Float?
+  length   Float?
+  height   Float?
+  weight   Float?
+  price    Float?
+  quantity Int?
+  // relations
+  order    order?  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId  String?
+
+  references oder_packages_reference[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+model oder_packages_reference {
+  id            Int             @id @default(autoincrement())
+  referenceName String?
+  quantity      Int?
+  // relations
+  package       order_packages? @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  packageId     Int?
+}
+
+model order_status {
+  id         Int     @id @default(autoincrement())
+  statusName String? @db.VarChar(20)
+  order      order[]
+}
+
+model article {
+  id          Int      @id @default(autoincrement())
+  title       String?  @unique
+  description String?
+  category    String?
+  body        String
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model claim_status {
+  id         Int     @id @default(autoincrement())
+  statusName String?
+  claims     claim[]
+}
+
+model claim_photos {
+  id  Int     @id @default(autoincrement())
+  url String?
+
+  claim_message  claim_message? @relation(fields: [claimMessageId], references: [id], onDelete: Cascade)
+  claimMessageId Int?
+
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+model claim_message {
+  id             Int            @id @default(autoincrement())
+  messageContent String?
+  claim          claim?         @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  claimId        Int?
+  sender         user?          @relation(fields: [senderId], references: [id])
+  senderId       Int?
+  photos         claim_photos[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @default(now()) @updatedAt
+}
+
+model claim {
+  id            Int             @id @default(autoincrement())
+  subject       String?
+  description   String?
+  messages      claim_message[]
+  status        claim_status?   @relation(fields: [statusId], references: [id])
+  statusId      Int?            @default(1)
+  order         order?          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId       String?
+  creator       user?           @relation(fields: [creatorUserId], references: [id], onDelete: Cascade)
+  creatorUserId Int?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @default(now()) @updatedAt
+  deletedAt     DateTime?
+}

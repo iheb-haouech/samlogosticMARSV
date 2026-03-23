@@ -1,0 +1,26 @@
+.invoice-form--container {
+  padding: 2rem;
+  border-radius: 1rem;
+  background-color: var(--gray-50);
+}
+.invoice-form--title {
+  margin-bottom: 2rem;
+}
+.invoice-form--content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  column-gap: 2rem;
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+  align-items: center;
+  column-gap: 2rem;
+}
+.invoice-form--generate-btn {
+  margin-top: 1rem;
+}
+.Assign-user-container {
+  padding: 0.5rem;
+  background-color: var(--white);
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+}

@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vanlog-icon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Samlogistics - Ship. Track. Deliver</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+      integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+      crossorigin=""
+    />
+
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script
+      src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+      integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+      crossorigin=""
+    ></script>
+    <style>
+  /* Dark Mode Direct */
+  [data-theme='dark'] body,
+  [data-theme='dark'] #root {
+    background: #0f1419 !important;
+    color: #e8eaed !important;
+  }
+  
+  [data-theme='dark'] .ant-card,
+  [data-theme='dark'] .ant-card-body {
+    background: #1a1f28 !important;
+    border: 1px solid #2d3441 !important;
+  }
+  
+  [data-theme='dark'] .ant-card * {
+    color: #e8eaed !important;
+  }
+  
+  [data-theme='dark'] input,
+  [data-theme='dark'] .ant-input {
+    background: #242a35 !important;
+    border-color: #2d3441 !important;
+    color: #e8eaed !important;
+  }
+  
+  [data-theme='dark'] .ant-table-tbody td {
+    color: #e8eaed !important;
+  }
+  
+  [data-theme='dark'] div[style*="background"] {
+    background: #1a1f28 !important;
+  }
+    /* Dark Mode Direct - Version existante */
+  [data-theme='dark'] body,
+  [data-theme='dark'] #root {
+    background: #0f1419 !important;
+    color: #e8eaed !important;
+  }
+  
+  [data-theme='dark'] .ant-card,
+  [data-theme='dark'] .ant-card-body {
+    background: #1a1f28 !important;
+    border: 1px solid #2d3441 !important;
+  }
+  
+  [data-theme='dark'] .ant-card * {
+    color: #e8eaed !important;
+  }
+  
+  [data-theme='dark'] input,
+  [data-theme='dark'] .ant-input {
+    background: #242a35 !important;
+    border-color: #2d3441 !important;
+    color: #e8eaed !important;
+  }
+  
+  [data-theme='dark'] .ant-table-tbody td {
+    color: #e8eaed !important;
+  }
+  
+  [data-theme='dark'] div[style*="background"] {
+    background: #1a1f28 !important;
+  }
+  
+  /* ===============================================
+     FIX FINAL - INPUTS ET STATUT
+     =============================================== */
+  
+  /* TOUS les inputs (text, email, password, number, search) */
+  [data-theme='dark'] input[type="text"],
+  [data-theme='dark'] input[type="email"],
+  [data-theme='dark'] input[type="password"],
+  [data-theme='dark'] input[type="number"],
+  [data-theme='dark'] input[type="search"],
+  [data-theme='dark'] input[type="tel"],
+  [data-theme='dark'] input[type="url"] {
+    background: #242a35 !important;
+    background-color: #242a35 !important;
+    border: 1px solid #2d3441 !important;
+    color: #e8eaed !important;
+  }
+  
+  /* Input focus */
+  [data-theme='dark'] input:focus,
+  [data-theme='dark'] .ant-input:focus {
+    background: #242a35 !important;
+    border-color: #6fa8e3 !important;
+    box-shadow: 0 0 0 2px rgba(74, 143, 217, 0.2) !important;
+  }
+  
+  /* Input placeholder */
+  [data-theme='dark'] input::placeholder,
+  [data-theme='dark'] .ant-input::placeholder {
+    color: #6c737a !important;
+    opacity: 1;
+  }
+  
+  /* Input affix wrapper (avec icônes) */
+  [data-theme='dark'] .ant-input-affix-wrapper {
+    background: #242a35 !important;
+    border-color: #2d3441 !important;
+  }
+  
+  [data-theme='dark'] .ant-input-affix-wrapper input {
+    background: transparent !important;
+    color: #e8eaed !important;
+  }
+  
+  [data-theme='dark'] .ant-input-affix-wrapper:focus,
+  [data-theme='dark'] .ant-input-affix-wrapper-focused {
+    background: #242a35 !important;
+    border-color: #6fa8e3 !important;
+    box-shadow: 0 0 0 2px rgba(74, 143, 217, 0.2) !important;
+  }
+  
+  /* Input password avec icône œil */
+  [data-theme='dark'] .ant-input-password {
+    background: #242a35 !important;
+    border-color: #2d3441 !important;
+  }
+  
+  [data-theme='dark'] .ant-input-password input {
+    background: transparent !important;
+    color: #e8eaed !important;
+  }
+  
+  /* Icônes dans inputs (préfixes/suffixes) */
+  [data-theme='dark'] .ant-input-prefix,
+  [data-theme='dark'] .ant-input-suffix,
+  [data-theme='dark'] .anticon {
+    color: #9ba1a6 !important;
+  }
+  
+  /* COLONNE STATUT - Cellules avec background blanc */
+  [data-theme='dark'] .ant-table-tbody > tr > td {
+    background: transparent !important;
+    background-color: transparent !important;
+    color: #e8eaed !important;
+    border-bottom: 1px solid #2d3441 !important;
+  }
+  
+  /* Override pour divs/spans dans cellules */
+  [data-theme='dark'] .ant-table-tbody > tr > td div,
+  [data-theme='dark'] .ant-table-tbody > tr > td span,
+  [data-theme='dark'] .ant-table-tbody > tr > td p {
+    background: transparent !important;
+    background-color: transparent !important;
+    color: #e8eaed !important;
+  }
+  
+  /* Tags de statut dans table */
+  [data-theme='dark'] .ant-table-tbody .ant-tag {
+    color: #ffffff !important;
+    border: none !important;
+  }
+  
+  [data-theme='dark'] .ant-table-tbody .ant-tag * {
+    color: #ffffff !important;
+  }
+  
+  /* Tag par défaut (gris) */
+  [data-theme='dark'] .ant-table-tbody .ant-tag-default {
+    background: #242a35 !important;
+    color: #e8eaed !important;
+  }
+  
+  /* Boutons dans cellules */
+  [data-theme='dark'] .ant-table-tbody button {
+    background: #242a35 !important;
+    border: 1px solid #2d3441 !important;
+    color: #e8eaed !important;
+  }
+  
+  [data-theme='dark'] .ant-table-tbody button:hover {
+    background: #2d3441 !important;
+    border-color: #4a8fd9 !important;
+    color: #6fa8e3 !important;
+  }
+  
+  /* Select dans table */
+  [data-theme='dark'] .ant-table-tbody .ant-select-selector {
+    background: #242a35 !important;
+    border-color: #2d3441 !important;
+    color: #e8eaed !important;
+  }
+  
+  /* Inputs dans table */
+  [data-theme='dark'] .ant-table-tbody input {
+    background: #242a35 !important;
+    border-color: #2d3441 !important;
+    color: #e8eaed !important;
+  }
+  
+  /* Override ABSOLU pour backgrounds blancs inline */
+  [data-theme='dark'] *[style*="background: white"],
+  [data-theme='dark'] *[style*="background:white"],
+  [data-theme='dark'] *[style*="background: #fff"],
+  [data-theme='dark'] *[style*="background:#fff"],
+  [data-theme='dark'] *[style*="background: #ffffff"],
+  [data-theme='dark'] *[style*="background:#ffffff"],
+  [data-theme='dark'] *[style*="backgroundColor: white"],
+  [data-theme='dark'] *[style*="backgroundColor:#fff"],
+  [data-theme='dark'] *[style*="backgroundColor: rgb(255, 255, 255)"] {
+    background: #1a1f28 !important;
+    background-color: #1a1f28 !important;
+  }
+  
+  /* Textarea */
+  [data-theme='dark'] textarea,
+  [data-theme='dark'] .ant-input-textarea textarea {
+    background: #242a35 !important;
+    border-color: #2d3441 !important;
+    color: #e8eaed !important;
+  }
+  
+  [data-theme='dark'] textarea:focus {
+    background: #242a35 !important;
+    border-color: #6fa8e3 !important;
+  }
+  
+  /* Select */
+  [data-theme='dark'] .ant-select-selector {
+    background: #242a35 !important;
+    border-color: #2d3441 !important;
+    color: #e8eaed !important;
+  }
+  
+  [data-theme='dark'] .ant-select-selection-search-input {
+    background: transparent !important;
+    color: #e8eaed !important;
+  }
+  
+  [data-theme='dark'] .ant-select-selection-item {
+    color: #e8eaed !important;
+  }
+  
+  [data-theme='dark'] .ant-select-selection-placeholder {
+    color: #6c737a !important;
+  }
+
+</style>
+
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

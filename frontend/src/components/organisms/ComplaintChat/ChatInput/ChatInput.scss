@@ -1,0 +1,13 @@
+.message-section__input {
+  display: flex;
+  padding: 10px;
+  border-top: 1px solid var(--gray-200);
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  gap: 0.5rem;
+  .ant-input {
+    margin-right: 10px;
+    flex: 1;
+  }
+}

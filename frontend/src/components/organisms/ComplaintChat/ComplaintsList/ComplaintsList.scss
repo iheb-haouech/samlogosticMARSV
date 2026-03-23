@@ -1,0 +1,25 @@
+.complaints-container {
+  width: 30%;
+  min-width: 290px;
+  max-width: 100%;
+  border-right: 1px solid var(--gray-200);
+  background-color: var(--gray-50);
+  overflow: hidden;
+
+  .complaints-search {
+    margin: 10px;
+  }
+  .complaints-list {
+    overflow-y: auto;
+    height: calc(
+      100vh - 260px
+    ); /*nh Replace 42px with the needed height. 100vh means the whole height of the browser's viewport */
+    height: -webkit-calc(100vh - 260px);
+    height: -moz-calc(100vh - 260px);
+    padding: 2px;
+    // padding-bottom: 250px;
+  }
+  .complaints-tab-list {
+    margin: 12px;
+  }
+}
