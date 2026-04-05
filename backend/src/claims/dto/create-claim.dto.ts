@@ -43,7 +43,7 @@ export class CreateClaimDto {
   statusId?: number;
 
   @ApiProperty()
-  orderId?: number;
+  orderId?: string;
 
   @ApiProperty({ type: () => CreateClaimMsgDto, isArray: true })
   messages: [CreateClaimMsgDto] | undefined | any;

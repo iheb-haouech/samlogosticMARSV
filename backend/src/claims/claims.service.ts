@@ -1,59 +1,62 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { AddClaimMsgDto, CreateClaimDto } from './dto/create-claim.dto';
 import { UpdateClaimDto } from './dto/update-claim.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
+
 export class ClaimsService {
   constructor(
     private prisma: PrismaService,
     private authService: AuthService,
-  ) {}
+  ) 
+  {}
+  
+  
   async create(userToken: string, createClaimDto: CreateClaimDto) {
     //get who create it
+    
     const { accessToken, user } = await this.authService.getAuthUser(userToken);
-    return this.prisma.claim.create({
-      data: {
-        ...createClaimDto,
-        creatorUserId: user?.id,
-        messages: createClaimDto?.messages
-          ? {
-              create: createClaimDto?.messages?.map((msg: any) => ({
-                ...msg,
-                photos: msg?.photos
-                  ? {
-                      create: msg?.photos?.map((photo: any) => photo),
-                    }
-                  : undefined,
-              })),
-            }
-          : undefined,
-      } as any,
-      include: {
-        messages: {
-          include: {
-            photos: true,
-            sender: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                email: true,
-                roleId: true,
-              },
-            },
-          } as any,
-        },
-      },
-    });
+  if (!user) {
+    throw new UnauthorizedException("User not found");
   }
+
+  // 🔴 check order exists
+  const order = await this.prisma.order.findUnique({
+    where: { id: String(createClaimDto.orderId) },
+  });
+
+  if (!order) {
+    throw new BadRequestException("Order not found");
+  }
+    return this.prisma.claim.create({
+  data: {
+    subject: createClaimDto.subject,
+    description: createClaimDto.description || "",
+
+    status: {
+      connect: { id: 1 },
+    },
+
+    order: {
+      connect: { id: createClaimDto.orderId },
+    },
+
+    creator: {
+      connect: { id: user.id },
+    },
+  },
+});
+  }
+  
 
   async createMessage(addClaimDto: AddClaimMsgDto) {
     return this.prisma.claim_message.create({
       data: addClaimDto,
     });
   }
+  
 
   async findAll(
     userToken: string,

@@ -27,6 +27,7 @@ async function main() {
   await InitUsers(prisma);
   // INIT claim statuses
   await InitClaimStatuses(prisma);
+  
 }
 
 // execute the main function

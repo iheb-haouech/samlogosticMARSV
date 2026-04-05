@@ -39,6 +39,8 @@ const ComplaintsList: React.FC<ComplaintsListProps> = ({
   const { t } = useTranslation();
   const [selectedComplaint, setSelectedComplaint] = useState(defaultSelectedComplaintId);
   const statistics: any = useSelector(selectedStatistic);
+  console.log("ADMIN CLAIMS:", complaints);
+
 
   useEffect(() => {
     setSelectedComplaint(defaultSelectedComplaintId);
@@ -71,6 +73,7 @@ const ComplaintsList: React.FC<ComplaintsListProps> = ({
             padding: "0 8px",
           }}
         >
+        
           {isloading ? (
             <Spin style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }} />
           ) : complaints.length === 0 ? (
@@ -93,6 +96,7 @@ const ComplaintsList: React.FC<ComplaintsListProps> = ({
                   key={complaint.id}
                   id={complaint.id}
                   title={complaint.subject}
+                  description={complaint.messages?.[0]?.messageContent}   // ✅ ADD THIS
                   date={formatDate(complaint.createdAt)}
                   onClick={() => onSelectComplaint(complaint)}
                   isSelected={selectedComplaint === complaint.id}

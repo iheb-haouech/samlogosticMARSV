@@ -19,7 +19,7 @@ services:
 
   frontend:
     profiles: ["prod"]
-    image: hassenamri005/vanlog:frontend
+    image: yourdocker/samlogistic-frontend
     build:
       context: .
       dockerfile: Dockerfile.prod

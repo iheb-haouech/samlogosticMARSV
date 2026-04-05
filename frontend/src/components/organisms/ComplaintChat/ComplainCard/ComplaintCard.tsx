@@ -5,6 +5,7 @@ import Title from "antd/es/typography/Title";
 interface ComplaintCardProps {
   id: number;
   title: string;
+  description?: string;
   date: string;
   status: string;
   onClick: () => void;
@@ -12,7 +13,7 @@ interface ComplaintCardProps {
   isAdmin: boolean;
 }
 
-const ComplaintCard: React.FC<ComplaintCardProps> = ({ title, date, onClick, isSelected, status }) => {
+const ComplaintCard: React.FC<ComplaintCardProps> = ({ title, date, onClick, isSelected, status, description }) => {
   return (
     <Card
       className={`complaint-card ${isSelected ? "complaint-card--selected" : ""}`}
@@ -22,7 +23,12 @@ const ComplaintCard: React.FC<ComplaintCardProps> = ({ title, date, onClick, isS
     >
       <Tag color={status === "Closed" || status === "Resolved" ? "green" : "volcano"}>{status}</Tag>
       <Title level={5} className='complaint-card--title'>
-        {title}
+        <div>
+          <b>{title}</b>
+          <p style={{ color: "#888", margin: 0 }}>
+            {description || "No description"}
+          </p>
+        </div>
       </Title>
       <p className='complaint-card--date'>{date}</p>
     </Card>

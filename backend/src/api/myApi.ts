@@ -326,8 +326,7 @@ export interface CreateClaimMsgDto {
 export interface CreateClaimDto {
   subject: string;
   description: string;
-  statusId: number;
-  orderId: number;
+  orderId: string;
   messages: CreateClaimMsgDto[];
 }
 

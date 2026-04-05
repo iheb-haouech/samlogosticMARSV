@@ -542,7 +542,16 @@ const OrderInfo = ({ order, orderStatuses, addComplaint = () => {}, isAdmin }: O
         isCreateComplaintModaOpen={isCreateComplaintModaOpen}
         onCreateComplaintModaClose={() => setIsCreateComplaintModaOpen(false)}
         createComplaint={(values: any) => {
-          addComplaint(values);
+        console.log("VALUES RECEIVED IN ORDER:", values); 
+    addComplaint({
+      subject: values.subject,
+      orderId: order?.id, // ⚠️ IMPORTANT
+      messages:  [
+  {
+    messageContent: values.messageContent || "",
+  },
+],
+    });
           setIsCreateComplaintModaOpen(false);
         }}
       />

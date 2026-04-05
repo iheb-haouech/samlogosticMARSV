@@ -40,7 +40,7 @@ const ComplaintsChat: React.FC = () => {
     store.dispatch(setLoading(true));
     store.dispatch(fetchAllComplaints());
   }, []);
-
+  console.log("REDUX COMPLAINTS:", complaints);
   useEffect(() => {
     if (complaints.length > 0 && !selectedComplaintId) {
       setSelectedComplaintId(complaints[0].id);

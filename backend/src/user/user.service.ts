@@ -145,6 +145,22 @@ export class UserService {
     delete user?.resetPasswordToken;
     return user;
   }
+  async getAllInvoices(query?: any) {
+    const { from, to, userId } = query || {};
+
+  return this.prisma.order_invoice.findMany({
+    where: {
+      ...(userId && { generatedFor: Number(userId) }),
+      ...(from && to && {
+        createdAt: {
+          gte: new Date(from),
+          lte: new Date(to),
+        },
+      }),
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
   async findUserOrdersInvoices(
     id: number,
     page: number = 1,
@@ -161,6 +177,7 @@ export class UserService {
       skip,
       take: limit,
     });
+    
 
     const totalCount = await this.prisma.order_invoice.count({
       where: {
@@ -340,13 +357,81 @@ export class UserService {
     // Converts '2025-02-13' → '13-02-2025'
   }
 
+  async generateInvoiceData(
+  providerId: number,
+  from: any,
+  to: any,
+  invoiceType: number,
+) {
+  const user = await this.prisma.user.findUnique({
+    where: { id: providerId },
+  });
+
+  let conditions: any = {};
+  let userType: string = "";
+
+  if (user?.roleId == 3) {
+    conditions.createdByUserId = providerId;
+    userType = "Client";
+  } else if (user?.roleId == 2) {
+    conditions.deliveredByUserId = providerId;
+    userType = "Transporteur";
+  }
+
+  if (from) conditions.startTransitAt = { gte: new Date(from) };
+  if (to) conditions.deliveredAt = { lte: new Date(to) };
+
+  const orders = await this.prisma.order.findMany({
+    where: {
+      orderStatusId: { in: [3, 4] },
+      ...conditions,
+    },
+  });
+
+  if (!orders.length) return null;
+
+  const totalHt = orders.reduce(
+    (sum, o) => sum + (+o.clientPrice || 0),
+    0,
+  );
+
+  const tva = (totalHt * 0.07).toFixed(3);
+  const ttc = (parseFloat(tva) + totalHt).toFixed(3);
+  const net = (parseFloat(ttc) + 1).toFixed(3);
+
+  return {
+    user,
+    orders,
+    totalHt,
+    tva,
+    ttc,
+    net,
+    userType,
+    from,
+    to,
+  };
+}
+
+async generateInvoicePdf(userId, from, to, type) {
+  const data = await this.generateInvoiceData(userId, from, to, type);
+  if (!data) {
+    throw new Error("No data found for this invoice");
+  }
+  const template =
+    type == 3 ? "facture-client.hbs" : "facture-transporteur.hbs";
+
+  return this.generatePdf(data, template, "invoice.pdf");
+}
+
   async getProvidersInvoice(
     providerId: number,
     from: any,
     to: any,
     invoiceType: any,
     res: any,
-  ) {
+  ) 
+  
+  {
     try {
       // Fetch the provider's details from the database
       const user = await this.prisma.user.findUnique({
@@ -367,12 +452,12 @@ export class UserService {
       }
 
       // Add date range filters if provided
-      if (from !== undefined) {
-        conditions.startTransitAt = { gte: from }; // Orders starting on or after `from`
+      if (from) {
+        conditions.startTransitAt = { gte: new Date(from) }; // Orders starting on or after `from`
       }
 
-      if (to !== undefined) {
-        conditions.OR = [{ deliveredAt: { lte: to } }, { deliveredAt: null }]; // Orders delivered on or before `to` or not yet delivered
+      if (to) {
+        conditions.deliveredAt = { lte: new Date(to) }; // Orders delivered on or before `to`
       }
 
       // Fetch orders matching the conditions

@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 interface CreateComplaintModalProps {
   isCreateComplaintModaOpen: boolean;
   onCreateComplaintModaClose: () => void;
-  createComplaint: (values: { subject: string; message: string }) => void;
+  createComplaint: (values: { subject: string; messageContent: string }) => void;
 }
 
 const CreateComplaintModal = ({
@@ -18,11 +18,17 @@ const CreateComplaintModal = ({
   const { t } = useTranslation();
   const [form] = Form.useForm();
 
-  const onFinish = (values: { subject: string; message: string }) => {
-    createComplaint(values);
-    form.resetFields();
-    onCreateComplaintModaClose();
-  };
+const onFinish = (values: any) => {
+  console.log("FORM VALUES:", values);
+
+  createComplaint({
+    subject: values.subject,
+    messageContent: values.messageContent,
+  });
+
+  form.resetFields();
+  onCreateComplaintModaClose();
+};
 
   return (
     <Modal
@@ -57,8 +63,8 @@ const CreateComplaintModal = ({
             <Input id='subject' placeholder={"Subject"} type='text' />
           </Form.Item>
           <Form.Item
-            label={"Message"}
-            name='message'
+            label={"Description"}
+            name='messageContent'
             rules={[
               {
                 required: true,

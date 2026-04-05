@@ -23,7 +23,8 @@ import DisplayUsersListModal from "../../../components/molecules/Modals/DisplayU
 import { generateProviderFacture } from "../../../services/generate_pdf";
 import { useTranslation } from "react-i18next";
 import InvoiceCard from "../../../components/templates/Forms/InvoiceForm/InvoiceCard";
-import "./Invoices.css"; // Import the CSS file
+import InvoicesList from "./InvoicesList"; // ✅ NEW
+import "./Invoices.css";
 
 const Invoices: React.FC = () => {
   const { t } = useTranslation();
@@ -56,7 +57,8 @@ const Invoices: React.FC = () => {
   };
 
   const handleTabChange = (key: string) => {
-    setCurrentUserType(key === "1" ? "l'entreprise" : "livreur");
+    if (key === "2") setCurrentUserType("l'entreprise");
+    if (key === "3") setCurrentUserType("livreur");
   };
 
   useEffect(() => {
@@ -65,8 +67,16 @@ const Invoices: React.FC = () => {
   }, [currentUserType]);
 
   const items: TabsProps["items"] = [
+    // ✅ NEW TAB
     {
       key: "1",
+      label: "All Invoices",
+      children: <InvoicesList />,
+    },
+
+    // PROVIDER
+    {
+      key: "2",
       label: t("provider_invoice"),
       children: (
         <>
@@ -76,7 +86,12 @@ const Invoices: React.FC = () => {
             selectedUser={selectedUser}
             onGenerateInvoice={(values: any) => {
               if (selectedUser)
-                generateProviderFacture(selectedUser.id.toString(), values.from, values.to, values?.invoiceType);
+                generateProviderFacture(
+                  selectedUser.id.toString(),
+                  values.from,
+                  values.to,
+                  values?.invoiceType
+                );
               setSelectedUser(null);
             }}
             isAdmin={true}
@@ -86,12 +101,15 @@ const Invoices: React.FC = () => {
             }}
             setInvoiceData={setInvoiceData}
           />
+
           <DisplayUsersListModal
             userType="l'entreprise"
             users={providers}
             handleClose={() => setIsUsersListModalOpen(false)}
             isloading={providersStatus === "loading"}
-            isDisplayUsersListModalOpen={isUsersListModalOpen && currentUserType === "l'entreprise"}
+            isDisplayUsersListModalOpen={
+              isUsersListModalOpen && currentUserType === "l'entreprise"
+            }
             onSelectUser={handleSelectUserToGenerateInvoice}
             loadMoreUsers={onLoadMoreProviders}
             isLoadMore={totalCountProviders <= loadMoreProvidersLimit}
@@ -100,18 +118,25 @@ const Invoices: React.FC = () => {
         </>
       ),
     },
+
+    // TRANSPORTER
     {
-      key: "2",
+      key: "3",
       label: t("transporter_invoice"),
       children: (
         <>
           <InvoiceForm
-            userType='livreur'
+            userType="livreur"
             invoiceType={4}
             selectedUser={selectedUser}
             onGenerateInvoice={(values: any) => {
               if (selectedUser)
-                generateProviderFacture(selectedUser.id.toString(), values.from, values.to, values?.invoiceType);
+                generateProviderFacture(
+                  selectedUser.id.toString(),
+                  values.from,
+                  values.to,
+                  values?.invoiceType
+                );
               setSelectedUser(null);
             }}
             isAdmin={true}
@@ -121,16 +146,19 @@ const Invoices: React.FC = () => {
             }}
             setInvoiceData={setInvoiceData}
           />
+
           <DisplayUsersListModal
             users={transporters}
             handleClose={() => setIsUsersListModalOpen(false)}
             isloading={_transportersStatus === "loading"}
-            isDisplayUsersListModalOpen={isUsersListModalOpen && currentUserType === "livreur"}
+            isDisplayUsersListModalOpen={
+              isUsersListModalOpen && currentUserType === "livreur"
+            }
             onSelectUser={handleSelectUserToGenerateInvoice}
             loadMoreUsers={onLoadMoreTransporter}
             isLoadMore={totalCountTransporters <= loadMoreTransportersLimit}
             onSearchUserChange={(value: any) => console.log(value)}
-            userType='livreur'
+            userType="livreur"
           />
         </>
       ),
@@ -138,31 +166,39 @@ const Invoices: React.FC = () => {
   ];
 
   return (
-    <div className='scrollable-content'>
-      <div>
-        <Tabs defaultActiveKey='1' items={items} onChange={handleTabChange} />
-      </div>
-      <InvoiceCard
-        data={invoiceData}
-        users={currentUserType === "l'entreprise" ? providers : transporters}
-        isloading={
-          currentUserType === "l'entreprise" ? providersStatus === "loading" : _transportersStatus === "loading"
-        }
-        loadMoreUsers={currentUserType === "l'entreprise" ? onLoadMoreProviders : onLoadMoreTransporter}
-        isLoadMore={
-          currentUserType === "l'entreprise"
-            ? totalCountProviders <= loadMoreProvidersLimit
-            : totalCountTransporters <= loadMoreTransportersLimit
-        }
-        onSearchUserChange={(value) => console.log("ccccccccc", value)}
-        fetchUsers={
-          currentUserType === "l'entreprise"
-            ? () => store.dispatch(fetchProvidersLoadMore())
-            : () => store.dispatch(fetchTransportersLoadMore())
-        }
-        setInvoiceData={setInvoiceData}
-        currentUserType={currentUserType}
-      />
+    <div className="scrollable-content">
+      <Tabs defaultActiveKey="1" items={items} onChange={handleTabChange} />
+
+      {/* Keep existing card for generation tabs */}
+      {currentUserType !== undefined && (
+        <InvoiceCard
+          data={invoiceData}
+          users={currentUserType === "l'entreprise" ? providers : transporters}
+          isloading={
+            currentUserType === "l'entreprise"
+              ? providersStatus === "loading"
+              : _transportersStatus === "loading"
+          }
+          loadMoreUsers={
+            currentUserType === "l'entreprise"
+              ? onLoadMoreProviders
+              : onLoadMoreTransporter
+          }
+          isLoadMore={
+            currentUserType === "l'entreprise"
+              ? totalCountProviders <= loadMoreProvidersLimit
+              : totalCountTransporters <= loadMoreTransportersLimit
+          }
+          onSearchUserChange={(value) => console.log("search", value)}
+          fetchUsers={
+            currentUserType === "l'entreprise"
+              ? () => store.dispatch(fetchProvidersLoadMore())
+              : () => store.dispatch(fetchTransportersLoadMore())
+          }
+          setInvoiceData={setInvoiceData}
+          currentUserType={currentUserType}
+        />
+      )}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useState } from "react";
+import React, { useLayoutEffect, useRef, useState, useEffect  } from "react";
 import { Space, Table, Button, Drawer, Pagination, Popconfirm, Tooltip } from "antd";
 import { useSelector } from "react-redux";
 import { HiOutlineEye, HiOutlineTrash } from "react-icons/hi";
@@ -26,11 +26,28 @@ const ApprovedProvidersList: React.FC = () => {
 
   const token: any = localStorage.getItem("accessToken");
   const myClient = ApiClientWithHeaders(token);
+
+  useEffect(() => {
+    const fetchProviders = async () => {
+      try {
+        const res = await myClient.user.userControllerFindAll();
+
+        console.log("PROVIDERS API:", res);
+
+        store.dispatch(setFilter({ verified: true }as any));
+        store.dispatch(updateProviders(res.data)); // ⚠️ important
+      } catch (err) {
+        console.error("Error fetching providers", err);
+      }
+    };
+
+    fetchProviders();
+  }, []);
   const [selectedProviderId, setSelectedProviderId] = useState("");
   const providersData = providers?.map((user: any) => {
     return {
       key: user.id,
-      name: user.email,
+      name: user.fullName || user.email,
       createdAt: user.createdAt,
       telephone: user.phone,
       patent: user.patent,

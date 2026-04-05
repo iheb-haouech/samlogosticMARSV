@@ -45,7 +45,10 @@ export class UserController {
   create(@Body() createUserDto: UserDTO) {
     return this.userService.create(createUserDto);
   }
-
+  @Get('/invoices')
+  getAllInvoices(@Query() query: any) {
+    return this.userService.getAllInvoices(query);
+  }
   @Get()
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
@@ -73,6 +76,25 @@ export class UserController {
   async findAllProviders(@Query() query: FindManyProvidersDto) {
     return this.userService.findAllProviders(query);
   }
+
+  @Get('/invoice-pdf')
+async downloadInvoice(
+  @Query('userId') userId: string,
+  @Query('from') from: string,
+  @Query('to') to: string,
+  @Query('type') type: number,
+  @Res() res,
+) {
+  const pdf = await this.userService.generateInvoicePdf(
+    Number(userId),
+    from,
+    to,
+    type,
+  );
+
+  res.setHeader('Content-Type', 'application/pdf');
+  return res.send(pdf);
+}
 
   @Get(':id')
   @ApiBearerAuth()

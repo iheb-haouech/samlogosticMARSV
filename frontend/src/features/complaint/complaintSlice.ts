@@ -50,6 +50,7 @@ export const addComplaint = createAsyncThunk<CreateRespDTO, CreateClaimDto, { st
     return new Promise<CreateRespDTO>((resolve, reject) => {
       const token = localStorage.getItem("accessToken")!;
       const myClient = ApiClientWithHeaders(token);
+      console.log("NEW COMPLAINT SENT:", newComplaint);
       myClient.claims
         .claimsControllerCreate(newComplaint)
         .then((response) => {
@@ -77,15 +78,26 @@ export const fetchAllComplaints = createAsyncThunk<
     const state = thunkAPI.getState() as RootState;
     const token = localStorage.getItem("accessToken")!;
     const myClient = ApiClientWithHeaders(token);
-    myClient.claims
-      .claimsControllerFindAll({
-        page: "1",
-        limit: state.complaint.limit.toString(),
-        id: state.complaint.filtredTrakingNumber,
-        status: state.complaint.complaintStatus,
-      })
+    const params: any = {
+      page: "1",
+      limit: state.complaint.limit.toString(),
+      status: state.complaint.complaintStatus,
+    };
+
+    // only add id if needed
+    if (state.complaint.filtredTrakingNumber !== "null") {
+      params.id = state.complaint.filtredTrakingNumber;
+    }
+
+    // ⚠️ TEMP: remove status filter completely for test
+    // params.status = Number(state.complaint.complaintStatus);
+
+    console.log("PARAMS:", params);
+
+    myClient.claims.claimsControllerFindAll(params)
       .then((response) => {
-        resolve({ complaints: response.data.claims, totalCount: response.data.totalCount });
+    console.log("API RESPONSE:", response.data);     
+    resolve({ complaints: response.data.claims, totalCount: response.data.totalCount });
       })
       .catch((error: any) => {
         reject(error);

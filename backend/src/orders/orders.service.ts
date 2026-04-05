@@ -98,6 +98,37 @@ export class OrdersService {
   }
 }
 
+async generateInvoiceAutomatically(order: any) {
+  try {
+    const providerId = order.createdByUserId;
+
+    const from = order.startTransitAt;
+    const to = order.deliveredAt;
+
+    // 👉 call your existing logic
+    await this.prisma.$transaction(async (prisma) => {
+      const userService = new (require('../user/user.service').UserService)(
+        prisma,
+        null,
+      );
+
+      await userService.getProvidersInvoice(
+        providerId,
+        from,
+        to,
+        3,
+        {
+          status: () => ({ json: () => {} }),
+          setHeader: () => {},
+          send: () => {},
+        },
+      );
+    });
+  } catch (error) {
+    console.error("Auto invoice error:", error);
+  }
+}
+
   async findAll(
     userToken: string,
     page: number,
@@ -379,6 +410,8 @@ export class OrdersService {
         },
       });
 
+      
+
       // Update order
       const updatedOrder = await this.prisma.order.update({
         where: { id: id },
@@ -458,40 +491,49 @@ export class OrdersService {
   }
 
   async updateOrderStatus(id: any, orderData) {
-    let data: any = { ...orderData };
-    if (!data?.orderStatusId) {
-      data = { orderStatusId: 1 };
-    }
-    // order is in transit = started
-    if (data?.orderStatusId == 3) {
-      data = { ...data, startTransitAt: new Date() };
-    }
-    // order is delivered
-    if (data?.orderStatusId == 4) {
-      data = { ...data, deliveredAt: new Date() };
-    }
-    // order is canceled
-    if (data?.orderStatusId == 5) {
-      data = { ...data };
-    }
-    return this.prisma.order.update({
-      where: { id: id },
-      data: data as any,
-      include: {
-        source: true,
-        recipient: true,
-        packages: {
-          include: {
-            references: true,
-          },
-        },
-        pods: true,
-        deliveredBy: true,
-        clientPriceStatus: true,
-        transporterPriceStatus: true,
-      },
-    });
+  let data: any = { ...orderData };
+
+  if (!data?.orderStatusId) {
+    data = { orderStatusId: 1 };
   }
+
+  if (data?.orderStatusId == 3) {
+    data = { ...data, startTransitAt: new Date() };
+  }
+
+  if (data?.orderStatusId == 4) {
+    data = { ...data, deliveredAt: new Date() };
+  }
+
+  const updatedOrder = await this.prisma.order.update({
+    where: { id: id },
+    data: data as any,
+    include: {
+      source: true,
+      recipient: true,
+      packages: {
+        include: {
+          references: true,
+        },
+      },
+      pods: true,
+      deliveredBy: true,
+      clientPriceStatus: true,
+      transporterPriceStatus: true,
+    },
+  });
+
+  // 🔥 GENERATE INVOICE AFTER DELIVERY
+  if (updatedOrder.orderStatusId == 4) {
+    try {
+      await this.generateInvoiceAutomatically(updatedOrder);
+    } catch (error) {
+      console.error("Invoice generation failed:", error);
+    }
+  }
+
+  return updatedOrder;
+}
 
 
 async togglePaymentRequired(orderId: string, dto: { amount: number }) {
