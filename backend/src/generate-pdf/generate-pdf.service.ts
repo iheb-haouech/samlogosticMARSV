@@ -3,7 +3,7 @@ import * as handlebars from 'handlebars';
 import * as pdf from 'html-pdf';
 import * as path from 'path';
 import * as fs from 'fs';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class GeneratePdfService {
@@ -44,7 +44,7 @@ export class GeneratePdfService {
           '../../../generatedFiles',
           saved_file_name,
         );
-        await fs.writeFileSync(filePath, pdfBuffer, { flag: 'w' });
+        await fs.writeFileSync(filePath, pdfBuffer as any, { flag: 'w' });
       }
 
       return pdfBuffer;

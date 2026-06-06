@@ -4,8 +4,9 @@ import { Avatar } from "antd";
 import { Link } from "react-router-dom";
 import React from "react";
 import { FaUser } from "react-icons/fa";
+import { WalletOutlined } from "@ant-design/icons";
 import LanguageSwitcher from "../../molecules/LanguageSwitcher/LanguageSwitcher";
-import ThemeToggle from "../../atoms/ThemeToggle/ThemeToggle"; // 🆕
+import ThemeToggle from "../../atoms/ThemeToggle/ThemeToggle";
 
 interface NavBarProps {
   userImg?: string;
@@ -13,9 +14,17 @@ interface NavBarProps {
   pageName: string;
   pageIcon?: React.ReactNode;
   profileRoute: string;
+  walletBalance?: number;
 }
 
-const NavBar: React.FC<NavBarProps> = ({ userImg, userName, pageName, pageIcon, profileRoute }: NavBarProps) => {
+const NavBar: React.FC<NavBarProps> = ({
+  userImg,
+  userName,
+  pageName,
+  pageIcon,
+  profileRoute,
+  walletBalance,
+}: NavBarProps) => {
   return (
     <Header className='header-container'>
       <div>
@@ -24,22 +33,28 @@ const NavBar: React.FC<NavBarProps> = ({ userImg, userName, pageName, pageIcon, 
           <h4 className='header--page-label--title'>{pageName}</h4>
         </div>
       </div>
-      
+
       <div className='header--right-section'>
-        {/* 🆕 DARK MODE TOGGLE */}
         <ThemeToggle />
-        
+
+        {typeof walletBalance === "number" && (
+          <div className='header--wallet'>
+            <WalletOutlined />
+            <span>{walletBalance.toFixed(3)} DT</span>
+          </div>
+        )}
+
         <Link to={profileRoute}>
           <div className='header--user'>
             <h3 className='header--user-name'>{userName ? userName : "Mon profil"}</h3>
             {userImg ? (
-              <Avatar src={userImg} size={34} style={{ backgroundColor: "#fde3cf", color: "#f56a00" }}></Avatar>
+              <Avatar src={userImg} size={34} style={{ backgroundColor: "#fde3cf", color: "#f56a00" }} />
             ) : (
-              <Avatar icon={<FaUser />} size={34} style={{ backgroundColor: "#fde3cf", color: "#f56a00" }}></Avatar>
+              <Avatar icon={<FaUser />} size={34} style={{ backgroundColor: "#fde3cf", color: "#f56a00" }} />
             )}
           </div>
         </Link>
-        
+
         <LanguageSwitcher />
       </div>
     </Header>

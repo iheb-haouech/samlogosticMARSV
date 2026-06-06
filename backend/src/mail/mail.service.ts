@@ -11,7 +11,7 @@ export class MailService {
     return await this.mailerService.sendMail({
       to: 'ihebhaouech27@gmail.com',
       // from: '"Support Team" <support@example.com>', // override default from
-      subject: 'Confirm Your Account – Vanlog',
+      subject: 'Confirm Your Account – SAM LOGISTIC',
       template: './confirmation', // `.hbs` extension is appended automatically
       context: {
         // ✏️ filling curly brackets with content

@@ -41,19 +41,36 @@ const statisticsSlice = createSlice({
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-    builder
-      .addCase(fetchStatistics.pending, (state) => {
-        state.status = "loading";
-      })
-      .addCase(fetchStatistics.fulfilled, (state, action) => {
-        state.status = "idle";
-        state.statistics = action.payload;
-      })
-      .addCase(fetchStatistics.rejected, (state) => {
-        state.status = "failed";
-        state.error = "Something went wrong";
-      });
-  },
+  builder
+    .addCase(fetchStatistics.pending, (state) => {
+      state.status = "loading";
+      state.error = undefined;
+    })
+    .addCase(fetchStatistics.fulfilled, (state, action) => {
+      state.status = "idle";
+      state.error = undefined;
+
+      // on copie tout ce que renvoie le backend
+      state.statistics.totalWaitingOrders = action.payload.totalWaitingOrders;
+      state.statistics.totalTransitOrders = action.payload.totalTransitOrders;
+      state.statistics.totalLivredOrders = action.payload.totalLivredOrders;
+      state.statistics.totalCanceledOrders = action.payload.totalCanceledOrders;
+      state.statistics.totalAcceptedProviders = action.payload.totalAcceptedProviders;
+      state.statistics.totalWaitingProviders = action.payload.totalWaitingProviders;
+      state.statistics.totalAcceptedTransporters = action.payload.totalAcceptedTransporters;
+      state.statistics.totalWaitingTransporters = action.payload.totalWaitingTransporters;
+      state.statistics.totalComplaints = action.payload.totalComplaints;
+      state.statistics.totalClosedComplaints = action.payload.totalClosedComplaints;
+
+      // 👇 nouveaux blocs B2B/B2C (si présents)
+      state.statistics.b2b = action.payload.b2b;
+      state.statistics.b2c = action.payload.b2c;
+    })
+    .addCase(fetchStatistics.rejected, (state, action) => {
+      state.status = "failed";
+      state.error = action.error.message || "Failed to load statistics";
+    });
+}
 });
 export const selectedStatistic = (state: RootState) => state.statistics.statistics;
 export const selectedStatus = (state: RootState) => state.statistics.status;

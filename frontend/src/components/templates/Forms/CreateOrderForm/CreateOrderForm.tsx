@@ -1,97 +1,81 @@
 import { useEffect, useRef, useState } from "react";
-import { Button, Col, Divider, Flex, Form, Input, InputRef, Row, Tag } from "antd";
+import { Button, Col, Divider, Flex, Form, Input, InputRef, message, Row, Tag } from "antd";
 import Title from "antd/es/typography/Title";
 import { PlusOutlined } from "@ant-design/icons";
-import { Order, OrderType, PackagesData } from "../../../../types/Order";
+import { Order, PackagesData } from "../../../../types/Order";
 import PackageTable from "../../../organisms/Tables/PackageTable/PackageTable";
 import "./CreateOrderForm.scss";
 import { useSelector } from "react-redux";
 import { selectLoadingState, setLoading } from "../../../../features/loading/loadingSlice";
 import { store } from "../../../../store/store";
 import { useTranslation } from "react-i18next";
-//import dayjs from "dayjs";
 
 interface CreateOrderFormProps {
-  onCreateOrder: (Order: Order) => void;
-  orderType: OrderType;
+  onCreateOrder: (order: Order) => void;
   currentUser: any;
+  orderMeta: {
+    mainType: "international" | "national" | "quote";
+    tradeType?: "import" | "export";
+    transportType?: "aerien" | "maritime" | "ground" | "livrer" | "apporter";
+    subType?:
+      | "groupement"
+      | "cts20"
+      | "cts40"
+      | "cts40hc"
+      | "srberlie"
+      | "srtole"
+      | "envoieLegere"
+      | "envoieStandard"
+      | "camionTourisme"
+      | "poidLourd5T"
+      | "poidLourd10T"
+      | "other";
+    otherMessage?: string;
+  };
 }
 
-const CreateOrderForm = ({ orderType, onCreateOrder, currentUser }: CreateOrderFormProps) => {
+const CreateOrderForm = ({ onCreateOrder, currentUser, orderMeta }: CreateOrderFormProps) => {
   const { t } = useTranslation();
-  let newOrder;
-  switch (orderType) {
-    case "deliverOrder":
-      newOrder = {
-        description: null,
-        totalWeight: 0,
-        totalQuantity: 0,
-        totalPrice: null,
-        clientPrice: null,
-        transporterPrice: null,
-        packages: [],
-        refrences: [],
-        //etd: null,
-        //eta: null,
-        source: {
-          email: currentUser?.email,
-          companyName: currentUser?.companyName,
-          phone: currentUser?.phone,
-          city: currentUser?.city,
-          country: currentUser?.country,
-          streetAddress: currentUser?.address,
-          secondAddress: "",
-          zipCode: currentUser?.zipCode,
-        },
-        recipient: {
-          companyName: "",
-          phone: "",
-          city: "",
-          country: "",
-          streetAddress: "",
-          secondAddress: "",
-          zipCode: "",
-          email: "",
-        },
-      };
-      break;
-    case "bringOrder":
-      newOrder = {
-        description: null,
-        totalWeight: 0,
-        totalQuantity: 0,
-        totalPrice: null,
-        clientPrice: null,
-        transporterPrice: null,
-        packages: [],
-        refrences: [],
-        //etd: null,
-        //eta: null,
-        recipient: {
-          email: currentUser?.email,
-          companyName: currentUser?.companyName,
-          phone: currentUser?.phone,
-          city: currentUser?.city,
-          country: currentUser?.country,
-          streetAddress: currentUser?.address,
-          secondAddress: "",
-          zipCode: currentUser?.zipCode,
-        },
-        source: {
-          companyName: "",
-          phone: "",
-          city: "",
-          country: "",
-          streetAddress: "",
-          secondAddress: "",
-          zipCode: "",
-          email: "",
-        },
-      };
-      break;
-  }
+  const isB2C = currentUser?.accountType === "B2C";
+  const isLightShipment = orderMeta.subType === "envoieLegere";
 
-  const [formValues, setFormValues] = useState<Order | any>(newOrder);
+  const newOrder: Order = {
+    description: "",
+    totalWeight: 0,
+    totalQuantity: 0,
+    totalPrice: null,
+    clientPrice: null,
+    transporterPrice: null,
+    packages: [],
+    refrences: [],
+    mainType: orderMeta.mainType,
+    tradeType: orderMeta.tradeType,
+    transportType: orderMeta.transportType,
+    subType: orderMeta.subType,
+    otherMessage: orderMeta.otherMessage,
+    source: {
+      email: currentUser?.email || "",
+      companyName: currentUser?.companyName || "",
+      phone: currentUser?.phone || "",
+      city: currentUser?.city || "",
+      country: currentUser?.country || "",
+      streetAddress: currentUser?.address || "",
+      secondAddress: "",
+      zipCode: currentUser?.zipCode || "",
+    },
+    recipient: {
+      companyName: "",
+      phone: "",
+      city: "",
+      country: "",
+      streetAddress: "",
+      secondAddress: "",
+      zipCode: "",
+      email: "",
+    },
+  };
+
+  const [formValues, setFormValues] = useState<Order>(newOrder);
   const loading = useSelector(selectLoadingState);
   const [tags, setTags] = useState<string[]>([]);
   const [packagesData, setPackagesData] = useState<PackagesData>({
@@ -102,84 +86,76 @@ const CreateOrderForm = ({ orderType, onCreateOrder, currentUser }: CreateOrderF
   const [inputValue, setInputValue] = useState("");
   const inputRef = useRef<InputRef>(null);
 
-  // Update FormValues if there is a change with packagesData or inputRefValue or tags
   useEffect(() => {
-    setFormValues({
-      ...formValues,
+    setFormValues((prev) => ({
+      ...prev,
       refrences: tags,
       packages: packagesData.packages,
-    });
-  }, [packagesData, inputValue, tags]);
+      totalQuantity: packagesData.totalQuantity || 0,
+      totalWeight: packagesData.totalWeight || 0,
+    }));
+  }, [packagesData, tags]);
+
+  useEffect(() => {
+    if (inputVisible && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [inputVisible]);
 
   const handleSubmit = () => {
-    const newOrder: Order = {
-      description: formValues?.description,
-      source: {
-        companyName: formValues?.source?.companyName,
-        phone: formValues?.source?.phone,
-        city: formValues?.source?.city,
-        country: formValues?.source?.country,
-        streetAddress: formValues?.source?.streetAddress,
-        secondAddress: formValues?.source?.secondAddress,
-        zipCode: formValues?.source?.zipCode,
-        email: formValues?.source?.email,
-      },
-      recipient: {
-        companyName: formValues?.recipient?.companyName,
-        phone: formValues?.recipient?.phone,
-        city: formValues?.recipient?.city,
-        country: formValues?.recipient?.country,
-        streetAddress: formValues?.recipient?.streetAddress,
-        secondAddress: formValues?.recipient?.secondAddress,
-        zipCode: formValues?.recipient?.zipCode,
-        email: formValues?.recipient?.email,
-      },
+    if (isB2C && packagesData?.packages.some((pkg) => !pkg.price || pkg.price <= 0)) {
+      message.error("Veuillez saisir le prix de chaque colis.");
+      return;
+    }
+
+    const packagesTotalPrice =
+      packagesData?.packages.reduce(
+        (total, pkg) => total + Number(pkg.price || 0) * Number(pkg.quantity || 1),
+        0,
+      ) || 0;
+    const shipmentPrice = isB2C && isLightShipment ? 7 : formValues?.shipmentPrice;
+
+    const newOrderToSend: Order = {
+      ...formValues,
       refrences: tags,
-      //etd: formValues?.etd,
-      //eta: formValues?.eta,
       totalWeight: packagesData?.totalWeight || 0,
       totalQuantity: packagesData?.totalQuantity || 0,
-      totalPrice: formValues?.totalPrice,
-      clientPrice: formValues?.clientPrice,
-      transporterPrice: formValues?.transporterPrice,
+      totalPrice: isB2C ? packagesTotalPrice : formValues?.totalPrice,
+      shipmentPrice,
       packages: packagesData?.packages.map(({ index, ...pakg }: any) => pakg),
+      mainType: formValues?.mainType,
+      tradeType: formValues?.tradeType,
+      transportType: formValues?.transportType,
+      subType: formValues?.subType,
+      otherMessage: formValues?.otherMessage,
     };
+
     store.dispatch(setLoading(true));
-    onCreateOrder(newOrder);
+    onCreateOrder(newOrderToSend);
   };
 
   const handlePackagesChange = (newPackagesData: PackagesData) => {
     setPackagesData(newPackagesData);
-    setFormValues({
-      ...formValues,
-      totalQuantity: newPackagesData?.totalQuantity,
-    });
   };
 
-  const handleNesteFieldsChange =
-    (field: "source" | "recipient", nestedField: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
-      setFormValues({
-        ...formValues,
+  const handleNestedFieldsChange =
+    (field: "source" | "recipient", nestedField: string) =>
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setFormValues((prev) => ({
+        ...prev,
         [field]: {
-          ...formValues[field],
+          ...prev[field],
           [nestedField]: event.target.value,
         },
-      });
+      }));
     };
-
-  // Handle tags
-  useEffect(() => {
-    if (inputVisible && inputRef.current) {
-      inputRef.current?.focus();
-    }
-  }, [inputVisible]);
 
   const handleTagClose = (removedTag: string) => {
     const newTags = tags.filter((tag) => tag !== removedTag);
     setTags(newTags);
   };
 
-  const handleRefrenceInputConfirm = () => {
+  const handleReferenceInputConfirm = () => {
     if (inputValue && !tags.includes(inputValue)) {
       setTags([...tags, inputValue]);
     }
@@ -187,239 +163,184 @@ const CreateOrderForm = ({ orderType, onCreateOrder, currentUser }: CreateOrderF
     setInputValue("");
   };
 
-  const handleRefrenceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleReferenceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
   };
 
   return (
-    <Form
-      style={{ marginTop: "0.5rem" }}
-      onFinish={handleSubmit}
-      layout='vertical'
-      size='large'
-      initialValues={formValues}
-    >
-      <div className='order-form'>
-        <div className='order-form--partners'>
-          <div className='order-form--partners-header'>
+    <Form style={{ marginTop: "0.5rem" }} onFinish={handleSubmit} layout="vertical" size="large">
+      <div className="order-form">
+        <div style={{ marginBottom: "1rem" }}>
+          <Tag color="blue">{formValues.mainType}</Tag>
+          {formValues.tradeType && <Tag color="green">{formValues.tradeType}</Tag>}
+          {formValues.transportType && <Tag color="orange">{formValues.transportType}</Tag>}
+          {formValues.subType && <Tag color="purple">{formValues.subType}</Tag>}
+          {formValues.otherMessage && <Tag color="red">{formValues.otherMessage}</Tag>}
+        </div>
+
+        <div className="order-form--partners">
+          <div className="order-form--partners-header">
             <Title style={{ margin: "1rem" }} level={5}>
               {t("supplier2")}
             </Title>
-            <Divider className='order-form--partners-header-divider' />
+            <Divider className="order-form--partners-header-divider" />
           </div>
-          <div className='order-form--partners-content'>
+
+          <div className="order-form--partners-content">
             <Row gutter={16}>
-              <Col className='gutter-row' flex={1}>
+              <Col className="gutter-row" flex={1}>
                 <Form.Item
                   label={t("company_name")}
                   name={["source", "companyName"]}
-                  rules={[
-                    {
-                      required: true,
-                      message: t("Required field"),
-                    },
-                  ]}
+                  rules={[{ required: true, message: t("Required field") }]}
                 >
                   <Input
-                    id='sourceName'
                     placeholder={t("company_name")}
-                    onChange={handleNesteFieldsChange("source", "companyName")}
+                    onChange={handleNestedFieldsChange("source", "companyName")}
                     value={formValues.source.companyName}
-                    type='text'
                   />
                 </Form.Item>
               </Col>
-              <Col className='gutter-row' flex={1}>
+
+              <Col className="gutter-row" flex={1}>
                 <Form.Item
-                  name={["source", "phone"]}
                   label={t("phone_number")}
-                  rules={[
-                    {
-                      required: true,
-                      message: t("Required field"),
-                    },
-                  ]}
+                  name={["source", "phone"]}
+                  rules={[{ required: true, message: t("Required field") }]}
                 >
                   <Input
-                    id='sourcePhoneNumber'
-                    type='number'
                     placeholder={t("phone_number")}
-                    onChange={handleNesteFieldsChange("source", "phone")}
+                    onChange={handleNestedFieldsChange("source", "phone")}
                     value={formValues.source.phone}
                   />
                 </Form.Item>
               </Col>
-              <Col className='gutter-row' flex={1}>
+
+              <Col className="gutter-row" flex={1}>
                 <Form.Item
-                  name={["source", "city"]}
                   label={t("city")}
-                  rules={[
-                    {
-                      required: true,
-                      message: t("Required field"),
-                    },
-                  ]}
+                  name={["source", "city"]}
+                  rules={[{ required: true, message: t("Required field") }]}
                 >
                   <Input
-                    id='sourceCity'
                     placeholder={t("city")}
-                    onChange={handleNesteFieldsChange("source", "city")}
+                    onChange={handleNestedFieldsChange("source", "city")}
                     value={formValues.source.city}
-                    type='text'
                   />
                 </Form.Item>
               </Col>
             </Row>
+
             <Row gutter={16}>
               <Col flex={2}>
                 <Form.Item
-                  name={["source", "streetAddress"]}
                   label={t("street_address")}
-                  rules={[
-                    {
-                      required: true,
-                      message: t("Required field"),
-                    },
-                  ]}
+                  name={["source", "streetAddress"]}
+                  rules={[{ required: true, message: t("Required field") }]}
                 >
                   <Input
-                    id='sourceStreetAddress'
                     placeholder={t("street_address")}
-                    onChange={handleNesteFieldsChange("source", "streetAddress")}
+                    onChange={handleNestedFieldsChange("source", "streetAddress")}
                     value={formValues.source.streetAddress}
                   />
                 </Form.Item>
               </Col>
+
               <Col flex={1}>
                 <Form.Item
-                  name={["source", "zipCode"]}
                   label={t("zip_code")}
-                  rules={[
-                    {
-                      required: true,
-                      message: t("Required field"),
-                    },
-                  ]}
+                  name={["source", "zipCode"]}
+                  rules={[{ required: true, message: t("Required field") }]}
                 >
                   <Input
-                    id='sourceZip'
                     placeholder={t("zip_code")}
-                    onChange={handleNesteFieldsChange("source", "zipCode")}
+                    onChange={handleNestedFieldsChange("source", "zipCode")}
                     value={formValues.source.zipCode}
-                    type='text'
                   />
                 </Form.Item>
               </Col>
             </Row>
           </div>
         </div>
-        <div className='order-form--partners'>
-          <div className='order-form--partners-header'>
+
+        <div className="order-form--partners">
+          <div className="order-form--partners-header">
             <Title style={{ margin: "1rem" }} level={5}>
               {t("destination")}
             </Title>
-            <Divider className='order-form--partners-header-divider' />
+            <Divider className="order-form--partners-header-divider" />
           </div>
-          <div className='order-form--partners-content'>
+
+          <div className="order-form--partners-content">
             <Row gutter={16}>
-              <Col className='gutter-row' flex={1}>
+              <Col className="gutter-row" flex={1}>
                 <Form.Item
-                  name={["recipient", "companyName"]}
                   label={t("recipient_name")}
-                  rules={[
-                    {
-                      required: true,
-                      message: t("Required field"),
-                    },
-                  ]}
+                  name={["recipient", "companyName"]}
+                  rules={[{ required: true, message: t("Required field") }]}
                 >
                   <Input
-                    id='destinationName'
                     placeholder={t("recipient_name")}
-                    onChange={handleNesteFieldsChange("recipient", "companyName")}
+                    onChange={handleNestedFieldsChange("recipient", "companyName")}
                     value={formValues.recipient.companyName}
                   />
                 </Form.Item>
               </Col>
-              <Col className='gutter-row' flex={1}>
+
+              <Col className="gutter-row" flex={1}>
                 <Form.Item
-                  name={["recipient", "phone"]}
                   label={t("phone_number")}
-                  rules={[
-                    {
-                      required: true,
-                      message: t("Required field"),
-                    },
-                  ]}
+                  name={["recipient", "phone"]}
+                  rules={[{ required: true, message: t("Required field") }]}
                 >
                   <Input
-                    id='destinationPhoneNumber'
-                    type='number'
                     placeholder={t("phone_number")}
-                    onChange={handleNesteFieldsChange("recipient", "phone")}
+                    onChange={handleNestedFieldsChange("recipient", "phone")}
                     value={formValues.recipient.phone}
                   />
                 </Form.Item>
               </Col>
-              <Col className='gutter-row' flex={1}>
+
+              <Col className="gutter-row" flex={1}>
                 <Form.Item
-                  name={["recipient", "city"]}
                   label={t("city")}
-                  rules={[
-                    {
-                      required: true,
-                      message: t("Required field"),
-                    },
-                  ]}
+                  name={["recipient", "city"]}
+                  rules={[{ required: true, message: t("Required field") }]}
                 >
                   <Input
-                    id='destinationCity'
                     placeholder={t("city")}
-                    onChange={handleNesteFieldsChange("recipient", "city")}
+                    onChange={handleNestedFieldsChange("recipient", "city")}
                     value={formValues.recipient.city}
-                    type='text'
                   />
                 </Form.Item>
               </Col>
             </Row>
+
             <Row gutter={16}>
               <Col flex={2}>
                 <Form.Item
-                  name={["recipient", "streetAddress"]}
                   label={t("street_address")}
-                  rules={[
-                    {
-                      required: true,
-                      message: t("Required field"),
-                    },
-                  ]}
+                  name={["recipient", "streetAddress"]}
+                  rules={[{ required: true, message: t("Required field") }]}
                 >
                   <Input
-                    id='destinationStreetAddress'
                     placeholder={t("street_address")}
-                    onChange={handleNesteFieldsChange("recipient", "streetAddress")}
+                    onChange={handleNestedFieldsChange("recipient", "streetAddress")}
                     value={formValues.recipient.streetAddress}
-                    type='text'
                   />
                 </Form.Item>
               </Col>
+
               <Col flex={1}>
                 <Form.Item
-                  name={["recipient", "zipCode"]}
                   label={t("zip_code")}
-                  rules={[
-                    {
-                      required: true,
-                      message: t("Required field"),
-                    },
-                  ]}
+                  name={["recipient", "zipCode"]}
+                  rules={[{ required: true, message: t("Required field") }]}
                 >
                   <Input
-                    id='destinationZip'
                     placeholder={t("zip_code")}
-                    onChange={handleNesteFieldsChange("recipient", "zipCode")}
+                    onChange={handleNestedFieldsChange("recipient", "zipCode")}
                     value={formValues.recipient.zipCode}
-                    type='text'
                   />
                 </Form.Item>
               </Col>
@@ -428,44 +349,50 @@ const CreateOrderForm = ({ orderType, onCreateOrder, currentUser }: CreateOrderF
         </div>
 
         <section>
-          <div className='order-form--description'>
-            <Form.Item name='description' label={t("order_description")}>
+          <div className="order-form--description">
+            <Form.Item name="description" label={t("order_description")}>
               <Input.TextArea
-                id='description'
-                value={formValues.description}
-                onChange={(event) => setFormValues({ ...formValues, description: event.target.value })}
                 rows={4}
+                value={formValues.description}
+                onChange={(event) =>
+                  setFormValues((prev) => ({
+                    ...prev,
+                    description: event.target.value,
+                  }))
+                }
                 placeholder={t("order_description")}
               />
             </Form.Item>
           </div>
-          <div className='order-form--references'>
-            <Form.Item name='refrences' label={t("add_references")}>
-              <Flex className='order-form--references-container' gap='4px 0' wrap='wrap'>
+
+          <div className="order-form--references">
+            <Form.Item name="refrences" label={t("add_references")}>
+              <Flex className="order-form--references-container" gap="4px 0" wrap="wrap">
                 {tags.map((tag, index) => (
                   <Tag
-                    className='order-form--references-container--tag'
+                    className="order-form--references-container--tag"
                     key={index}
-                    closable={true}
+                    closable
                     onClose={() => handleTagClose(tag)}
                   >
                     {tag}
                   </Tag>
                 ))}
+
                 {inputVisible ? (
                   <Input
-                    className='order-form--references-container--input'
+                    className="order-form--references-container--input"
                     ref={inputRef}
-                    type='text'
-                    size='small'
+                    type="text"
+                    size="small"
                     value={inputValue}
-                    onChange={handleRefrenceChange}
-                    onBlur={handleRefrenceInputConfirm}
-                    onPressEnter={handleRefrenceInputConfirm}
+                    onChange={handleReferenceChange}
+                    onBlur={handleReferenceInputConfirm}
+                    onPressEnter={handleReferenceInputConfirm}
                   />
                 ) : (
                   <Tag
-                    className='order-form--references-container--new-tag'
+                    className="order-form--references-container--new-tag"
                     onClick={() => setInputVisible(true)}
                     icon={<PlusOutlined />}
                   >
@@ -475,82 +402,31 @@ const CreateOrderForm = ({ orderType, onCreateOrder, currentUser }: CreateOrderF
               </Flex>
             </Form.Item>
           </div>
-          {/** ETA & ETD
-          <p>cccccccc {currentUser?.user?.roleId}</p>
-          <div className='order-form--partners'>
-            <div className='order-form--partners-header'>
-              <Title style={{ margin: "1rem" }} level={5}>
-                {t("etaetd")}
-              </Title>
-              <Divider className='order-form--partners-header-divider' />
-            </div>
-            <div
-              className='order-form--partners-content'
-              style={{ width: "100%", display: "flex", flexDirection: "row" }}
-            >
-              <div style={{ marginRight: 10 }}>
-                <Form.Item name='etd' label={t("etd")}>
-                  <DatePicker
-                    id='etd'
-                    format='YYYY-MM-DD'
-                    value={null}
-                    onChange={(dateString) => {
-                      if (dateString) {
-                        const formattedDate = dayjs(dateString).add(1, "hour").toISOString();
-                        setFormValues({
-                          ...formValues,
-                          etd: formattedDate,
-                        });
-                      }
-                    }}
-                    placeholder={t("etd")}
-                    style={{ width: "100%" }}
-                  />
-                </Form.Item>
-              </div>
-              <div>
-                <Form.Item name='eta' label={t("eta")}>
-                  <DatePicker
-                    id='eta'
-                    format='YYYY-MM-DD'
-                    value={null}
-                    onChange={(dateString) => {
-                      if (dateString) {
-                        const formattedDate = dayjs(dateString).add(1, "day").toISOString();
-                        setFormValues({
-                          ...formValues,
-                          eta: formattedDate,
-                        });
-                      }
-                    }}
-                    placeholder={t("eta")}
-                    style={{ width: "100%" }}
-                  />
-                </Form.Item>
-              </div>
-            </div>
-          </div>
- */}
-          <div className='order-form--package-table'>
+
+          <div className="order-form--package-table">
             <Form.Item
-              name={"packages"}
+              name="packages"
               rules={[
-                () => ({
-                  validator() {
-                    if (formValues.packages && formValues.packages.length > 0) {
-                      return Promise.resolve();
-                    }
-                    return Promise.reject(t("add_packages"));
+                {
+                  validator: async () => {
+                    if (packagesData.packages && packagesData.packages.length > 0) return;
+                    throw new Error(t("add_packages"));
                   },
-                }),
+                },
               ]}
             >
-              <PackageTable packages={packagesData.packages} onPackagesChanges={handlePackagesChange} />
+              <PackageTable
+                packages={packagesData.packages}
+                showPrice={isB2C}
+                fixedShipmentPrice={isB2C && isLightShipment ? 7 : undefined}
+                onPackagesChanges={handlePackagesChange}
+              />
             </Form.Item>
           </div>
         </section>
-        <div className='order-form--submit-btn' style={{ marginTop: "1.5rem" }}>
-          <Button loading={loading} icon={<PlusOutlined />} size='large' type='primary' htmlType='submit' shape='round'>
+
+        <div className="order-form--submit-btn" style={{ marginTop: "1.5rem" }}>
+          <Button loading={loading} icon={<PlusOutlined />} size="large" type="primary" htmlType="submit" shape="round">
             {t("submit_order")}
           </Button>
         </div>

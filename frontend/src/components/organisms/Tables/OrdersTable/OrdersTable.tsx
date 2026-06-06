@@ -91,6 +91,7 @@ const OrdersTable = ({
   const [tableContent, setTableContent] = useState<OrderTableRow[]>([]);
   const [totalClientPrices, setTotalClientPrices] = useState<any>({});
   const [totalTransporterPrices, setTotalTransporterPrices] = useState<any>({});
+  const [totalShipmentPrices, setTotalShipmentPrices] = useState<any>({});
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   const loading = useSelector(selectLoadingState);
@@ -111,12 +112,19 @@ const OrdersTable = ({
       trackingId: order?.trackingId,
       createdAt: formatDate(order?.createdAt?.toString()),
       recipientCompanyName: order?.recipient?.companyName,
+      clientName:
+        order?.createdBy?.companyName ||
+        `${order?.createdBy?.firstName || ""} ${order?.createdBy?.lastName || ""}`.trim() ||
+        order?.createdBy?.email ||
+        "-",
       orderStatus: order?.orderStatusId,
       deliveredByUserId: order?.deliveredByUserId,
       actions: order,
       totalPrice: order?.totalPrice,
       clientPrice: order?.clientPrice,
       transporterPrice: order?.transporterPrice,
+      shipmentPrice: order?.shipmentPrice,
+      subType: order?.subType,
       clientPriceStatusId: order?.clientPriceStatusId,
       transporterPriceStatusId: order?.transporterPriceStatusId,
       paymentRequired: order?.paymentRequired,
@@ -140,6 +148,13 @@ const OrdersTable = ({
     }));
   };
 
+  const handleShipmentPriceChange = (orderId: any, value: any) => {
+    setTotalShipmentPrices((prevPrices: any) => ({
+      ...prevPrices,
+      [orderId]: value,
+    }));
+  };
+
   const confirmUpdatePrice = (orderId: any) => {
     const clientPrice = totalClientPrices[orderId];
     if (clientPrice) {
@@ -154,6 +169,13 @@ const OrdersTable = ({
     }
   };
 
+  const confirmUpdateShipmentPrice = (orderId: any) => {
+    const shipmentPrice = totalShipmentPrices[orderId];
+    if (shipmentPrice !== undefined && shipmentPrice !== null) {
+      store.dispatch(updateOrder({ id: orderId, shipmentPrice }));
+    }
+  };
+
   const cancel = (orderId: any, value: any) => {
     setTotalClientPrices((prevPrices: any) => ({
       ...prevPrices,
@@ -163,6 +185,13 @@ const OrdersTable = ({
 
   const cancelTransporter = (orderId: any, value: any) => {
     setTotalTransporterPrices((prevPrices: any) => ({
+      ...prevPrices,
+      [orderId]: value,
+    }));
+  };
+
+  const cancelShipment = (orderId: any, value: any) => {
+    setTotalShipmentPrices((prevPrices: any) => ({
       ...prevPrices,
       [orderId]: value,
     }));
@@ -265,6 +294,11 @@ const OrdersTable = ({
       title: t("recipientName"),
       dataIndex: "recipientCompanyName",
       key: "recipientCompanyName",
+    },
+    {
+      title: "Client",
+      dataIndex: "clientName",
+      key: "clientName",
     },
     {
       title: (
@@ -406,6 +440,42 @@ const OrdersTable = ({
         },
       },
       {
+        title: "Frais transport (TND)",
+        dataIndex: "shipmentPrice",
+        key: "shipmentPrice",
+        align: "right",
+        render: (shipmentPrice: any, order: any) => {
+          const isLightShipment = order?.subType === "envoieLegere";
+          return (
+            <div style={{ minWidth: 100 }}>
+              <Space.Compact style={{ width: "100%" }}>
+                <InputNumber
+                  style={{ width: 120 }}
+                  placeholder={isLightShipment ? "7" : "0.0"}
+                  variant="filled"
+                  type="number"
+                  step={1}
+                  min={0}
+                  disabled={isLightShipment}
+                  value={totalShipmentPrices[order.id] ?? shipmentPrice}
+                  onChange={(value) => handleShipmentPriceChange(order.id, value)}
+                />
+                <Popconfirm
+                  title="Confirmer le frais de transport"
+                  description={`Mettre a jour vers ${totalShipmentPrices[order.id] ?? shipmentPrice ?? 0} TND?`}
+                  onConfirm={() => confirmUpdateShipmentPrice(order.id)}
+                  onCancel={() => cancelShipment(order.id, shipmentPrice)}
+                  okText='Oui'
+                  cancelText='Non'
+                >
+                  <Button icon={<CheckOutlined />} disabled={isLightShipment || [3, 4, 5].includes(order.orderStatus)} />
+                </Popconfirm>
+              </Space.Compact>
+            </div>
+          );
+        },
+      },
+      {
         title: `${t("transporter")}`,
         dataIndex: "deliveredByUserId",
         key: "deliveredByUserId",
@@ -450,7 +520,7 @@ const OrdersTable = ({
     if (ref.current) {
       const { top } = ref.current.getBoundingClientRect();
       const TABLE_HEADER_HEIGHT = 55;
-      setTableHeight(window.innerWidth - top - TABLE_HEADER_HEIGHT - 100);
+      setTableHeight(Math.max(260, window.innerHeight - top - TABLE_HEADER_HEIGHT - 100));
     }
   }, [ref]);
 

@@ -11,7 +11,7 @@ export const InitUsers = async (prismaClient: any) => {
       roleId: 2,
       verified: true,
       phone: '26244098',
-      companyName: 'Vanlog Express',
+      companyName: 'SAM LOGISTIC',
       city: 'Tunis',
       country: 'Tunisie',
       address: 'tunisie',

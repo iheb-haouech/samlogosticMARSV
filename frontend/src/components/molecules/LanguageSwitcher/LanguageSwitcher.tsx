@@ -18,12 +18,13 @@ const LanguageSwitcher: React.FC = () => {
   };
 
   // Fallback to 'en' if `i18n.resolvedLanguage` is undefined
-  const currentLanguage = i18n.resolvedLanguage || "en";
+  const currentLanguage = (i18n.resolvedLanguage || i18n.language || "fr").split("-")[0];
+  const safeCurrentLanguage = lngs[currentLanguage] ? currentLanguage : "fr";
 
   const menu = (
     <Menu>
       {Object.keys(lngs).map((lng) => (
-        <Menu.Item key={lng} onClick={() => handleLanguageChange(lng)} disabled={currentLanguage === lng}>
+        <Menu.Item key={lng} onClick={() => handleLanguageChange(lng)} disabled={safeCurrentLanguage === lng}>
           <img
             src={lngs[lng].flag}
             alt={`${lngs[lng].nativeName} flag`}
@@ -39,8 +40,8 @@ const LanguageSwitcher: React.FC = () => {
     <Dropdown overlay={menu} trigger={["click"]} arrow>
       <Button style={{ border: "none", boxShadow: "none", padding: "0", backgroundColor: "transparent" }}>
         <img
-          src={lngs[currentLanguage].flag}
-          alt={`${lngs[currentLanguage].nativeName} flag`}
+          src={lngs[safeCurrentLanguage].flag}
+          alt={`${lngs[safeCurrentLanguage].nativeName} flag`}
           style={{ width: "25px", marginRight: "0px" }}
         />
       </Button>

@@ -17,8 +17,8 @@ import {
   selectStatus,
   updateOrderStatus,
   updateOrderDeliverPerson,
-  togglePayment,   // ✅ AJOUTE
-  markPaid,        // ✅ AJOUTE
+  togglePayment,
+  markPaid,
 } from "../../../features/order/orderSlice";
 import { store } from "../../../store/store";
 import OrdersTable from "../../../components/organisms/Tables/OrdersTable/OrdersTable";
@@ -26,9 +26,7 @@ import OrdersTableHeader from "../../../components/organisms/header/OrdersTableH
 import { selectCurrentUser } from "../../../features/user/userSlice";
 import "./Orders.scss";
 import Title from "antd/es/typography/Title";
-import OrderTypeModal, { OrderType } from "../../../components/molecules/Modals/OrderTypeModal/OrderTypeModal";
 import DrawerComponent from "../../../components/molecules/drawer/DrawerComponent";
-import CreateOrderForm from "../../../components/templates/Forms/CreateOrderForm/CreateOrderForm";
 import UpdateOrderForm from "../../../components/templates/Forms/UpdateOrderForm/UpdateOrderForm";
 import OrderInfo from "../../../components/templates/OrderDetails/OrderDetails";
 import DeliveryPersonModal from "../../../components/molecules/Modals/DeliveryPersonModal/DeliveryPersonModal";
@@ -43,20 +41,18 @@ import { addComplaint } from "../../../features/complaint/complaintSlice";
 import { rolesMap } from "../../../types/Roles";
 import { generateEtiquette } from "../../../services/generate_pdf";
 import { useTranslation } from "react-i18next";
-import CreateAdminOrderForm from "../../../components/templates/Forms/CreateOrderForm/CreateAdminOrderForm";
 import { message } from "antd";
+import CreateOrderFlow from "../../../components/molecules/Modals/OrderTypeModal/CreateOrderFlow";
+
 const Orders = () => {
   const currentUser: any = useSelector(selectCurrentUser);
   const orders = useSelector(selectOrders);
   const orderStatuses = useSelector(selectOrderStatus);
   const totalOrders = useSelector(selectcount);
   const status = useSelector(selectStatus);
-  const [isChooseOrderTypeModalOpen, setIsChooseOrderTypeModalOpen] = useState(false);
   const [isAssignDeliveryPersonModalOpen, setIsAssignDeliveryPersonModalOpen] = useState(false);
   const [createdOrder, setCreatedOrder] = useState<any>();
   const [isLabeltDownloadModalOpen, setIsLabeltDownloadModalOpen] = useState(false);
-  const [orderType, setOrderType] = useState<OrderType>();
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [clickedOrder, setClickedOrder] = useState<any>(null);
   const [updateDrawerOpen, setUpdateDrawerOpen] = useState(false);
   const [orderInfoDrawerOpen, setOrderInfoDrawerOpen] = useState(false);
@@ -64,10 +60,8 @@ const Orders = () => {
   const transporters = useSelector(selectAllTransportersNoPagination);
   const _transportersStatus = useSelector(transportersStatus);
   const { t } = useTranslation();
-  //const [paymentAmount, setPaymentAmount] = useState<number>(0);
 
   useEffect(() => {
-    // fetch all orders on mount component
     store.dispatch(fetchOrderStatuses());
     store.dispatch(fetchOrders());
   }, []);
@@ -75,15 +69,17 @@ const Orders = () => {
   const handleUpdateOrder = (order: any) => {
     setClickedOrder(order);
     setUpdateDrawerOpen(true);
-    setOrderInfoDrawerOpen(false); // Close OrderInfo drawer if open
+    setOrderInfoDrawerOpen(false);
   };
-  
+
+  const [isCreateOrderFlowOpen, setIsCreateOrderFlowOpen] = useState(false);
 
   const handleOrderInfo = (order: any) => {
     setClickedOrder(order);
     setOrderInfoDrawerOpen(true);
-    setUpdateDrawerOpen(false); // Close UpdateOrderForm drawer if open
+    setUpdateDrawerOpen(false);
   };
+
   const handleAssignDelivery = (deliveryPersonId: number | null) => {
     if (clickedOrder) {
       store.dispatch(
@@ -95,12 +91,12 @@ const Orders = () => {
       setIsAssignDeliveryPersonModalOpen(false);
     }
   };
+
   return (
     <>
-      <div className='orders-container'>
-        <div className='orders-container--header'>
+      <div className="orders-container">
+        <div className="orders-container--header">
           <Title level={4}>
-            {" "}
             {t("totalNumberOfOrders")}: {totalOrders}
           </Title>
 
@@ -109,12 +105,13 @@ const Orders = () => {
               store.dispatch(setFilter(value));
             }}
             onClickBtn={() => {
-              setIsChooseOrderTypeModalOpen(true);
-            }}
+                setIsCreateOrderFlowOpen(true);
+              }}
             btnText={t("addOrder")}
           />
         </div>
-        <div className='orders-container--table'>
+
+        <div className="orders-container--table">
           <OrdersTable
             orders={orders}
             totalOrders={totalOrders}
@@ -153,35 +150,34 @@ const Orders = () => {
               setIsAssignDeliveryPersonModalOpen(true);
             }}
             onTogglePayment={async (orderId) => {
-            const amount = window.prompt("Montant en TND ?");
-            if (amount) {
-              try {
-                await store.dispatch(togglePayment({ orderId, amount: parseFloat(amount) })).unwrap();
-                message.success('Paiement activé');
-                // ✅ FORCE RELOAD
-                setTimeout(() => {
-                  store.dispatch(fetchOrders());
-                }, 500);
-              } catch (err) {
-                message.error('Erreur');
+              const amount = window.prompt("Montant en TND ?");
+              if (amount) {
+                try {
+                  await store.dispatch(togglePayment({ orderId, amount: parseFloat(amount) })).unwrap();
+                  message.success("Paiement activé");
+                  setTimeout(() => {
+                    store.dispatch(fetchOrders());
+                  }, 500);
+                } catch (err) {
+                  message.error("Erreur");
+                }
               }
-            }
-          }}
+            }}
             onMarkPaid={async (orderId) => {
               await store.dispatch(markPaid(orderId)).unwrap();
-              await store.dispatch(fetchOrders());  // ✅ Reload
-              message.success('Marqué payé');
+              await store.dispatch(fetchOrders());
+              message.success("Marqué payé");
             }}
-
           />
         </div>
       </div>
-      {/* Assign Delivery Person  Modal */}
+
       <DeliveryPersonModal
         isDeliveryPersonModalOpen={isAssignDeliveryPersonModalOpen}
         deliveryPersons={transporters}
         handleClose={() => {
-          setIsAssignDeliveryPersonModalOpen(false), setClickedOrder(null);
+          setIsAssignDeliveryPersonModalOpen(false);
+          setClickedOrder(null);
         }}
         onAssignDelivery={handleAssignDelivery}
         isloading={_transportersStatus == "loading"}
@@ -190,73 +186,35 @@ const Orders = () => {
           store.dispatch(setFilterTransporters({ verified: true, filtredFirstName: value }));
         }}
       />
-      {/* Choose Order Type Modal */}
-      <OrderTypeModal
-        isModalOpen={isChooseOrderTypeModalOpen}
-        handleClose={() => setIsChooseOrderTypeModalOpen(false)}
-        handleOrderType={(orderType) => {
-          setIsChooseOrderTypeModalOpen(false);
-          setOrderType(orderType);
-          setIsDrawerOpen(true);
+
+      <CreateOrderFlow
+        isOpen={isCreateOrderFlowOpen}
+        onClose={() => setIsCreateOrderFlowOpen(false)}
+        currentUser={currentUser}
+        onCreateOrder={async (order) => {
+          const createdOrd = await store.dispatch(addOrder(order)).unwrap();
+          setCreatedOrder(createdOrd);
+          setIsCreateOrderFlowOpen(false);
+          setIsLabeltDownloadModalOpen(true);
+          store.dispatch(fetchOrders());
         }}
       />
 
-      {/* Create Order Drawer */}
-      <DrawerComponent
-        isOpen={isDrawerOpen}
-        content={
-          currentUser?.roleId === 1 ? (
-            <CreateAdminOrderForm
-              onCreateOrder={async (order) => {
-                const createdOrd = await store.dispatch(addOrder(order)).unwrap();
-                setCreatedOrder(createdOrd);
-                setIsDrawerOpen(false);
-                setIsLabeltDownloadModalOpen(true);
-                // setIsDownloadEtiquetteModalOpen(true);
-              }}
-              orderType={orderType!}
-              currentUser={currentUser}
-            />
-          ) : (
-            <CreateOrderForm
-              onCreateOrder={async (order) => {
-                const createdOrd = await store.dispatch(addOrder(order)).unwrap();
-                setCreatedOrder(createdOrd);
-                setIsDrawerOpen(false);
-                setIsLabeltDownloadModalOpen(true);
-                // setIsDownloadEtiquetteModalOpen(true);
-              }}
-              orderType={orderType!}
-              currentUser={currentUser}
-            />
-          )
-        }
-        handleClose={() => {
-          setIsDrawerOpen(false);
-        }}
-        title={
-          orderType === "deliverOrder"
-            ? t("deliverNewOrder")
-            : orderType === "bringOrder"
-              ? t("bringNewOrder")
-              : "Commande"
-        }
-      />
-      {/* Download ETiquette Modal */}
       <ReceiptDownloadModal
         isLabeltDownloadModalOpen={isLabeltDownloadModalOpen}
         handleClose={() => {
-          setIsLabeltDownloadModalOpen(false), setCreatedOrder(null);
+          setIsLabeltDownloadModalOpen(false);
+          setCreatedOrder(null);
         }}
         handleDownloadLabel={() => {
           if (createdOrder?.id) {
-            generateEtiquette(createdOrder?.id);
+            generateEtiquette(createdOrder.id);
           } else {
             alert("Something went wrong please try again");
           }
         }}
       />
-      {/* Update Order Drawer */}
+
       <DrawerComponent
         isOpen={updateDrawerOpen}
         content={
@@ -269,12 +227,12 @@ const Orders = () => {
           />
         }
         handleClose={() => {
-          setUpdateDrawerOpen(false), setClickedOrder(null);
+          setUpdateDrawerOpen(false);
+          setClickedOrder(null);
         }}
         title={"Modifier la commande"}
       />
 
-      {/* Order Info Drawer */}
       <DrawerComponent
         isOpen={orderInfoDrawerOpen}
         content={
@@ -283,7 +241,6 @@ const Orders = () => {
             isAdmin={currentUser?.roleId === rolesMap.admin}
             orderStatuses={orderStatuses}
             addComplaint={(values) => {
-              console.log("add complaint.", values);
               store.dispatch(
                 addComplaint({
                   subject: values.subject,
@@ -291,7 +248,6 @@ const Orders = () => {
                   messages: [{ messageContent: values.message, senderId: currentUser?.id }],
                 } as any),
               );
-              //TODO add complaint
             }}
           />
         }

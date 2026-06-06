@@ -17,10 +17,10 @@ import {
 } from './dto/create-claim.dto';
 import { UpdateClaimDto, UpdateRespDTO } from './dto/update-claim.dto';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AllCLaimsRespDTO, ClaimRespDTO } from './dto/claim.dto';
-import { ResponseDto } from 'src/utils/response.dto';
-import { AuthUserJWT } from 'src/utils/auth-user-jwt.decorator';
+import { ResponseDto } from '../utils/response.dto';
+import { AuthUserJWT } from '../utils/auth-user-jwt.decorator';
 
 @Controller('claims')
 @ApiTags('claims')

@@ -23,8 +23,8 @@ import {
 } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { PrismaService } from '../prisma/prisma.service';
 import { UploadPodResponseDto } from './dto/upload-pod.dto';
 
 const UPLOADED_FILES_PATH = './uploadedFiles';
@@ -132,9 +132,10 @@ export class UploadPodController {
       });
     } catch (error) {
       console.error('Error uploading POD:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       return res
         .status(500)
-        .json({ message: error.message || 'An error occurred' });
+        .json({ message: errorMessage });
     }
   }
 

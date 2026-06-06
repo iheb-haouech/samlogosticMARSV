@@ -5,18 +5,21 @@ import NavBar from "../../../components/organisms/NavBar/NavBar";
 import SideMenu from "../../../components/organisms/SideMenu/SideMenu";
 import colors from "../../../styles/colors/colors";
 import { useSelector } from "react-redux";
-import { selectCurrentUser } from "../../../features/user/userSlice";
+import { selectCurrentUser, setCurrentUser } from "../../../features/user/userSlice";
 import { MdOutlineSpaceDashboard } from "react-icons/md";
 import { FiShoppingCart } from "react-icons/fi";
 import { AiOutlineCustomerService } from "react-icons/ai";
 import { FaRegUser } from "react-icons/fa";
-import { CarOutlined, ShopOutlined, FileTextOutlined, AimOutlined } from "@ant-design/icons";
+import { CarOutlined, ShopOutlined, FileTextOutlined, AimOutlined, WalletOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next"; // Importing the translation hook
 import { selectedStatistic } from "../../../features/statistics/statisticsSlice";
+import { useNavigate } from "react-router-dom";
+import { store } from "../../../store/store";
 
 const { Content } = Layout;
 
 const DashboardLayout: React.FC = () => {
+  const navigate = useNavigate();
   const storedLang = localStorage.getItem("i18nextLng");
   const { t } = useTranslation(); // Initializing the translation hook
 
@@ -26,7 +29,7 @@ const DashboardLayout: React.FC = () => {
   const location = useLocation();
   const currentUser: any = useSelector(selectCurrentUser);
   const statistics: any = useSelector(selectedStatistic);
-
+  if (!currentUser) return null;
   const isAdmin: boolean = currentUser?.roleId === 1;
   const isTransporter: boolean = currentUser?.roleId === 2;
   // Dynamically create menu items with translation
@@ -79,6 +82,7 @@ const transporterAllMenuItems = [
       badgeCount: statistics?.totalWaitingProviders,
     },
     { key: "/admin/invoices", label: t("paymentInvoices"), icon: <FileTextOutlined /> },
+    { key: "/admin/cashflow", label: t("cashflow"), icon: <WalletOutlined /> },
     {
       key: "/admin/complaints",
       label: t("complaints"),
@@ -109,8 +113,8 @@ const transporterAllMenuItems = [
   const handelLogOut = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
-    window.location.href = "login";
-    window.location.reload();
+    store.dispatch(setCurrentUser(null));
+    navigate("/login", { replace: true });
   };
    const userDisplayName =
              currentUser?.companyName ||
@@ -136,6 +140,7 @@ const transporterAllMenuItems = [
           userImg=''
           pageIcon={pageIcon}
           profileRoute={isAdmin ? "/admin/profile" : isTransporter ? "/transporter/profile" : "/user/profile"}
+          walletBalance={currentUser?.walletBalance}
         />
         <Content style={{ margin: "12px" }}>
           <div

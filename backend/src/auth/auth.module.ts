@@ -1,4 +1,3 @@
-//src/auth/auth.module.ts
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
@@ -19,14 +18,14 @@ import { MailerModule } from '@nestjs-modules/mailer';
       signOptions: { expiresIn: process.env.JWT_EXP_IN },
     }),
     UserModule,
-    ConfigModule.forRoot(), // Load .env variables
+    ConfigModule.forRoot(),
     MailerModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         transport: {
           host: configService.get<string>('MAIL_HOST'),
           port: configService.get<number>('MAIL_PORT'),
-          secure: true, // true for SSL
+          secure: false,
           auth: {
             user: configService.get<string>('MAIL_USER'),
             pass: configService.get<string>('MAIL_PASSWORD'),
@@ -41,5 +40,6 @@ import { MailerModule } from '@nestjs-modules/mailer';
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
+  exports: [JwtModule, AuthService], // 👈 AJOUT TRÈS IMPORTANT
 })
 export class AuthModule {}

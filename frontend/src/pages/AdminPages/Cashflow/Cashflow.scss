@@ -1,0 +1,49 @@
+.cashflow-page {
+  height: 100%;
+  overflow: auto;
+  padding-right: 4px;
+
+  &--summary {
+    margin-bottom: 16px;
+  }
+
+  &--metric {
+    border: 1px solid #edf0f5;
+    border-radius: 6px;
+    padding: 14px 16px;
+    background: #fbfcfe;
+    min-height: 82px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+
+    span {
+      color: #657083;
+      font-size: 13px;
+    }
+
+    strong {
+      color: #151f2d;
+      font-size: 22px;
+      line-height: 1.1;
+    }
+  }
+
+  &--metric-highlight {
+    border-color: #1a3a6b;
+    background: #eef3fb;
+
+    strong {
+      color: #1a3a6b;
+    }
+  }
+
+  &--settlement {
+    margin-bottom: 16px;
+  }
+
+  &--section {
+    margin-top: 18px;
+  }
+}

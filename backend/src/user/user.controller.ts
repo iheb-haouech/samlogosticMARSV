@@ -19,15 +19,15 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ResponseDto } from '../utils/response.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import {
   AllProvidersDTO,
   FindManyProvidersDto,
   GetProviderInvoiceDto,
 } from './dto/all-providers.dto';
-import { RoleGuard } from 'src/auth/role.guard';
-import { USERROLES } from 'src/utils/enum';
-import { Roles } from 'src/auth/roles.decorator';
+import { RoleGuard } from '../auth/role.guard';
+import { USERROLES } from '../utils/enum';
+import { Roles } from '../auth/roles.decorator';
 import { PaginationDTO } from './dto/pagination.dto';
 
 @Controller('user')

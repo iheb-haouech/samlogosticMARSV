@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { UserDTO } from 'src/user/dto/create-user.dto';
-import { UserService } from 'src/user/user.service';
-import { USERROLES } from 'src/utils/enum';
+import { PrismaService } from '../prisma/prisma.service';
+import { UserDTO } from '../user/dto/create-user.dto';
+import { UserService } from '../user/user.service';
+import { USERROLES } from '../utils/enum';
 
 @Injectable()
 export class TransportersService {

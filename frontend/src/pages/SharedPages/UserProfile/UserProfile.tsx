@@ -72,11 +72,11 @@ export const UserProfile = () => {
 
   const handleFormSubmit = () => {
     const updatedData = profileForm.getFieldsValue();
-    store.dispatch(updateUser({ ...updatedData, id: currentUser.id }));
+    store.dispatch(updateUser({ ...updatedData, id: currentUser?.id }));
   };
 
   const handleChangePsw = async () => {
-    store.dispatch(updateUser({ password: passwordForm.getFieldValue("password"), id: currentUser.id }));
+    store.dispatch(updateUser({ password: passwordForm.getFieldValue("password"), id: currentUser?.id }));
   };
 
   const handleCancel = () => {

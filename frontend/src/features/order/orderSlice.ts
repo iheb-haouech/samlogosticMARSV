@@ -8,6 +8,7 @@ import { setLoading } from "../loading/loadingSlice";
 import { Order, OrderStatus } from "../../types/Order";
 import axios from 'axios';
 
+const apiBaseUrl = import.meta.env.VITE_BASE_URL;
 
 interface OrderState {
   orders: Order[];
@@ -178,7 +179,7 @@ export const togglePayment = createAsyncThunk(
   async ({ orderId, amount }: { orderId: string; amount: number }) => {
     const token = localStorage.getItem('accessToken');
     const response = await axios.patch(
-      `http://localhost:6001/orders/${orderId}/payment`, 
+      `${apiBaseUrl}/orders/${orderId}/payment`,
       { amount },
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -191,7 +192,7 @@ export const markPaid = createAsyncThunk(
   async (orderId: string) => {
     const token = localStorage.getItem('accessToken');
     const response = await axios.patch(
-      `http://localhost:6001/orders/${orderId}/paid`,
+      `${apiBaseUrl}/orders/${orderId}/paid`,
       {},  // ✅ Body vide
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -208,8 +209,6 @@ export const updateOrderStatus = createAsyncThunk<
     return new Promise<OrderDtoResponse>((resolve, reject) => {
       const token = localStorage.getItem("accessToken")!;
       const myClient = ApiClientWithHeaders(token);
-
-      console.log("API UPDATE", id, orderStatusId);
 
       myClient.orders
         .ordersControllerUpdateStatus(id, { orderStatusId } as any)

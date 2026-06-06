@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { AddClaimMsgDto, CreateClaimDto } from './dto/create-claim.dto';
 import { UpdateClaimDto } from './dto/update-claim.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { AuthService } from 'src/auth/auth.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 
@@ -46,6 +46,25 @@ export class ClaimsService {
     creator: {
       connect: { id: user.id },
     },
+    messages: createClaimDto.messages?.length
+      ? {
+          create: createClaimDto.messages.map((message) => ({
+            messageContent: message.messageContent,
+            senderId: user.id,
+          })),
+        }
+      : undefined,
+  },
+  include: {
+    messages: {
+      include: {
+        sender: {
+          select: { id: true, firstName: true, lastName: true, email: true, roleId: true },
+        },
+      },
+    },
+    order: { select: { id: true, trackingId: true } },
+    creator: { select: { id: true, companyName: true, email: true } },
   },
 });
   }
@@ -79,8 +98,8 @@ export class ClaimsService {
     } else {
       conditions = { ...conditions, statusId: 1 };
     }
-    // if is admin get all
-    if (user?.roleId != 2) {
+    // Admin sees all complaints; clients and transporters see their own.
+    if (user?.roleId !== 1) {
       conditions = { ...conditions, creatorUserId: user?.id };
     }
 

@@ -19,16 +19,16 @@ import {
 } from './dto/update-order.dto';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AuthUserJWT } from '../utils/auth-user-jwt.decorator';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { RoleGuard } from 'src/auth/role.guard';
-import { Roles } from 'src/auth/roles.decorator';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RoleGuard } from '../auth/role.guard';
+import { Roles } from '../auth/roles.decorator';
 import { ResponseDto } from '../utils/response.dto';
-import { USERROLES } from 'src/utils/enum';
+import { USERROLES } from '../utils/enum';
 import {
   AllOrderDtoResponse,
   OrderDtoResponse,
 } from './dto/order-response.dto';
-import { PdfGeneratorService } from "src/pdf-generator/pdf-generator.service";
+import { PdfGeneratorService } from "../pdf-generator/pdf-generator.service";
 
 
 @Controller('orders')
@@ -168,10 +168,11 @@ async triggerInvoice(@Param("id") id: string) {
     type: OrderDtoResponse,
   })
   updateStatus(
+    @AuthUserJWT() userToken: string | undefined,
     @Param('id') id: string,
     @Body() updateOrderDto: UpdateOrderDto,
   ) {
-    return this.ordersService.updateOrderStatus(id, updateOrderDto);
+    return this.ordersService.updateOrderStatus(userToken, id, updateOrderDto);
   }
 
   @Delete('/delete-order/:id')

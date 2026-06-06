@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { TransportersService } from './transporters.service';
-import { UserDTO } from 'src/user/dto/create-user.dto';
+import { UserDTO } from '../user/dto/create-user.dto';
 import {
   ApiBearerAuth,
   ApiOkResponse,
@@ -18,13 +18,13 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { FindManyTransporterDto } from './dto/findMany-transporter.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { AllTransportersDTO } from './dto/AllTransporters.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { RoleGuard } from 'src/auth/role.guard';
-import { USERROLES } from 'src/utils/enum';
-import { Roles } from 'src/auth/roles.decorator';
-import { ResponseDto } from 'src/utils/response.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RoleGuard } from '../auth/role.guard';
+import { USERROLES } from '../utils/enum';
+import { Roles } from '../auth/roles.decorator';
+import { ResponseDto } from '../utils/response.dto';
 
 @Controller('transporters')
 @ApiTags('transporter')

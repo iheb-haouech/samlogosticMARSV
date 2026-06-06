@@ -12,6 +12,8 @@
   "Please select City": "Please select City",
   "Selected City": "Selected City",
   "Company Name": "Company Name",
+  "accountType": "Account type",
+  "accountTypeRequired": "Please select B2B or B2C.",
   "Please enter the company name.": "Please enter the company name.",
   "Please enter your email.": "Please enter your email.",
   "Password": "Password",
@@ -271,5 +273,18 @@
   "confirmPasswordRequired": "Please confirm your password",
   "approvalMsg": "Thank you for signing up! Your account is currently pending approval by our team. Rest assured, we're working diligently to review your information. Once approved, you'll gain access to all features and functionalities. We appreciate your patience.",
   "approvalBtn": "Leave / Login",
-  "complaintMsg": "Briefly describe the issue with your order."
+  "complaintMsg": "Briefly describe the issue with your order.",
+  "cashflow": "Cashflow",
+  "B2B orders this week": "B2B orders (this week)",
+  "B2C orders this week": "B2C orders (this week)",
+  "B2B pending": "B2B pending",
+  "B2B in transit": "B2B in transit",
+  "B2B delivered": "B2B delivered",
+  "B2B rejected": "B2B rejected",
+  "B2C pending": "B2C pending",
+  "B2C in transit": "B2C in transit",
+  "B2C delivered": "B2C delivered",
+  "B2C rejected": "B2C rejected",
+  "walletBalance": "Available wallet",
+  "adminWallets": "Admin wallets"
 }

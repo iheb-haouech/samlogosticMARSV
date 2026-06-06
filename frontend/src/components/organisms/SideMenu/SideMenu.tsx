@@ -5,6 +5,7 @@ import { TbLogout } from "react-icons/tb";
 import "./SideMenu.scss";
 import { useTranslation } from "react-i18next";
 import MenuItem from "antd/es/menu/MenuItem";
+import { BRAND_LOGO, BRAND_LOGO_ICON, BRAND_NAME } from "../../../constants/branding";
 
 type MenuItem = {
   key: React.Key;
@@ -61,11 +62,13 @@ const SideMenu: React.FC<SideMenuProps> = ({ menuItems, logOut, collapsed, onCol
           <div className='side-menu--header'>
             <img
               className={`side-menu--header-logo${collapsed ? "-expanded" : ""}`}
-              src={collapsed ? "../png/logo-icon.png" : "../png/vanlogLogo.png"}
-              alt='vanlog logo'
+              src={collapsed ? BRAND_LOGO_ICON : BRAND_LOGO}
+              alt={`${BRAND_NAME} logo`}
               style={{
-                maxWidth: collapsed ? "3rem" : "90%",
-                transition: "max-width 0.3s ease",
+                width: collapsed ? "42px" : "170px",
+                height: collapsed ? "42px" : "80px",
+                objectFit: "contain",
+                transition: "width 0.3s ease, height 0.3s ease",
               }}
             />
           </div>

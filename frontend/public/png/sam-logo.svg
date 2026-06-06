@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 260" role="img" aria-label="SAM LOGISTIC">
+  <defs>
+    <linearGradient id="samBlue" x1="112" y1="34" x2="514" y2="222" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0b3567"/>
+      <stop offset="0.48" stop-color="#123f72"/>
+      <stop offset="1" stop-color="#68a8dc"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="260" fill="#fff"/>
+  <g transform="translate(40 20)">
+    <path fill="url(#samBlue)" d="M92 24h252l-49 87H169c-27 0-49 20-49 47s22 47 49 47h188c78 0 141 58 141 131H252l49-87h75c27 0 49-20 49-47s-22-47-49-47H188c-78 0-141-58-141-131h45z"/>
+    <path fill="url(#samBlue)" d="M356 24h112l-84 111H272zM146 177h112l-84 111H62z"/>
+  </g>
+</svg>

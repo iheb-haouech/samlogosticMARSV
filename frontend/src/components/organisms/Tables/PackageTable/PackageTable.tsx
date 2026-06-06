@@ -6,32 +6,40 @@ import { HiOutlineTrash } from "react-icons/hi";
 import { Package } from "../../../../types/Order";
 import { useTranslation } from "react-i18next";
 
-const PackageTable: React.FC<PackageTableProps> = ({ onPackagesChanges, packages }: PackageTableProps) => {
+const PackageTable: React.FC<PackageTableProps> = ({
+  onPackagesChanges,
+  packages,
+  showPrice = false,
+  fixedShipmentPrice = 0,
+}: PackageTableProps) => {
   const { t } = useTranslation();
   const [count, setCount] = useState(packages ? packages?.length : 0);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [packagesData, setPackagesData] = useState<Package[]>(
     packages ? packages.map((pkg, index) => ({ ...pkg, index: index + 1 })) : [],
   );
-  const [totals, setTotals] = useState({ totalQuantity: 0, totalWeight: 0 });
+  const [totals, setTotals] = useState({ totalQuantity: 0, totalWeight: 0, totalPrice: 0 });
 
   useEffect(() => {
     // Calculate total values
     
     const newTotals = packagesData.reduce(
       (acc, item) => ({
-        totalQuantity: acc?.totalQuantity + item?.quantity,
-        totalWeight: acc?.totalWeight + item?.weight,
+        totalQuantity: acc.totalQuantity + Number(item?.quantity || 0),
+        totalWeight: acc.totalWeight + Number(item?.weight || 0) * Number(item?.quantity || 1),
+        totalPrice: acc.totalPrice + Number(item?.price || 0) * Number(item?.quantity || 1),
       }),
-      { totalQuantity: 0, totalWeight: 0 },
+      { totalQuantity: 0, totalWeight: 0, totalPrice: 0 },
     );
     setTotals(newTotals);
-    onPackagesChanges({ packages: packagesData, ...newTotals });
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    onPackagesChanges({ packages: packagesData, ...newTotals, totalWithShipment: newTotals.totalPrice + fixedShipmentPrice });
+  }, [fixedShipmentPrice, packagesData]);
 
-  }, [packagesData]);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Handle delete row (Package)
   const handleDelete = (index: number) => {
@@ -93,7 +101,7 @@ const PackageTable: React.FC<PackageTableProps> = ({ onPackagesChanges, packages
             min={0}
             style={{ width: "100%" }}
             value={weight}
-            onChange={(value) => handleSave({ ...record, weight: value })}
+            onChange={(value) => handleSave({ ...record, weight: Number(value || 0) })}
           />
         </Form.Item>
       ),
@@ -121,7 +129,7 @@ const PackageTable: React.FC<PackageTableProps> = ({ onPackagesChanges, packages
             style={{ width: "100%" }}
             min={0}
             value={width}
-            onChange={(value) => handleSave({ ...record, length: value })}
+            onChange={(value) => handleSave({ ...record, length: Number(value || 0) })}
           />
         </Form.Item>
       ),
@@ -149,7 +157,7 @@ const PackageTable: React.FC<PackageTableProps> = ({ onPackagesChanges, packages
             style={{ width: "100%" }}
             min={0}
             value={width}
-            onChange={(value) => handleSave({ ...record, width: value })}
+            onChange={(value) => handleSave({ ...record, width: Number(value || 0) })}
           />
         </Form.Item>
       ),
@@ -177,7 +185,7 @@ const PackageTable: React.FC<PackageTableProps> = ({ onPackagesChanges, packages
             style={{ width: "100%" }}
             min={0}
             value={height}
-            onChange={(value) => handleSave({ ...record, height: value })}
+            onChange={(value) => handleSave({ ...record, height: Number(value || 0) })}
           />
         </Form.Item>
       ),
@@ -205,11 +213,43 @@ const PackageTable: React.FC<PackageTableProps> = ({ onPackagesChanges, packages
             style={{ width: "100%" }}
             min={1}
             value={quantity}
-            onChange={(value) => handleSave({ ...record, quantity: value })}
+            onChange={(value) => handleSave({ ...record, quantity: Number(value || 1) })}
           />
         </Form.Item>
       ),
     },
+    ...(showPrice
+      ? [
+          {
+            title: "Prix colis (DT)",
+            dataIndex: "price",
+            key: "price",
+            render: (price: number, record: Package) => (
+              <Form.Item
+                className='package-table--input'
+                name={`price-${record.index}`}
+                initialValue={price}
+                rules={[
+                  {
+                    required: true,
+                    message: "Required field",
+                  },
+                ]}
+              >
+                <InputNumber
+                  id={`price-${record.index}`}
+                  type='number'
+                  step='1'
+                  style={{ width: "100%" }}
+                  min={0}
+                  value={price}
+                  onChange={(value) => handleSave({ ...record, price: Number(value || 0) })}
+                />
+              </Form.Item>
+            ),
+          },
+        ]
+      : []),
     {
       title: "Action",
       dataIndex: "operation",
@@ -254,6 +294,16 @@ const PackageTable: React.FC<PackageTableProps> = ({ onPackagesChanges, packages
               <Table.Summary.Cell index={5}>
                 <b>{totals?.totalQuantity} Colis</b>
               </Table.Summary.Cell>
+              {showPrice && (
+                <Table.Summary.Cell index={6}>
+                  <b>{totals?.totalPrice} DT</b>
+                </Table.Summary.Cell>
+              )}
+              {showPrice && fixedShipmentPrice > 0 && (
+                <Table.Summary.Cell index={7}>
+                  <b>Total + transport: {totals.totalPrice + fixedShipmentPrice} DT</b>
+                </Table.Summary.Cell>
+              )}
             </Table.Summary.Row>
           </>
         )}

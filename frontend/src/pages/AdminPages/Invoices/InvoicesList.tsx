@@ -2,13 +2,15 @@ import { Table, Button, DatePicker, Select, Row, Col } from "antd";
 import { useState, useEffect } from "react";
 import axios from "axios";
 
+const apiBaseUrl = import.meta.env.VITE_BASE_URL;
+
 const InvoicesList = () => {
   const [data, setData] = useState([]);
 
   const fetchInvoices = async (filters = {}) => {
     try {
       const res = await axios.get(
-        "http://localhost:6001/user/invoices",
+        `${apiBaseUrl}/user/invoices`,
         { params: filters }
       );
       setData(res.data);
@@ -24,7 +26,7 @@ const InvoicesList = () => {
   const downloadInvoice = async (invoice: any) => {
     try {
       const res = await axios.get(
-        `http://localhost:6001/user/invoice-pdf?userId=${invoice.generatedFor}&from=2026-01-01&to=2026-12-31`,
+        `${apiBaseUrl}/user/invoice-pdf?userId=${invoice.generatedFor}&from=2026-01-01&to=2026-12-31`,
         { responseType: "blob" }
       );
 

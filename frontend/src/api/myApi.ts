@@ -37,6 +37,7 @@ export interface UserDTO {
   firstName: string;
   lastName: string;
   phone: string;
+  phoneCountryCode?: string;
   email: string;
   password: string;
   roleId?: number;
@@ -49,6 +50,8 @@ export interface UserDTO {
   commercialRegister?: string;
   patent?: string;
   companyTypeId?: number;
+  companyActivityId?: number;
+  accountType?: "B2B" | "B2C";
   userPackId?: number;
   carNumber: string;
   carTypeId: number;
@@ -57,6 +60,8 @@ export interface UserDTO {
   carWeight: number;
   disponibility: UserDispoDTO;
   verified: boolean;
+  blocked?: boolean;
+  walletBalance?: number;
 }
 
 export interface AllProvidersDTO {

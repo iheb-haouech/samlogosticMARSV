@@ -51,8 +51,8 @@ const ResetPassword = () => {
           <img
             className='auth-form--logo'
             style={{ width: 250 }}
-            src='./png/vanloglogo-bgwhite.png'
-            alt='vanlog Logo'
+            src='/png/sam-logo.svg'
+            alt='SAM LOGISTIC logo'
           />
           <Title className='auth-form--title' level={3}>
             Changez votre mot de passe

@@ -14,7 +14,7 @@ import { UserDTO } from '../user/dto/create-user.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { AuthUserJWT } from '../utils/auth-user-jwt.decorator';
 import { AuthResponseDto } from './dto/auth-resp.dto';
-import { CreateTransporterDto } from 'src/transporters/dto/create-transporter.dto';
+import { CreateTransporterDto } from '../transporters/dto/create-transporter.dto';
 
 
 @Controller('auth')

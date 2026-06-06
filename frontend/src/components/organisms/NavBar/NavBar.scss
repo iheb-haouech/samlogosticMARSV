@@ -37,6 +37,18 @@
     flex-wrap: nowrap;
     gap: 1rem;
   }
+  .header--wallet {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.25rem 0.65rem;
+    border: 1px solid var(--gray-100);
+    border-radius: 6px;
+    color: var(--gray-800);
+    font-size: 0.875rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
   // ===================================
 // DARK MODE TOGGLE IN NAVBAR
 // ===================================

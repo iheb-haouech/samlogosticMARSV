@@ -7,7 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuthService } from '../auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { PackagesService } from '../packages/packages.service';
-import { PdfGeneratorModule } from 'src/pdf-generator/pdf-generator.module'; // 👈 AJOUTER
+import { PdfGeneratorModule } from '../pdf-generator/pdf-generator.module'; // 👈 AJOUTER
 
 @Module({
   imports: [HttpModule,PdfGeneratorModule,],

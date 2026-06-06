@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import SignupFormProps from "./SignupFormProps";
-import { Button, Flex, Form, Input, Row, Select, Typography } from "antd";
+import { Button, Flex, Form, Input, Radio, Row, Select, Typography } from "antd";
 import "./AuthForm.scss";
 import Title from "antd/es/typography/Title";
 import { UserDTO } from "../../../../api/myApi";
@@ -9,6 +9,7 @@ import { apiClient } from "../../../../api";
 import { useForm } from "antd/es/form/Form";
 import { countriesList } from "../../../../staticData/countries";
 import { PhoneCodesList } from "../../../../staticData/phone-codes";
+import { BRAND_LOGO, BRAND_NAME } from "../../../../constants/branding";
 
 const SignupForm: React.FC<SignupFormProps> = ({ onSignInClick, onSubmit }) => {
   const { t } = useTranslation();
@@ -23,6 +24,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignInClick, onSubmit }) => {
     commercialRegister: null,
     patent: null,
     companyTypeId: 1,
+    companyActivityId: null,
+    accountType: "B2B",
     // roleId: 3,
     zipCode: "",
     firstName: "", // Add firstName
@@ -105,9 +108,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignInClick, onSubmit }) => {
   }, []);
 
   const handleSubmit = () => {
-    const updatedUser = { ...newUser};
+    const updatedUser = { ...newUser };
     onSubmit(updatedUser);
-    console.log("newUser", updatedUser);
   };
 
   const handleChange = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -119,6 +121,24 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignInClick, onSubmit }) => {
 
   const handleSelectChange = (field: string) => (value: any) => {
     setNewUser({ ...newUser, [field]: value });
+
+    if (field === "accountType") {
+      const b2cDefaults =
+        value === "B2C"
+          ? {
+              companyName: "",
+              companyTypeId: null,
+              companyActivityId: null,
+              patent: "",
+            }
+          : {};
+
+      setNewUser((prev: any) => ({ ...prev, accountType: value, ...b2cDefaults }));
+      if (value === "B2C") {
+        form.setFieldsValue(b2cDefaults);
+      }
+      return;
+    }
 
     if (field === "country") {
       const newCities = countriesList[value] || [];
@@ -163,7 +183,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignInClick, onSubmit }) => {
   return (
     <div className='auth-form'>
       <div className='auth-form--logo-container'>
-        <img className='auth-form--logo' style={{ width: 250 }} src='./png/vanloglogo-bgwhite.png' alt='vanlog Logo' />
+        <img className='auth-form--logo' style={{ width: 250 }} src={BRAND_LOGO} alt={`${BRAND_NAME} logo`} />
       </div>
       <Title className='auth-form--title' level={3}>
         {t("Create an account")}
@@ -217,6 +237,29 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignInClick, onSubmit }) => {
         </Form.Item>
 
         <Form.Item
+          label={t("accountType")}
+          name='accountType'
+          rules={[
+            {
+              required: true,
+              message: t("accountTypeRequired"),
+            },
+          ]}
+        >
+          <Radio.Group
+            optionType='button'
+            buttonStyle='solid'
+            onChange={(event) => handleSelectChange("accountType")(event.target.value)}
+            value={newUser.accountType}
+            options={[
+              { label: "B2B", value: "B2B" },
+              { label: "B2C", value: "B2C" },
+            ]}
+          />
+        </Form.Item>
+
+        {newUser.accountType === "B2B" && (
+          <Form.Item
           label={t("Company Name")}
           name='companyName'
           rules={[
@@ -234,7 +277,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignInClick, onSubmit }) => {
             value={newUser.companyName}
             type='text'
           />
-        </Form.Item>
+          </Form.Item>
+        )}
 
         <Form.Item
           label='Email'
@@ -358,7 +402,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignInClick, onSubmit }) => {
             </Form.Item>
           </Row>
 
-          <Form.Item
+          {newUser.accountType === "B2B" && (
+            <Form.Item
             label={t("Business Type")}
             name='companyTypeId'
             rules={[
@@ -380,8 +425,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignInClick, onSubmit }) => {
               }))}
               loading={loading}
             />
-          </Form.Item>
-          <Form.Item
+            </Form.Item>
+          )}
+          {newUser.accountType === "B2B" && (
+            <Form.Item
             label={t("Activité d’entreprise")}
             name='companyActivityId'
             rules={[
@@ -403,9 +450,11 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignInClick, onSubmit }) => {
               }))}
               loading={loading}
             />
-          </Form.Item>
+            </Form.Item>
+          )}
 
-          <Flex className='auth-form--row'>
+          {newUser.accountType === "B2B" && (
+            <Flex className='auth-form--row'>
             <Form.Item
               className='auth-form--row-item'
               label={t("Patent")}
@@ -426,7 +475,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignInClick, onSubmit }) => {
                 type='text'
               />
             </Form.Item>
-          </Flex>
+            </Flex>
+          )}
 
           <Flex className='auth-form--row'>
             <Form.Item

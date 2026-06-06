@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { UpdateOrderRecipientDTO } from './update-recipient.dto';
-import { UpdateOrderPackagesDTO } from 'src/packages/dto/update-package.dto';
+import { UpdateOrderPackagesDTO } from '../../packages/dto/update-package.dto';
 import { UpdateOrderSourceDTO } from './update-source.dto';
 
 export class UpdateOrderTransporterDto {

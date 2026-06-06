@@ -22,12 +22,15 @@ const initialState: AuthState = {
 export const fetchCurrentUser = createAsyncThunk<AuthResponseDto, string, { state: RootState }>(
   "user/fetchCurrentUser",
   async (token: string) => {
+    if (!token) {
+      throw new Error("Missing access token");
+    }
+
     try {
       const myClient = ApiClientWithHeaders(token);
       const response = await myClient.auth.authControllerGetAuthenticatedUser();
       return response.data;
     } catch (error: any) {
-      console.error("An error occurred in fetching current user data:", error.error.message); //TODO
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("accessToken");
       throw error;
@@ -84,14 +87,14 @@ const userSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchCurrentUser.pending, (state) => {
+      .addCase(fetchCurrentUser?.pending, (state) => {
         state.status = "loading";
       })
-      .addCase(fetchCurrentUser.fulfilled, (state, action) => {
+      .addCase(fetchCurrentUser?.fulfilled, (state, action) => {
         state.status = "idle";
         state.currentUser = action.payload.user;
       })
-      .addCase(fetchCurrentUser.rejected, (state, action) => {
+      .addCase(fetchCurrentUser?.rejected, (state, action) => {
         state.status = "failed";
         state.currentUser = null;
         state.error = action.error.message ?? "Something went wrong";
@@ -109,8 +112,7 @@ const userSlice = createSlice({
         });
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
-        window.location.href = "login";
-        window.location.reload();
+        state.currentUser = null;
       })
       .addCase(deleteUser.rejected, (state, action) => {
         state.status = "failed";

@@ -12,6 +12,8 @@
   "Selected City": "Selectioné Ville",
   "Please select City": "Veuillez selectioné Ville",
   "Company Name": "Nom de l'entreprise",
+  "accountType": "Type de compte",
+  "accountTypeRequired": "Veuillez selectionner B2B ou B2C.",
   "Please enter the company name.": "Veuillez entrer le nom de l'entreprise.",
   "Please enter your email.": "Veuillez entrer votre email",
   "Password": "Mot de passe",
@@ -270,5 +272,18 @@
   "confirmPasswordRequired": "Confirmez le mot de passe",
   "approvalMsg": "Merci de votre inscription ! Votre compte est actuellement en attente d'approbation par notre équipe. Soyez rassuré, nous travaillons activement à l'examen de vos informations. Une fois votre inscription approuvée, vous aurez accès à toutes les fonctionnalités. Nous vous remercions de votre patience.",
   "approvalBtn": "Quitter / Login",
-  "complaintMsg": "Décrivez brièvement le problème avec votre commande."
+  "complaintMsg": "Décrivez brièvement le problème avec votre commande.",
+  "cashflow": "Cashflow",
+  "B2B orders this week": "Commandes B2B (cette semaine)",
+  "B2C orders this week": "Commandes B2C (cette semaine)",
+  "B2B pending": "B2B en attente",
+  "B2B in transit": "B2B en transit",
+  "B2B delivered": "B2B livrees",
+  "B2B rejected": "B2B rejetees",
+  "B2C pending": "B2C en attente",
+  "B2C in transit": "B2C en transit",
+  "B2C delivered": "B2C livrees",
+  "B2C rejected": "B2C rejetees",
+  "walletBalance": "Panier disponible",
+  "adminWallets": "Paniers admin"
 }

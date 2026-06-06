@@ -1,3 +1,10 @@
+type OrdersByAccountType = {
+  waiting: number;
+  inTransit: number;
+  delivered: number;
+  canceled: number;
+};
+
 type FullStatistic = {
   totalWaitingOrders: any;
   totalTransitOrders: any;
@@ -9,6 +16,8 @@ type FullStatistic = {
   totalWaitingTransporters: any;
   totalComplaints: any;
   totalClosedComplaints: any;
+  b2b?: OrdersByAccountType; // 👈 nouveau
+  b2c?: OrdersByAccountType; // 👈 nouveau
   
 };
 // export type Statistic = FullStatistic;

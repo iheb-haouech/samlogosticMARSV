@@ -12,81 +12,79 @@ import useAdminRoutes from "./routes/useAdminRoutes";
 import useUserRoutes from "./routes/useUserRoutes";
 import { useTranslation } from "react-i18next";
 import useTransporterRoutes from "./routes/useTransporterRoutes";
-import './styles/tables-professional.scss';
-import './styles/dark-theme.scss'; // 🆕
-import { ThemeProvider } from './context/ThemeContext'; // 🆕
-
-
+import "./styles/tables-professional.scss";
+import "./styles/dark-theme.scss";
+import { ThemeProvider } from "./context/ThemeContext";
 
 function App() {
-  const [isLoading, setIsLoading] = useState<any>(true);
+  const [isLoading, setIsLoading] = useState(true);
   const currentUser: any = useSelector(selectCurrentUser);
-  console.log("currentUser FRONT", currentUser);
-  console.log("roleId FRONT", currentUser?.roleId);
+  const { i18n } = useTranslation();
 
-
-  const token: any = localStorage.getItem("accessToken");
   useEffect(() => {
     const fetchUserData = async () => {
-      try {
-        store.dispatch(fetchCurrentUser(token));
+      const token = localStorage.getItem("accessToken");
+
+      if (!token) {
+        store.dispatch(setCurrentUser(null));
         setIsLoading(false);
-      } catch (error) {
-        // If an error occurs, reset the current user state and remove tokens
+        return;
+      }
+
+      try {
+        await store.dispatch(fetchCurrentUser(token)).unwrap();
+      } catch {
         store.dispatch(setCurrentUser(null));
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
+      } finally {
         setIsLoading(false);
       }
     };
 
     fetchUserData();
-  }, [token]);
-
-  const { i18n } = useTranslation();
+  }, []);
 
   useEffect(() => {
     const storedLang = localStorage.getItem("i18nextLng");
     if (storedLang) {
       i18n.changeLanguage(storedLang);
     }
-  }, []);
+  }, [i18n]);
 
   const rolesMap = {
-    admin: 1,         // admin@test.com
-    transporter: 2,   // transporter@test.com
-    user: 3,          // user@test.com
+    admin: 1,
+    transporter: 2,
+    user: 3,
   };
 
+  const isAuthenticated = !!currentUser;
   const publicRoutes = usePublicRoutes();
   const adminRoutes = useAdminRoutes();
   const userRoutes = useUserRoutes();
   const transporterRoutes = useTransporterRoutes();
 
   return (
-<ThemeProvider> {/* 🆕 Wrapper */}
-    <ConfigProvider theme={antdThemeConfig}>
-      {isLoading ? (
-        <Loading />
-      ) : (
-        <Router>
-          {!token ? (
-            publicRoutes
-          ) : (
-            currentUser?.roleId === rolesMap.admin ? (
-              adminRoutes
-            ) : currentUser?.roleId === rolesMap.transporter ? (
-              transporterRoutes
-            ) : currentUser?.roleId === rolesMap.user ? (
-              userRoutes
-            ) : (
-              publicRoutes
-            )
-          )}
-        </Router>
-      )}
-    </ConfigProvider>
-  </ThemeProvider>);
+    <ThemeProvider>
+      <ConfigProvider theme={antdThemeConfig}>
+        {isLoading ? (
+          <Loading />
+        ) : (
+          <Router future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+            {!isAuthenticated
+              ? publicRoutes
+              : currentUser?.roleId === rolesMap.admin
+                ? adminRoutes
+                : currentUser?.roleId === rolesMap.transporter
+                  ? transporterRoutes
+                  : currentUser?.roleId === rolesMap.user
+                    ? userRoutes
+                    : publicRoutes}
+          </Router>
+        )}
+      </ConfigProvider>
+    </ThemeProvider>
+  );
 }
 
 export default App;

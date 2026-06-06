@@ -22,13 +22,13 @@
   &--header {
     display: flex;
     flex-direction: column;
-    align-content: center;
     align-items: center;
-    //margin-top: 2rem;
+    justify-content: center;
     margin-top: 1rem;
-    //margin-bottom: 0.5rem;
     margin-bottom: 0.5rem;
     gap: 2rem;
+    min-height: 92px;
+    overflow: hidden;
 
     &-collapse-btn {
       color: var(--white);

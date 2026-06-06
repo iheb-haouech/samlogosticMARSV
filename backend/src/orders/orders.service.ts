@@ -7,8 +7,8 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { plainToClass } from 'class-transformer';
 import { AuthService } from '../auth/auth.service';
-import { PackagesService } from 'src/packages/packages.service';
-import generateCustomTrackingID from 'src/utils/generate-id';
+import { PackagesService } from '../packages/packages.service';
+import generateCustomTrackingID from '../utils/generate-id';
 
 @Injectable()
 export class OrdersService {
@@ -18,16 +18,20 @@ export class OrdersService {
     private packagesService: PackagesService,
   ) {}
 
-  generateUniqueCustomID = async (user: any) => {
-    const customID = await generateCustomTrackingID(user);
+  generateUniqueCustomID = async (user: any, sequence?: number) => {
+    const nextSequence =
+      sequence ??
+      (await this.prisma.order.count({
+        where: { createdByUserId: user?.id },
+      })) + 1;
+    const customID = generateCustomTrackingID(user, nextSequence);
     const exists = await this.prisma.order.findUnique({
       where: { trackingId: customID } as any,
     });
     if (exists) {
-      // If customID already exists, recursively call itself to generate a new one
-      return this.generateUniqueCustomID(user);
+      return this.generateUniqueCustomID(user, nextSequence + 1);
     }
-    return customID; // Return unique customID
+    return customID;
   };
 
   async create(userToken: string, createOrderDto: CreateOrderDto) {
@@ -45,10 +49,50 @@ export class OrdersService {
         user = data?.user;
       }
 
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+
+      if (user?.blocked) {
+        throw new HttpException(
+          'Compte bloque. Creation de commande non autorisee.',
+          HttpStatus.FORBIDDEN,
+        );
+      }
+
+      if (user?.accountType === 'B2C') {
+        if (orderData?.mainType && orderData.mainType !== 'national') {
+          throw new HttpException(
+            'Les comptes B2C peuvent creer uniquement des commandes nationales.',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+        orderData.mainType = 'national';
+
+        const hasInvalidPackagePrice = orderData?.packages?.some(
+          (packageData: any) => !packageData?.price || packageData.price <= 0,
+        );
+        if (hasInvalidPackagePrice) {
+          throw new HttpException(
+            'Le prix de chaque colis est obligatoire pour les comptes B2C.',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+
+        orderData.totalPrice =
+          orderData?.packages?.reduce(
+            (total: number, packageData: any) =>
+              total + (packageData?.price || 0) * (packageData?.quantity || 1),
+            0,
+          ) || 0;
+
+        if (orderData?.subType === 'envoieLegere') {
+          orderData.shipmentPrice = 7;
+        }
+      }
+
       // Generate a unique customID
       const customID = await this.generateUniqueCustomID(user);
-      console.log("ORDER DATA TO CREATE ===>", JSON.stringify(orderData, null, 2));
-      console.log("USER USED ===>", user?.id);
       const createdOrder = await this.prisma.order.create({
         data: {
           ...orderData,
@@ -167,6 +211,16 @@ async generateInvoiceAutomatically(order: any) {
           carType: true,
         },
       },
+      createdBy: {
+        select: {
+          id: true,
+          companyName: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          accountType: true,
+        },
+      },
       pods: true,
       clientPriceStatus: true,
       transporterPriceStatus: true,
@@ -193,6 +247,16 @@ async generateInvoiceAutomatically(order: any) {
           carType: true,
         },
       },
+      createdBy: {
+        select: {
+          id: true,
+          companyName: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          accountType: true,
+        },
+      },
       pods: true,
       clientPriceStatus: true,
       transporterPriceStatus: true,
@@ -217,6 +281,16 @@ async generateInvoiceAutomatically(order: any) {
         include: {
           disponibility: true,
           carType: true,
+        },
+      },
+      createdBy: {
+        select: {
+          id: true,
+          companyName: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          accountType: true,
         },
       },
       pods: true,
@@ -462,6 +536,17 @@ async generateInvoiceAutomatically(order: any) {
   ) {
     try {
       const { deliveredByUserId } = updateOrderDto;
+      if (deliveredByUserId) {
+        const transporter = await this.prisma.user.findUnique({
+          where: { id: deliveredByUserId },
+        });
+        if (transporter?.blocked) {
+          throw new HttpException(
+            'Transporteur bloque. Assignation non autorisee.',
+            HttpStatus.FORBIDDEN,
+          );
+        }
+      }
       const updatedOrder = await this.prisma.order.update({
         where: { id: id },
         data: {
@@ -485,13 +570,45 @@ async generateInvoiceAutomatically(order: any) {
       delete updatedOrder?.deliveredBy?.password;
       return updatedOrder;
     } catch (error) {
-      console.error(error?.message);
-      return new HttpException(error?.message, 400);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error(errorMessage);
+      return new HttpException(errorMessage, 400);
     }
   }
 
-  async updateOrderStatus(id: any, orderData) {
+  async updateOrderStatus(userToken: string, id: any, orderData) {
+  const { user } = await this.authService.getAuthUser(userToken);
+  if (user?.blocked) {
+    throw new HttpException(
+      'Compte bloque. Mise a jour de commande non autorisee.',
+      HttpStatus.FORBIDDEN,
+    );
+  }
+
   let data: any = { ...orderData };
+
+  const existingOrder = await this.prisma.order.findUnique({
+    where: { id },
+  });
+
+  if (!existingOrder) {
+    throw new HttpException('Order not found', HttpStatus.NOT_FOUND);
+  }
+
+  if (user?.roleId === 2) {
+    if (existingOrder.deliveredByUserId !== user.id) {
+      throw new HttpException(
+        'Commande non assignee a ce transporteur.',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+    if (![3, 4].includes(Number(data?.orderStatusId))) {
+      throw new HttpException(
+        'Le transporteur peut uniquement marquer la commande livree ou pas encore livree.',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+  }
 
   if (!data?.orderStatusId) {
     data = { orderStatusId: 1 };
@@ -523,8 +640,64 @@ async generateInvoiceAutomatically(order: any) {
     },
   });
 
-  // 🔥 GENERATE INVOICE AFTER DELIVERY
-  if (updatedOrder.orderStatusId == 4) {
+  if (updatedOrder.orderStatusId == 4 && existingOrder.orderStatusId !== 4) {
+    const colisAmount = updatedOrder.totalPrice || 0;
+    const transportAmount = updatedOrder.shipmentPrice || 0;
+    const orderNote = updatedOrder.trackingId || updatedOrder.id;
+
+    await this.prisma.$transaction(async (tx) => {
+      const alreadyCredited = await tx.cashflow_transaction.findFirst({
+        where: {
+          note: orderNote,
+          type: { in: ['ORDER_DELIVERED_CLIENT', 'ORDER_DELIVERED_TRANSPORTER'] },
+        },
+      });
+      if (alreadyCredited) {
+        return;
+      }
+
+      const creator = updatedOrder.createdByUserId
+        ? await tx.user.findUnique({ where: { id: updatedOrder.createdByUserId } })
+        : null;
+
+      // B2C: client panier += prix colis uniquement (sans transport)
+      if (
+        creator?.accountType === 'B2C' &&
+        updatedOrder.createdByUserId &&
+        colisAmount > 0
+      ) {
+        await tx.user.update({
+          where: { id: updatedOrder.createdByUserId },
+          data: { walletBalance: { increment: colisAmount } },
+        });
+        await tx.cashflow_transaction.create({
+          data: {
+            userId: updatedOrder.createdByUserId,
+            amount: colisAmount,
+            type: 'ORDER_DELIVERED_CLIENT',
+            note: orderNote,
+          },
+        });
+      }
+
+      // Transporteur: panier += colis + transport (argent collecte sur etiquette)
+      const transporterAmount = colisAmount + transportAmount;
+      if (updatedOrder.deliveredByUserId && transporterAmount > 0) {
+        await tx.user.update({
+          where: { id: updatedOrder.deliveredByUserId },
+          data: { walletBalance: { increment: transporterAmount } },
+        });
+        await tx.cashflow_transaction.create({
+          data: {
+            userId: updatedOrder.deliveredByUserId,
+            amount: transporterAmount,
+            type: 'ORDER_DELIVERED_TRANSPORTER',
+            note: orderNote,
+          },
+        });
+      }
+    });
+
     try {
       await this.generateInvoiceAutomatically(updatedOrder);
     } catch (error) {

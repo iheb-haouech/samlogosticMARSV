@@ -55,8 +55,8 @@ export const TrackOrderForm = ({ displayLogo = true }: TrackOrderFormProps) => {
               <img
                 className='auth-form--logo'
                 style={{ width: 250 }}
-                src='./png/vanloglogo-bgwhite.png'
-                alt='vanlog Logo'
+                src='/png/sam-logo.svg'
+                alt='SAM LOGISTIC logo'
               />
             </div>
           )}

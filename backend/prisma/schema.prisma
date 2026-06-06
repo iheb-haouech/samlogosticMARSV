@@ -3,7 +3,7 @@
 
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+  binaryTargets = ["native", "linux-musl"]
 }
 
 datasource db {
@@ -65,6 +65,13 @@ model EmailVerificationCode {
   @@index([userId])
 }
 
+
+enum AccountType {
+  B2B
+  B2C
+}
+
+
 model user {
   id                 Int     @id @default(autoincrement())
   firstName          String? @db.VarChar(20)
@@ -81,12 +88,18 @@ model user {
   commercialRegister String? @db.VarChar(20)
   patent             String? @db.VarChar(20)
   verified           Boolean @default(false)
+  blocked            Boolean @default(false)
+  walletBalance      Float   @default(0)
   password           String  @db.VarChar(255)
   resetPasswordToken String? @db.VarChar(255)
   carNumber          String?
   carWidth           Float?
   carHeight          Float?
   carWeight          Float?
+
+
+  accountType        AccountType @default(B2B)
+
 
   // company type relation
   carType           car_type?         @relation(fields: [carTypeId], references: [id])
@@ -119,9 +132,22 @@ model user {
   claim_message          claim_message[]         @relation()
   // 👇 relation inverse vers les codes d’email
   emailVerificationCodes EmailVerificationCode[]
-  vehicleNumber  String?  
-  vehicleSize    String?  // "small", "medium", "large"
-  maxWeightKg    Int?
+  cashflowTransactions    cashflow_transaction[]
+  vehicleNumber          String?
+  vehicleSize            String? // "small", "medium", "large"
+  maxWeightKg            Int?
+}
+
+model cashflow_transaction {
+  id        Int      @id @default(autoincrement())
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  amount    Float
+  type      String
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 // Order ***********************************
@@ -183,43 +209,41 @@ model order {
   transporterPriceStatus   order_prices_status? @relation("transporterPriceStatus", fields: [transporterPriceStatusId], references: [id])
   transporterPriceStatusId Int?                 @default(1)
 
-  totalQuantity     Float?
-  shipmentPrice     Float?
-  etd               DateTime?
-  eta               DateTime?
-  refrences         String[]
-  // Status of order: created, delivered ...
+  totalQuantity Float?
+  shipmentPrice Float?
+  etd           DateTime?
+  eta           DateTime?
+  refrences     String[]
+
+  mainType      String? // international | national
+  tradeType     String? // import | export
+  transportType String? // aerien | maritime | ground | livrer | apporter
+  subType       String? // groupement | cts20 | cts40 | ...
+  otherMessage  String?
+
   status            order_status?    @relation(fields: [orderStatusId], references: [id])
   orderStatusId     Int?             @default(1)
-  // who created it relation
   createdBy         user?            @relation("createOrders", fields: [createdByUserId], references: [id], onDelete: Cascade)
   createdByUserId   Int?
-  // who will deliver this order
   deliveredBy       user?            @relation("deliverOrders", fields: [deliveredByUserId], references: [id], onDelete: Cascade)
   deliveredByUserId Int?
-  // One-to-one relation with order_recipient
   source            order_source?
   recipient         order_recipient?
-  // packages relation: each order has many packages
   packages          order_packages[]
-
-  // Relation: One order can have multiple proofs of delivery
-  pods order_pod[]
-
-  // claims
-  claims         claim[]
-  startTransitAt DateTime?
-  deliveredAt    DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  deletedAt      DateTime?
+  pods              order_pod[]
+  claims            claim[]
+  startTransitAt    DateTime?
+  deliveredAt       DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  deletedAt         DateTime?
 
   order_invoice order_invoice[] @relation("orderInvoices")
 
-  paymentRequired   Boolean  @default(false)  // Admin coche
-  paymentAmount     Float?
-  paymentStatus     String?  // pending/paid/failed/manual
-  stripeSessionId   String?
+  paymentRequired Boolean @default(false)
+  paymentAmount   Float?
+  paymentStatus   String?
+  stripeSessionId String?
 }
 
 model order_source {

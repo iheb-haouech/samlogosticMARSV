@@ -10,8 +10,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
 import { ResetPasswordDto } from './dto/login.dto';
 import { MailerService } from '@nestjs-modules/mailer';
-import { USERROLES } from 'src/utils/enum';
-import { CreateTransporterDto } from 'src/transporters/dto/create-transporter.dto';
+import { USERROLES } from '../utils/enum';
+import { CreateTransporterDto } from '../transporters/dto/create-transporter.dto';
 
 @Injectable()
 export class AuthService {
@@ -34,13 +34,17 @@ async getAdminTransporters() {
   });
 }
   async generateTokens(payload: any): Promise<any> {
-    const accessToken = await this.jwtService.sign(payload);
-    const refreshToken = await this.jwtService.sign(payload, {
-      secret: process.env.JWT_REFRESH_SECRET,
-      expiresIn: process.env.JWT_REFRESH_EXP_IN,
-    });
-    return { accessToken, refreshToken };
-  }
+  const accessToken = await this.jwtService.sign(payload, {
+    secret: process.env.JWT_SECRET,
+    expiresIn: process.env.JWT_EXPIRES_IN || '1d', // ✅ FIX
+  });
+
+  const refreshToken = await this.jwtService.sign(payload, {
+    secret: process.env.JWT_REFRESH_SECRET,
+    expiresIn: process.env.JWT_REFRESH_EXPIRES || '7d', // ✅ FIX
+  });
+  return { accessToken, refreshToken };
+}
 
   async login(email: string, password: string): Promise<any> {
     // Step 1: Fetch a user with the given email
@@ -50,9 +54,7 @@ async getAdminTransporters() {
     if (!user) {
       throw new NotFoundException(`No user found for email: ${email}`);
     }
-    if (!user.verified && user.roleId === 3) {
-      throw new UnauthorizedException('Votre email n’est pas encore vérifié.');
-    }
+    
     // Step 2: Check if the password is correct
     const isPasswordValid = await bcrypt.compare(password, user?.password);
 
@@ -89,18 +91,20 @@ async getAdminTransporters() {
 
     // Hash the password before saving it
     const hashedPassword = await bcrypt.hash(userData?.password, 10);
-
+    const accountType =
+    userData.accountType === 'B2C' ? 'B2C' : 'B2B';
     // Create a new user in the database
-const newUser = await this.prisma.user.create({
-  data: {
+    const newUser = await this.prisma.user.create({
+      data: {
     ...userData,
     password: hashedPassword,
+    accountType,
     roleId: [USERROLES?.user?.id, USERROLES?.transporter?.id].includes(
       userData?.roleId,
     )
       ? userData.roleId
       : 3,
-    verified: false,
+    verified: true, // ✅ Auto-vérifié pour simplifier (sinon false et ajouter étape vérification email)
     disponibility: {
       create: userData?.disponibility,
     },
@@ -110,42 +114,18 @@ const newUser = await this.prisma.user.create({
   },
 });
 
-// 1) Générer un code à 6 chiffres
-const code = Math.floor(100000 + Math.random() * 900000).toString();
 
-// 2) Sauvegarder en BDD
-await this.prisma.emailVerificationCode.create({
-  data: {
-    userId: newUser.id,
-    code,
-    expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
-  },
-});
 
-// 3) Envoyer l’email
-await this.mailerService.sendMail({
-  to: newUser.email,
-  from: process.env.MAIL_FROM,
-  subject: 'Vérification de votre adresse email',
-  template: './emailVerification', // à créer dans tes templates
-  context: {
-    name: newUser.firstName || newUser.companyName || '',
-    code,
-  },
-  
-});
 
 // 4) Ne pas encore générer d’accessToken : il doit d’abord vérifier son email
 delete newUser.password;
 return {
-  message: 'Compte créé. Un code de vérification a été envoyé à votre email.',
+  message: 'Compte créé.',
   user: newUser,
 };
 
   }
   async verifyEmail(body: { email: string; code: string }) {
-    console.log('Reçu:', body.email, body.code);
-
     // 1. Trouve user par email
     const user = await this.prisma.user.findUnique({
       where: { email: body.email.toLowerCase() }
@@ -153,8 +133,6 @@ return {
     if (!user) {
       throw new NotFoundException('Utilisateur non trouvé');
     }
-    console.log('User trouvé ID:', user.id);
-
     // 2. Cherche le code
     const record = await this.prisma.emailVerificationCode.findFirst({
       where: {
@@ -164,21 +142,17 @@ return {
         expiresAt: { gt: new Date() },
       },
     });
-    console.log('Cherche:', { userId: user.id, code: body.code, used: false });
-    const allCodes = await this.prisma.emailVerificationCode.findMany({ where: { userId: user.id } });
-    console.log('Tous codes user:', allCodes);
     if (!record) {
-      console.log('Pas de record trouvé');
       throw new UnauthorizedException('Code invalide ou expiré');
     }
 
     // 3. Transaction
-    await this.prisma.$transaction(async (tx) => {
+    const verifiedUser = await this.prisma.$transaction(async (tx) => {
       await tx.emailVerificationCode.update({
         where: { id: record.id },
         data: { used: true }
       });
-      await tx.user.update({
+      return tx.user.update({
         where: { id: user.id },
         data: { verified: true }
       });
@@ -186,7 +160,7 @@ return {
 
     // 4. Tokens
     const tokens = await this.generateTokens({ userId: user.id });
-    const safeUser = { ...user, password: undefined };
+    const safeUser = { ...verifiedUser, password: undefined };
     delete safeUser.password;
     return { 
       accessToken: tokens.accessToken, 
@@ -223,7 +197,7 @@ return {
         { userId: user?.id },
         {
           secret: process.env.JWT_REFRESH_SECRET,
-          expiresIn: process.env.JWT_REFRESH_EXP_IN,
+          expiresIn: process.env.JWT_RESET_PASSWORD_EXP_IN || '1d',
         },
       );
 
@@ -281,7 +255,7 @@ return {
         return true;
       } catch (verifyError) {
         // Handle token verification errors
-        if (verifyError.name === 'TokenExpiredError') {
+        if ((verifyError as Error).name === 'TokenExpiredError') {
           throw new UnauthorizedException('Reset password token has expired !');
         } else {
           throw verifyError;
@@ -293,7 +267,6 @@ return {
   }
 async createTransporterByAdmin(dto: CreateTransporterDto): Promise<any> {
   // Vérifie email existant
-    console.log('DTO reçu:', dto);  // 🔍 Debug
   const existingUser = await this.prisma.user.findUnique({
     where: { email: dto.email }
   });
@@ -354,6 +327,4 @@ async createTransporterByAdmin(dto: CreateTransporterDto): Promise<any> {
   // Quand admin crée transporteur
 
 }
-
-
 

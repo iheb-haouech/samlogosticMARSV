@@ -38,81 +38,166 @@ export class AppService {
     // identify user or admin
     const { user } = await this.authService.getAuthUser(userToken);
     if (user?.roleId == 1) {
-      const totalWaitingOrders = await this.prisma.order.count({
-        where: {
-          orderStatusId: 1, // is created and not assigned
-        },
-      });
+  const totalWaitingOrders = await this.prisma.order.count({
+    where: {
+      orderStatusId: 1, // is created and not assigned
+    },
+  });
 
-      const totalComplaints = await this.prisma.claim.count({
-        where: {
-          statusId: {
-            in: [1, 2],
-          },
-        },
-      });
+  const totalComplaints = await this.prisma.claim.count({
+    where: {
+      statusId: {
+        in: [1, 2],
+      },
+    },
+  });
 
-      const totalClosedComplaints = await this.prisma.claim.count({
-        where: {
-          statusId: {
-            equals: 3,
-          },
-        },
-      });
+  const totalClosedComplaints = await this.prisma.claim.count({
+    where: {
+      statusId: {
+        equals: 3,
+      },
+    },
+  });
 
-      const totalTransitOrders = await this.prisma.order.count({
-        where: {
-          orderStatusId: 3,
-        },
-      });
-      const totalLivredOrders = await this.prisma.order.count({
-        where: {
-          orderStatusId: 4,
-        },
-      });
-      const totalCanceledOrders = await this.prisma.order.count({
-        where: {
-          orderStatusId: 5,
-        },
-      });
-      const totalAcceptedProviders = await this.prisma.user.count({
-        where: {
-          roleId: USERROLES.user.id, 
-          verified: true 
-        },
-      });
-      const totalWaitingProviders = await this.prisma.user.count({
-        where: {
-           roleId: USERROLES.user.id,
-          verified: true
-        },
-      });
+  const totalTransitOrders = await this.prisma.order.count({
+    where: {
+      orderStatusId: 3,
+    },
+  });
 
-      const totalAcceptedTransporters = await this.prisma.user.count({
-        where: {
-          roleId: USERROLES.transporter.id,
-          verified: true,
-        },
-      });
-      const totalWaitingTransporters = await this.prisma.user.count({
-        where: {
-          roleId: 2,
-          verified: false,
-        },
-      });
-      return {
-        totalWaitingOrders,
-        totalTransitOrders,
-        totalLivredOrders,
-        totalCanceledOrders,
-        totalAcceptedProviders,
-        totalWaitingProviders,
-        totalAcceptedTransporters,
-        totalWaitingTransporters,
-        totalComplaints,
-        totalClosedComplaints,
-      };
-    } else if (user?.roleId == 3) {
+  const totalLivredOrders = await this.prisma.order.count({
+    where: {
+      orderStatusId: 4,
+    },
+  });
+
+  const totalCanceledOrders = await this.prisma.order.count({
+    where: {
+      orderStatusId: 5,
+    },
+  });
+
+  const totalAcceptedProviders = await this.prisma.user.count({
+    where: {
+      roleId: USERROLES.user.id,
+      verified: true,
+    },
+  });
+
+  const totalWaitingProviders = await this.prisma.user.count({
+    where: {
+      roleId: USERROLES.user.id,
+      verified: true,
+    },
+  });
+
+  const totalAcceptedTransporters = await this.prisma.user.count({
+    where: {
+      roleId: USERROLES.transporter.id,
+      verified: true,
+    },
+  });
+
+  const totalWaitingTransporters = await this.prisma.user.count({
+    where: {
+      roleId: 2,
+      verified: false,
+    },
+  });
+
+     const [
+    b2bWaitingOrders,
+    b2bTransitOrders,
+    b2bLivredOrders,
+    b2bCanceledOrders,
+  ] = await Promise.all([
+    this.prisma.order.count({
+      where: {
+        orderStatusId: 1,
+        createdBy: { accountType: 'B2B' },
+      },
+    }),
+    this.prisma.order.count({
+      where: {
+        orderStatusId: 3,
+        createdBy: { accountType: 'B2B' },
+      },
+    }),
+    this.prisma.order.count({
+      where: {
+        orderStatusId: 4,
+        createdBy: { accountType: 'B2B' },
+      },
+    }),
+    this.prisma.order.count({
+      where: {
+        orderStatusId: 5,
+        createdBy: { accountType: 'B2B' },
+      },
+    }),
+  ]);
+
+  // ✅ NOUVEAU : stats B2C
+  const [
+    b2cWaitingOrders,
+    b2cTransitOrders,
+    b2cLivredOrders,
+    b2cCanceledOrders,
+  ] = await Promise.all([
+    this.prisma.order.count({
+      where: {
+        orderStatusId: 1,
+        createdBy: { accountType: 'B2C' },
+      },
+    }),
+    this.prisma.order.count({
+      where: {
+        orderStatusId: 3,
+        createdBy: { accountType: 'B2C' },
+      },
+    }),
+    this.prisma.order.count({
+      where: {
+        orderStatusId: 4,
+        createdBy: { accountType: 'B2C' },
+      },
+    }),
+    this.prisma.order.count({
+      where: {
+        orderStatusId: 5,
+        createdBy: { accountType: 'B2C' },
+      },
+    }),
+  ]);
+
+  return {
+    totalWaitingOrders,
+    totalTransitOrders,
+    totalLivredOrders,
+    totalCanceledOrders,
+    totalAcceptedProviders,
+    totalWaitingProviders,
+    totalAcceptedTransporters,
+    totalWaitingTransporters,
+    totalComplaints,
+    totalClosedComplaints,
+
+    // 👇 NOUVEAU : on renvoie deux blocs
+    b2b: {
+      waiting: b2bWaitingOrders,
+      inTransit: b2bTransitOrders,
+      delivered: b2bLivredOrders,
+      canceled: b2bCanceledOrders,
+    },
+    b2c: {
+      waiting: b2cWaitingOrders,
+      inTransit: b2cTransitOrders,
+      delivered: b2cLivredOrders,
+      canceled: b2cCanceledOrders,
+    },
+  };
+} else if (user?.roleId == 3) {
       const totalWaitingOrders = await this.prisma.order.count({
         where: {
           orderStatusId: 2,

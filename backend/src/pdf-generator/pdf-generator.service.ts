@@ -1,6 +1,6 @@
 // backend/src/pdf-generator/pdf-generator.service.ts
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import * as handlebars from 'handlebars';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -217,6 +217,9 @@ export class PdfGeneratorService {
           ...pkg,
           totalPrice: pkg?.quantity * pkg?.price,
         })),
+        colisAmount: order?.totalPrice || 0,
+        shipmentPrice: order?.shipmentPrice || 0,
+        totalToCollect: (order?.totalPrice || 0) + (order?.shipmentPrice || 0),
         source: {
           ...order?.source,
           companyName: order?.source?.companyName?.toUpperCase(),

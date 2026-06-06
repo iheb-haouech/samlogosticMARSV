@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const transportersApi = createApi({
   reducerPath: 'transportersApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: 'http://localhost:6001/',
+    baseUrl: `${import.meta.env.VITE_BASE_URL}/`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('accessToken');
       if (token) headers.set('authorization', `Bearer ${token}`);

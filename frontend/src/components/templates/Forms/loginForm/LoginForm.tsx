@@ -20,9 +20,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginClick, onSubmit }) => {
   };
   return (
     <div className='auth-form'>
-      <div className='auth-form--logo-container'>
-        <img className='auth-form--logo' style={{ width: 150 }} src='./png/vanloglogo-bgwhite.png' alt='vanlog Logo' />
-      </div>
+      
 
       <Title className='auth-form--title' level={3}>
         {t("Log in")}

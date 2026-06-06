@@ -5,9 +5,12 @@ import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../../features/user/userSlice";
 import { Button } from "antd";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+
 
 const Waiting: React.FC = () => {
   const { t } = useTranslation();
+const navigate = useNavigate();
 
   const currentUser: any = useSelector(selectCurrentUser);
   console.log(currentUser, "currentUser");
@@ -15,8 +18,7 @@ const Waiting: React.FC = () => {
   const handelLogOut = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
-    window.location.href = "login";
-    window.location.reload();
+    navigate("/login"); // ✅ SAFE
   };
 
   return (
@@ -28,8 +30,8 @@ const Waiting: React.FC = () => {
           <img
             className='auth-form--logo'
             style={{ width: 250 }}
-            src='./png/vanloglogo-bgwhite.png'
-            alt='vanlog Logo'
+            src='/png/sam-logo.svg'
+            alt='SAM LOGISTIC logo'
           />
           <h1 className='waiting-title'>{t("approval")}</h1>
           <p>

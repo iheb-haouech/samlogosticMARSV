@@ -11,12 +11,12 @@ import {
 import { PackagesService } from './packages.service';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { CreatePackageDto } from './dto/create-package.dto';
-import { ResponseDto } from 'src/utils/response.dto';
+import { ResponseDto } from '../utils/response.dto';
 import { UpdateOrderPackagesDTO } from './dto/update-package.dto';
-import { Roles } from 'src/auth/roles.decorator';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { RoleGuard } from 'src/auth/role.guard';
-import { USERROLES } from 'src/utils/enum';
+import { Roles } from '../auth/roles.decorator';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RoleGuard } from '../auth/role.guard';
+import { USERROLES } from '../utils/enum';
 import {
   AllPackagesResponseDTO,
   PackagesResponseDTO,

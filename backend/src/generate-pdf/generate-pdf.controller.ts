@@ -3,7 +3,7 @@ import { GeneratePdfService } from './generate-pdf.service';
 import { CreateGeneratePdfDto } from './dto/create-generate-pdf.dto';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import * as path from 'path';
-import { ResponseDto } from 'src/utils/response.dto';
+import { ResponseDto } from '../utils/response.dto';
 
 @Controller('generate-pdf')
 @ApiTags('generate-pdf')

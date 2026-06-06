@@ -29,6 +29,9 @@ export class UserDTO {
   @ApiProperty()
   phone?: string | null;
 
+  @ApiProperty({ required: false })
+  phoneCountryCode?: string | null;
+
   @ApiProperty()
   email: string;
 
@@ -66,6 +69,12 @@ export class UserDTO {
   companyTypeId?: number | null;
 
   @ApiProperty({ type: () => Number, required: false })
+  companyActivityId?: number | null;
+
+  @ApiProperty({ enum: ['B2B', 'B2C'], required: false })
+  accountType?: 'B2B' | 'B2C';
+
+  @ApiProperty({ type: () => Number, required: false })
   userPackId?: number | null;
 
   @ApiProperty()
@@ -88,4 +97,10 @@ export class UserDTO {
 
   @ApiProperty()
   verified?: boolean;
+
+  @ApiProperty({ required: false })
+  blocked?: boolean;
+
+  @ApiProperty({ required: false })
+  walletBalance?: number;
 }

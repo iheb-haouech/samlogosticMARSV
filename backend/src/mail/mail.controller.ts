@@ -2,7 +2,7 @@ import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { MailService } from './mail.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { ResponseDto } from 'src/utils/response.dto';
+import { ResponseDto } from '../utils/response.dto';
 
 @Controller('mail')
 @ApiTags('mail')

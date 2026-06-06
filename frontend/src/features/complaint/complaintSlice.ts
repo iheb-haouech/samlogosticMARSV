@@ -50,7 +50,6 @@ export const addComplaint = createAsyncThunk<CreateRespDTO, CreateClaimDto, { st
     return new Promise<CreateRespDTO>((resolve, reject) => {
       const token = localStorage.getItem("accessToken")!;
       const myClient = ApiClientWithHeaders(token);
-      console.log("NEW COMPLAINT SENT:", newComplaint);
       myClient.claims
         .claimsControllerCreate(newComplaint)
         .then((response) => {
@@ -89,14 +88,8 @@ export const fetchAllComplaints = createAsyncThunk<
       params.id = state.complaint.filtredTrakingNumber;
     }
 
-    // ⚠️ TEMP: remove status filter completely for test
-    // params.status = Number(state.complaint.complaintStatus);
-
-    console.log("PARAMS:", params);
-
     myClient.claims.claimsControllerFindAll(params)
       .then((response) => {
-    console.log("API RESPONSE:", response.data);     
     resolve({ complaints: response.data.claims, totalCount: response.data.totalCount });
       })
       .catch((error: any) => {
@@ -273,6 +266,7 @@ const complaintSlice = createSlice({
         }
         if (!complaintExists) {
           state.complaints.unshift(action.payload);
+          state.totalCount++;
           triggerAlert({
             type: "created",
             title: "Complaint Created",

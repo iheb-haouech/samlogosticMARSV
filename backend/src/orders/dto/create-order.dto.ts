@@ -2,7 +2,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsNumber, IsString, IsArray, Min } from 'class-validator'; // ✅ CORRECT
 import { Type } from 'class-transformer';
-import { CreateOrderPackagesDTO } from 'src/packages/dto/create-package.dto';
+import { CreateOrderPackagesDTO } from '../../packages/dto/create-package.dto';
 import { OrderRecipientDTO } from './create-recipient.dto';
 import { OrderSourceDTO } from './create-source.dto';
 
@@ -70,6 +70,31 @@ export class CreateOrderDto {
   @IsOptional()
   @IsArray()
   refrences?: string[];
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  mainType?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  tradeType?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  transportType?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  subType?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  otherMessage?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()

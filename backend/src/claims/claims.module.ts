@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ClaimsService } from './claims.service';
 import { ClaimsController } from './claims.controller';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { AuthService } from 'src/auth/auth.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { AuthService } from '../auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
 
 @Module({

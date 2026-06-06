@@ -57,6 +57,7 @@ export interface UserDTO {
   carWeight: number;
   disponibility: UserDispoDTO;
   verified: boolean;
+  accountType?: 'B2B' | 'B2C';
 }
 
 export interface AllProvidersDTO {

@@ -8,7 +8,7 @@ import * as pdf from 'html-pdf';
 import * as path from 'path';
 import * as fs from 'fs';
 import { MailerService } from '@nestjs-modules/mailer';
-import generateUniqueInvoiceId from 'src/utils/generate-facture-id';
+import generateUniqueInvoiceId from '../utils/generate-facture-id';
 
 @Injectable()
 export class UserService {
@@ -415,7 +415,7 @@ export class UserService {
 async generateInvoicePdf(userId, from, to, type) {
   const data = await this.generateInvoiceData(userId, from, to, type);
   if (!data) {
-    throw new Error("No data found for this invoice");
+    throw new NotFoundException("No data found for this invoice");
   }
   const template =
     type == 3 ? "facture-client.hbs" : "facture-transporteur.hbs";

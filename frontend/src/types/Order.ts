@@ -49,6 +49,26 @@ export type Order = {
   createdAt?: string;
   startTransitAt?: string;
   deliveredAt?: any;
+
+  mainType?: "international" | "national" | "quote";
+  tradeType?: "import" | "export";
+  transportType?: "aerien" | "maritime" | "ground" | "livrer" | "apporter";
+  subType?:
+    | "groupement"
+    | "cts20"
+    | "cts40"
+    | "cts40hc"
+    | "srberlie"
+    | "srtole"
+    | "envoieLegere"
+    | "envoieStandard"
+    | "camionTourisme"
+    | "poidLourd5T"
+    | "poidLourd10T"
+    | "other";
+  otherMessage?: string;
+
+
 };
 
 export type Package = {
@@ -67,6 +87,7 @@ export type Package = {
 export type PackagesData = {
   packages: Package[];
   totalPrice?: number;
+  totalWithShipment?: number;
   totalWeight?: number;
   totalQuantity?: number;
 };
@@ -74,4 +95,3 @@ export type OrderStatus = {
   id?: any;
   statusName: string;
 };
-export type OrderType = "deliverOrder" | "bringOrder";

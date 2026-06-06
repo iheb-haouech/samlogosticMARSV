@@ -11,7 +11,7 @@ const Payment: React.FC = () => {
       <InvoiceForm
         userType="l'entreprise"
         onGenerateInvoice={(values: any) => {
-          generateProviderFacture(currentUser.id.toString(), values.from, values.to, values?.invoiceType);
+          generateProviderFacture(currentUser?.id.toString(), values.from, values.to, values?.invoiceType);
         }}
         isAdmin={false}
       />
