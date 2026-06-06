@@ -96,10 +96,9 @@ var AuthService = function () {
     var _classExtraInitializers = [];
     var _classThis;
     var AuthService = _classThis = /** @class */ (function () {
-        function AuthService_1(prisma, jwtService, mailerService) {
+        function AuthService_1(prisma, jwtService) {
             this.prisma = prisma;
             this.jwtService = jwtService;
-            this.mailerService = mailerService;
         }
         AuthService_1.prototype.getAdminTransporters = function () {
             return __awaiter(this, void 0, void 0, function () {
@@ -201,40 +200,6 @@ var AuthService = function () {
                                         disponibility: true,
                                     },
                                 })];
-                        case 3:
-                            newUser = _c.sent();
-                            code = Math.floor(100000 + Math.random() * 900000).toString();
-                            // 2) Sauvegarder en BDD
-                            return [4 /*yield*/, this.prisma.emailVerificationCode.create({
-                                    data: {
-                                        userId: newUser.id,
-                                        code: code,
-                                        expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
-                                    },
-                                })];
-                        case 4:
-                            // 2) Sauvegarder en BDD
-                            _c.sent();
-                            // 3) Envoyer l’email
-                            return [4 /*yield*/, this.mailerService.sendMail({
-                                    to: newUser.email,
-                                    from: process.env.MAIL_FROM,
-                                    subject: 'Vérification de votre adresse email',
-                                    template: './emailVerification', // à créer dans tes templates
-                                    context: {
-                                        name: newUser.firstName || newUser.companyName || '',
-                                        code: code,
-                                    },
-                                })];
-                        case 5:
-                            // 3) Envoyer l’email
-                            _c.sent();
-                            // 4) Ne pas encore générer d’accessToken : il doit d’abord vérifier son email
-                            delete newUser.password;
-                            return [2 /*return*/, {
-                                    message: 'Compte créé. Un code de vérification a été envoyé à votre email.',
-                                    user: newUser,
-                                }];
                     }
                 });
             });
@@ -339,55 +304,42 @@ var AuthService = function () {
             });
         };
         AuthService_1.prototype.requestPasswordReset = function (email) {
-            return __awaiter(this, void 0, void 0, function () {
-                var user, resetPasswordToken, error_2;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            _a.trys.push([0, 5, , 6]);
-                            return [4 /*yield*/, this.prisma.user.findUnique({ where: { email: email } })];
-                        case 1:
-                            user = _a.sent();
-                            if (!user) {
-                                throw new common_1.NotFoundException('User not found !');
+                    return __awaiter(this, void 0, void 0, function () {
+                        var user, resetPasswordToken, error_2;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    _a.trys.push([0, 4, , 5]);
+                                    return [4 /*yield*/, this.prisma.user.findUnique({ where: { email: email } })];
+                                case 1:
+                                    user = _a.sent();
+                                    if (!user) {
+                                        throw new common_1.NotFoundException('User not found !');
+                                    }
+                                    return [4 /*yield*/, this.jwtService.sign({ userId: user === null || user === void 0 ? void 0 : user.id }, {
+                                            secret: process.env.JWT_REFRESH_SECRET,
+                                            expiresIn: process.env.JWT_REFRESH_EXP_IN,
+                                        })];
+                                case 2:
+                                    resetPasswordToken = _a.sent();
+                                    return [4 /*yield*/, this.prisma.user.update({
+                                            where: { id: user.id },
+                                            data: { resetPasswordToken: resetPasswordToken },
+                                        })];
+                                case 3:
+                                    _a.sent();
+                                    return [2 /*return*/, {
+                                            success: true,
+                                            resetPasswordToken: resetPasswordToken,
+                                        }];
+                                case 4:
+                                    error_2 = _a.sent();
+                                    return [2 /*return*/, false];
+                                case 5: return [2 /*return*/];
                             }
-                            return [4 /*yield*/, this.jwtService.sign({ userId: user === null || user === void 0 ? void 0 : user.id }, {
-                                    secret: process.env.JWT_REFRESH_SECRET,
-                                    expiresIn: process.env.JWT_REFRESH_EXP_IN,
-                                })];
-                        case 2:
-                            resetPasswordToken = _a.sent();
-                            // Save the reset token in the user's record
-                            return [4 /*yield*/, this.prisma.user.update({
-                                    where: { id: user.id },
-                                    data: { resetPasswordToken: resetPasswordToken },
-                                })];
-                        case 3:
-                            // Save the reset token in the user's record
-                            _a.sent();
-                            // Send the reset token to the user via email or another channel
-                            return [4 /*yield*/, this.mailerService.sendMail({
-                                    to: user === null || user === void 0 ? void 0 : user.email,
-                                    from: process.env.MAIL_FROM, // override default from
-                                    subject: 'Trouble Logging In? Reset Your Password',
-                                    template: './requestResetPassword',
-                                    context: {
-                                        name: user === null || user === void 0 ? void 0 : user.firstName,
-                                        link: "".concat(process.env.FRONTEND_URL, "/reset-password?token=").concat(resetPasswordToken),
-                                    },
-                                })];
-                        case 4:
-                            // Send the reset token to the user via email or another channel
-                            _a.sent();
-                            return [2 /*return*/, true];
-                        case 5:
-                            error_2 = _a.sent();
-                            return [2 /*return*/, false];
-                        case 6: return [2 /*return*/];
-                    }
-                });
-            });
-        };
+                        });
+                    });
+                };
         AuthService_1.prototype.resetPassword = function (dto) {
             return __awaiter(this, void 0, void 0, function () {
                 var newPassword, resetPasswordToken, decoded, user, hashedPassword, verifyError_1, error_3;

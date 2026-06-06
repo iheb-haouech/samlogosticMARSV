@@ -82,29 +82,21 @@ var MailService = function () {
     var _classExtraInitializers = [];
     var _classThis;
     var MailService = _classThis = /** @class */ (function () {
-        function MailService_1(mailerService) {
-            this.mailerService = mailerService;
+        function MailService_1() {
         }
         MailService_1.prototype.sendEmail = function () {
             return __awaiter(this, void 0, void 0, function () {
                 var url;
                 return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            url = "https://google.com";
-                            return [4 /*yield*/, this.mailerService.sendMail({
-                                    to: 'ihebhaouech27@gmail.com',
-                                    // from: '"Support Team" <support@example.com>', // override default from
-                                    subject: 'Confirm Your Account – Vanlog',
-                                    template: './confirmation', // `.hbs` extension is appended automatically
-                                    context: {
-                                        // ✏️ filling curly brackets with content
-                                        name: 'Hassen',
-                                        url: url,
-                                    },
-                                })];
-                        case 1: return [2 /*return*/, _a.sent()];
-                    }
+                    url = "https://google.com";
+                    return [2 /*return*/, {
+                            success: true,
+                            message: 'Email sending disabled',
+                            data: {
+                                name: 'Hassen',
+                                url: url,
+                            },
+                        }];
                 });
             });
         };

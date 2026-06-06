@@ -4,9 +4,17 @@ import react from "@vitejs/plugin-react-swc";
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: "modern-compiler",
+        silenceDeprecations: ["legacy-js-api"],
+      },
+    },
+  },
   server: {
     host: true,
     port: 3000,
-    allowedHosts: [".gitpod.io"], // Allows all Gitpod URLs
+    allowedHosts: [".gitpod.io"],
   },
 });

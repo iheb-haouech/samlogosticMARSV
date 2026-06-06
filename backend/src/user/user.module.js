@@ -82,7 +82,6 @@ var prisma_module_1 = require("../prisma/prisma.module");
 var prisma_service_1 = require("../prisma/prisma.service");
 var jwt_1 = require("@nestjs/jwt");
 var config_1 = require("@nestjs/config");
-var mailer_1 = require("@nestjs-modules/mailer");
 var UserModule = function () {
     var _classDecorators = [(0, common_1.Module)({
             imports: [

@@ -110,9 +110,8 @@ var UserService = function () {
     var _classExtraInitializers = [];
     var _classThis;
     var UserService = _classThis = /** @class */ (function () {
-        function UserService_1(prisma, mailerService) {
+        function UserService_1(prisma) {
             this.prisma = prisma;
-            this.mailerService = mailerService;
         }
         UserService_1.prototype.create = function (createUserDto) {
             return __awaiter(this, void 0, void 0, function () {
@@ -406,19 +405,7 @@ var UserService = function () {
                             _b.label = 2;
                         case 2:
                             _b.trys.push([2, 4, , 5]);
-                            return [4 /*yield*/, this.mailerService.sendMail({
-                                    to: updatedUser === null || updatedUser === void 0 ? void 0 : updatedUser.email,
-                                    from: process.env.MAIL_FROM, // override default from
-                                    subject: 'Welcome to Vanlog-express! Your Account is Approved',
-                                    template: './user_verified',
-                                    context: {
-                                        companyName: (updatedUser === null || updatedUser === void 0 ? void 0 : updatedUser.companyName)
-                                            ? updatedUser === null || updatedUser === void 0 ? void 0 : updatedUser.companyName
-                                            : 'User',
-                                        loginUrl: "".concat(process.env.FRONTEND_URL, "/login"),
-                                        year: "".concat((_a = new Date()) === null || _a === void 0 ? void 0 : _a.getFullYear()),
-                                    },
-                                })];
+                            return [4];
                         case 3:
                             _b.sent();
                             return [3 /*break*/, 5];

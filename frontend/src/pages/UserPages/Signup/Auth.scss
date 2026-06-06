@@ -1,9 +1,16 @@
-@import "../../../styles/general/mixins.scss";
+@use "../../../styles/general/mixins" as mixins;
+
 // This is a shared scss file for the signup login and tarking-order pages.
+.auth-container {
+  @include mixins.respond(md) {
+    grid-template-columns: 1fr;
+  }
+}
+
 .auth-page {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  @include respond(md) {
+  @include mixins.respond(md) {
     grid-template-columns: 1fr;
   }
 
@@ -13,12 +20,12 @@
     object-fit: cover;
     border-radius: 5px;
     flex: 0 0 auto;
-    @include respond(md) {
+  @include mixins.respond(md) {
       display: none;
       margin-top: 5rem;
     }
 
-    @include respond(sm) {
+    @include mixins.respond(sm) {
       display: none;
     }
   }

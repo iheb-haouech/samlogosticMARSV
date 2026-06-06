@@ -6,8 +6,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PrismaModule } from '../prisma/prisma.module';
 import { JwtStrategy } from './jwt.strategy';
 import { UserModule } from '../user/user.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MailerModule } from '@nestjs-modules/mailer';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -19,27 +18,9 @@ import { MailerModule } from '@nestjs-modules/mailer';
     }),
     UserModule,
     ConfigModule.forRoot(),
-    MailerModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        transport: {
-          host: configService.get<string>('MAIL_HOST'),
-          port: configService.get<number>('MAIL_PORT'),
-          secure: false,
-          auth: {
-            user: configService.get<string>('MAIL_USER'),
-            pass: configService.get<string>('MAIL_PASSWORD'),
-          },
-        },
-        defaults: {
-          from: configService.get<string>('MAIL_FROM'),
-        },
-      }),
-      inject: [ConfigService],
-    }),
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
-  exports: [JwtModule, AuthService], // 👈 AJOUT TRÈS IMPORTANT
+  exports: [JwtModule, AuthService],
 })
 export class AuthModule {}
