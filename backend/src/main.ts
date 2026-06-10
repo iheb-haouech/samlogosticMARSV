@@ -8,11 +8,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
 
   const allowedOrigins = [
-    `${process?.env?.FRONTEND_URL}`,
+    process.env.FRONTEND_URL,
     'http://localhost:3000',
-    'https://api.vanlog-express.com',
-    '*',
-  ];
+    'http://localhost:5173',
+    'https://samlogistic.tn',
+  ].filter(Boolean);
 
   app.use(
     cors({
@@ -39,8 +39,8 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  await fs.writeFileSync('./swagger.json', JSON.stringify(document));
+  fs.writeFileSync('./swagger.json', JSON.stringify(document));
+  await app.listen(Number(process.env.PORT) || 6001);
 
-  await app.listen(6001);
 }
 bootstrap();

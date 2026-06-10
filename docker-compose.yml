@@ -3,7 +3,7 @@ version: '3.8'
 services:
   postgres:
     image: postgres:13.5
-    container_name: vanlog-db
+    container_name: sam-db
     restart: always
     env_file:
       - .env
@@ -14,7 +14,7 @@ services:
 
   backend:
     build: ./backend
-    container_name: vanlog-backend
+    container_name: sam-backend
     restart: always
     ports:
       - "6001:6001"
@@ -27,7 +27,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
-    container_name: vanlog-frontend
+    container_name: sam-frontend
     restart: always
     ports:
       - "3000:80"
