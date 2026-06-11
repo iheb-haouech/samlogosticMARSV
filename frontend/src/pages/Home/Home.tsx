@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import {
   BRAND_NAME,
   BRAND_SUPPORT_EMAIL,
-  BRAND_TAGLINE,
 } from "../../constants/branding";
 
 import hero from "../../assets/hero.png";

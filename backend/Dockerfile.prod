@@ -23,7 +23,6 @@ COPY --from=builder /tmp/app/dist ./dist
 COPY --from=builder /tmp/app/prisma ./prisma
 COPY --from=builder /tmp/app/tsconfig.json ./
 COPY --from=builder /tmp/app/uploadedFiles ./uploadedFiles
-COPY --from=builder /tmp/app/generatedFiles ./generatedFiles
 
 ENV NODE_ENV=production
 
