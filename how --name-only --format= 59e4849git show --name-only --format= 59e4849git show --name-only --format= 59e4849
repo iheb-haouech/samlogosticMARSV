@@ -1,0 +1,20 @@
+[33m59e4849[m[33m ([m[1;31morigin/cleanup-refactor[m[33m, [m[1;32mcleanup-refactor[m[33m)[m remove mailer setup and fix sass warnings
+backend/package.json
+backend/src/app.module.js
+backend/src/app.module.ts
+backend/src/auth/auth.module.js
+backend/src/auth/auth.module.ts
+backend/src/auth/auth.service.js
+backend/src/auth/auth.service.ts
+backend/src/mail/mail.module.js
+backend/src/mail/mail.module.ts
+backend/src/mail/mail.service.js
+backend/src/mail/mail.service.ts
+backend/src/user/user.module.js
+backend/src/user/user.module.ts
+backend/src/user/user.service.js
+backend/src/user/user.service.ts
+backend/swagger.json
+frontend/src/main.scss
+frontend/src/pages/UserPages/Signup/Auth.scss
+frontend/vite.config.ts

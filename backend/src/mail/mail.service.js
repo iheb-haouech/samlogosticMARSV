@@ -93,7 +93,7 @@ var MailService = function () {
                             success: true,
                             message: 'Email sending disabled',
                             data: {
-                                name: 'Hassen',
+                                name: 'iheb',
                                 url: url,
                             },
                         }];

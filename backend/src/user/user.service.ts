@@ -52,8 +52,46 @@ export class UserService {
 
   async findAll(): Promise<any> {
     const users = await this.prisma.user.findMany();
-    const data = await users?.map((user: any) => delete user?.password);
-    return data;
+    return users.map((user: any) => {
+      delete user.password;
+      delete user.resetPasswordToken;
+      return user;
+    });
+  }
+
+  async updateRoleAndScope(
+    id: number,
+    payload: {
+      roleId?: number;
+      adminManagedCities?: string[];
+      isMainAdmin?: boolean;
+      verified?: boolean;
+      blocked?: boolean;
+    },
+  ): Promise<any> {
+    const allowedRoles = [1, 2, 3, 4];
+
+    if (payload.roleId && !allowedRoles.includes(Number(payload.roleId))) {
+      throw new HttpException('Invalid role', 400);
+    }
+
+    const nextRoleId = payload.roleId;
+    const isAdmin = nextRoleId === 1;
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id },
+      data: {
+        roleId: nextRoleId,
+        adminManagedCities: isAdmin ? (payload.adminManagedCities || []) : [],
+        isMainAdmin: isAdmin ? !!payload.isMainAdmin : false,
+        verified: payload.verified,
+        blocked: payload.blocked,
+      } as any,
+    });
+
+    delete updatedUser.password;
+    delete updatedUser.resetPasswordToken;
+    return updatedUser;
   }
 
   async findAllProviders(query): Promise<any> {
@@ -275,7 +313,7 @@ export class UserService {
   ): Promise<any> {
     if (invoiceType === 3) {
       return ((pourcentage / 100) * priceClient).toFixed(2);
-    } else if (invoiceType === 4) {
+    } else if (invoiceType === 2) {
       return ((pourcentage / 100) * priceTransporter).toFixed(2);
     } else {
       return null;
@@ -285,7 +323,7 @@ export class UserService {
   async calcTTC(tva, priceClient, priceTransporter, invoiceType) {
     if (invoiceType === 3) {
       return tva + priceClient;
-    } else if (invoiceType === 4) {
+    } else if (invoiceType === 2) {
       return tva + priceTransporter;
     } else {
       return null;

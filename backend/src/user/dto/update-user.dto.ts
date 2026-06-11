@@ -48,4 +48,10 @@ export class UpdateUserDto {
 
   @ApiProperty()
   verified?: boolean | null;
+
+  @ApiProperty({ required: false, type: [String] })
+  adminManagedCities?: string[];
+
+  @ApiProperty({ required: false })
+  isMainAdmin?: boolean;
 }

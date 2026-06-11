@@ -60,6 +60,22 @@ export class UserController {
     return this.userService.findAll();
   }
 
+  @Get('/superadmin/all-users')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles(USERROLES.superadmin.id)
+  findAllForSuperAdmin() {
+    return this.userService.findAll();
+  }
+
+  @Patch('/superadmin/users/:id/role')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles(USERROLES.superadmin.id)
+  updateRoleAndScope(@Param('id') id: string, @Body() body: any) {
+    return this.userService.updateRoleAndScope(+id, body);
+  }
+
   @Get('all-providers')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
@@ -72,7 +88,7 @@ export class UserController {
     type: AllProvidersDTO,
   })
   @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles(USERROLES?.admin?.id)
+  @Roles(USERROLES.admin.id, USERROLES.superadmin.id)
   async findAllProviders(@Query() query: FindManyProvidersDto) {
     return this.userService.findAllProviders(query);
   }

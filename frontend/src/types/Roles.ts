@@ -1,5 +1,6 @@
 export const rolesMap = {
-  superAdmin: 1,
-  admin: 2,
+  admin: 1,
+  transporter: 2,
   user: 3,
+  superAdmin: 4,
 };

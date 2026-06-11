@@ -90,9 +90,9 @@ export interface LoginDto {
 }
 
 export interface AuthResponseDto {
-  accessToken: object;
-  refreshToken: object;
-  user: object;
+  accessToken: string;
+  refreshToken: string;
+  user: any;
 }
 
 export interface RefreshTokenDto {

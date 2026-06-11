@@ -103,4 +103,10 @@ export class UserDTO {
 
   @ApiProperty({ required: false })
   walletBalance?: number;
+
+  @ApiProperty({ required: false, type: [String] })
+  adminManagedCities?: string[];
+
+  @ApiProperty({ required: false })
+  isMainAdmin?: boolean;
 }

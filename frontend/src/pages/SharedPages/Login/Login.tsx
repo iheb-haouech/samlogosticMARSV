@@ -5,25 +5,40 @@ import { store } from "../../../store/store";
 import { login } from "../../../features/auth/authSlice";
 import { LoginDto } from "../../../api/myApi";
 import PublicMenu from "../../../components/organisms/PublicMenu/PublicMenu";
+import { rolesMap } from "../../../types/Roles";
 
 const Login = () => {
   const navigate = useNavigate();
-  const handleLogin = (loginData: LoginDto) => {
-    store.dispatch(login(loginData));
+
+  const handleLogin = async (loginData: LoginDto) => {
+    const result = await store.dispatch(login(loginData));
+
+    if (login.fulfilled.match(result)) {
+      const user: any = result.payload.user;
+
+      if (user?.roleId === rolesMap.superAdmin) {
+        navigate("/superadmin/dashboard", { replace: true });
+      } else if (user?.roleId === rolesMap.admin) {
+        navigate("/admin/dashboard", { replace: true });
+      } else if (user?.roleId === rolesMap.transporter) {
+        navigate("/transporter/dashboard", { replace: true });
+      } else {
+        navigate("/user/dashboard", { replace: true });
+      }
+    }
   };
 
   const onLoginClickHandler = () => {
     navigate("/signup");
   };
-  return (
-    <div className='auth-page'>
-      <img className='auth-page--image' src='./png/loginImage.png' alt='login Image' />
-      <div className='auth-page--content'>
-        <PublicMenu selectedKey='2' />
 
-        <div className='auth-page--form'>
+  return (
+    <div className="auth-page">
+      <img className="auth-page--image" src="./png/loginImage.png" alt="login Image" />
+      <div className="auth-page--content">
+        <PublicMenu selectedKey="2" />
+        <div className="auth-page--form">
           <LoginForm onSubmit={handleLogin} onLoginClick={onLoginClickHandler} />
-          {/* Download APK Button */}
         </div>
       </div>
     </div>

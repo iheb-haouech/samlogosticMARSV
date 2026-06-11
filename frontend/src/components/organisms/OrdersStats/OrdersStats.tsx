@@ -33,9 +33,9 @@ const OrdersStats: React.FC<OrdersStatsProps> = ({ data }) => {
             bottom: 10,
           }}
         >
-          <CartesianGrid strokeDasharray='3 3' />
-          <XAxis dataKey='month' axisLine={false} tickLine={false} />
-          <YAxis axisLine={false} tickLine={false} tickCount={7} />
+          <CartesianGrid strokeDasharray='3 3' stroke='rgba(143, 239, 255, 0.16)' />
+          <XAxis dataKey='month' axisLine={false} tickLine={false} tick={{ fill: "#bfd9ff" }} />
+          <YAxis axisLine={false} tickLine={false} tickCount={7} tick={{ fill: "#bfd9ff" }} />
           <Tooltip />
           <Legend verticalAlign='top' height={40} />
           <Bar

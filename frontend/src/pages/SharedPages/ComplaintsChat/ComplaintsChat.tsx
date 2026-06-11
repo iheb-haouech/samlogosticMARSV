@@ -82,7 +82,7 @@ const ComplaintsChat: React.FC = () => {
         }}
         handleSelectComplaint={handleSelectComplaint}
         defaultSelectedComplaintId={selectedComplaintId}
-        isAdmin={currentUser?.roleId === rolesMap.admin}
+        isAdmin={[rolesMap.admin, rolesMap.superAdmin].includes(currentUser?.roleId)}
         onTabChange={(key: string) => {
           const status = key === "1" ? "1" : "3";
           setStatus(status);
@@ -99,7 +99,7 @@ const ComplaintsChat: React.FC = () => {
           currentUser={currentUser}
           handleSendMessage={handleSendMessage}
           handelViewOrderDetails={handleViewOrderDetails}
-          isAdmin={currentUser?.roleId === rolesMap.admin}
+          isAdmin={[rolesMap.admin, rolesMap.superAdmin].includes(currentUser?.roleId)}
           trackingNumber={selectedComplaint?.order?.trackingId}
           companyName={selectedComplaint?.creator?.companyName}
           onDelete={() => {
@@ -123,7 +123,7 @@ const ComplaintsChat: React.FC = () => {
         content={
           <OrderInfo
             order={fetchedOrder}
-            isAdmin={currentUser?.roleId === rolesMap.admin}
+            isAdmin={[rolesMap.admin, rolesMap.superAdmin].includes(currentUser?.roleId)}
             orderStatuses={orderStatuses}
           />
         }

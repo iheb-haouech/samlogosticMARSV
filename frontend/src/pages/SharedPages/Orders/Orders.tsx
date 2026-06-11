@@ -238,7 +238,7 @@ const Orders = () => {
         content={
           <OrderInfo
             order={clickedOrder}
-            isAdmin={currentUser?.roleId === rolesMap.admin}
+            isAdmin={[rolesMap.admin, rolesMap.superAdmin].includes(currentUser?.roleId)}
             orderStatuses={orderStatuses}
             addComplaint={(values) => {
               store.dispatch(

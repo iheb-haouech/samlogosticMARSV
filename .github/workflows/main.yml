@@ -1,4 +1,4 @@
-name: Vanlog CI/CD Pipeline
+name: SAM LOGISTIC CI/CD Pipeline
 
 on:
   push:
@@ -78,10 +78,10 @@ jobs:
           sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST '
           sudo rm -rf vanlog/
           sudo apt-get update
-          git clone git@github.com:Hassenamri005/vanlog.git
+          git clone https://github.com/iheb-haouech/samlogosticMARSV.git
 
           ################################################# Backend ##########################################
-          cd vanlog/backend/
+          cd backend/
           cp .env.example .env
 
           echo -e "FRONTEND_URL=${{ secrets.FRONTEND_URL }}" >> .env

@@ -12,9 +12,12 @@ import useAdminRoutes from "./routes/useAdminRoutes";
 import useUserRoutes from "./routes/useUserRoutes";
 import { useTranslation } from "react-i18next";
 import useTransporterRoutes from "./routes/useTransporterRoutes";
+import useSuperAdminRoutes from "./routes/useSuperAdminRoutes";
+import { rolesMap } from "./types/Roles";
 import "./styles/tables-professional.scss";
 import "./styles/dark-theme.scss";
 import { ThemeProvider } from "./context/ThemeContext";
+import CookieBanner from "./CookieBanner";
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -52,28 +55,26 @@ function App() {
     }
   }, [i18n]);
 
-  const rolesMap = {
-    admin: 1,
-    transporter: 2,
-    user: 3,
-  };
-
   const isAuthenticated = !!currentUser;
   const publicRoutes = usePublicRoutes();
   const adminRoutes = useAdminRoutes();
   const userRoutes = useUserRoutes();
   const transporterRoutes = useTransporterRoutes();
+  const superAdminRoutes = useSuperAdminRoutes();
 
   return (
     <ThemeProvider>
       <ConfigProvider theme={antdThemeConfig}>
+        <CookieBanner />
         {isLoading ? (
           <Loading />
         ) : (
           <Router future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
             {!isAuthenticated
               ? publicRoutes
-              : currentUser?.roleId === rolesMap.admin
+              : currentUser?.roleId === rolesMap.superAdmin
+                ? superAdminRoutes
+                : currentUser?.roleId === rolesMap.admin
                 ? adminRoutes
                 : currentUser?.roleId === rolesMap.transporter
                   ? transporterRoutes

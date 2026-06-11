@@ -1,4 +1,4 @@
-# vanlog-express
+# SAM LOGISTIC
 
 ## RUN project on Gitpod
 
@@ -60,14 +60,14 @@ docker login
 
 Then type your username and password of your Docker Hub account.
 
-Change [GitHub project secrets](https://github.com/Hassenamri005/vanlog/settings/secrets/actions) variables to be used as secrets in the pipeline:
+Change the GitHub project secrets in: https://github.com/iheb-haouech/samlogosticMARSV.git/settings/secrets/actions variables to be used as secrets in the pipeline:
 
 ```bash
 DOCKER_USERNAME: docker account username
 DOCKER_PASSWORD: docker account password
-FRONTEND_URL: Frontend server URL (http://92.0.0.0:3000)
-BACKEND_URL: Frontend server URL (http://92.0.0.0:6001)
-HOST: Server IP address (92.0.0.0)
+FRONTEND_URL: Frontend server URL (http://212.227.76.200:3000)
+BACKEND_URL: Frontend server URL (http://212.227.76.200:6001)
+HOST: Server IP address (212.227.76.200)
 HOST_PASSWORD: Server user password
 HOST_PORT: Server SSH port (22)
 HOST_USERNAME: Server username (root)
@@ -83,8 +83,8 @@ POSTGRES_DB: PostgreSQL Database name
 POSTGRES_HOST: PostgreSQL Server host (postgres or server IP address)
 POSTGRES_PASSWORD: PostgreSQL Database password
 POSTGRES_USER: PostgreSQL user
-VITE_BASE_URL: Backend Server IP address (http://92.0.0.0:6001)
-EXPO_TOKEN: expo token (https://expo.dev/accounts/hassenamri005/settings/access-tokens)
+VITE_BASE_URL: Backend Server IP address (http://212.227.76.200:6001)
+EXPO_TOKEN: expo token (https://expo.dev/accounts/iheb-haouech/settings/access-tokens)
 ```
 
 ### Hostinger Firewall Rules
@@ -108,17 +108,17 @@ Just commit/merge your code into the main branch (master/develop) to auto-run th
 
 #### DNS Config
 
-After bying a Domain name like `vanlog-express.com`, go to (DNS)[https://hpanel.hostinger.com/domain/vanlog-express.com/dns] and add:
+After bying a Domain name like `samlogistic.tn`, go to (DNS)[https://hpanel.hostinger.com/domain/samlogistic.tn/dns] and add:
 | Type | Nom | Priorité | Contenu | TTL |
 | ------ | --------- | --------------- | ------------------ | ------ |
 | A | @ | 0 | 92.112.194.14 | 60 |
-| CNAME | www | 0 | vanlog-express.com | 300 |
+| CNAME | www | 0 | samlogistic.tn | 300 |
 | A | adminer | 0 | 92.112.194.14 | 14400 |
 | A | api | 0 | 92.112.194.14 | 14400 |
 
-- `adminer`: to create a subdomain like adminer.vanlog-express.com
-- `api`: to create a subdomain like adminer.vanlog-express.com
-- `www` to redirect to `vanlog-express.com` if you visited `www.vanlog-express.com`
+- `adminer`: to create a subdomain like adminer.samlogistic.tn
+- `api`: to create a subdomain like adminer.samlogistic.tn
+- `www` to redirect to `samlogistic.tn` if you visited `www.samlogistic.tn`
 - `@` to redirect all requests to the VPS IP address
 
 #### Firewall HTTPS Rule
@@ -133,13 +133,13 @@ Then you need to go to you VPS server and config the Nginx server
 ```bash
 #########################################
 root@srv575010:/etc/nginx/sites-enabled# ls
-adminer  api.vanlog  default  vanlog
-root@srv575010:/etc/nginx/sites-enabled# cat api.vanlog
+adminer  api.samlogistic  default  samlogistic
+root@srv575010:/etc/nginx/sites-enabled# cat api.samlogistic
 server {
-    server_name api.vanlog-express.com;
+    server_name api.samlogistic.tn;
 
     location / {
-        proxy_pass http://92.112.194.14:6001;
+        proxy_pass http://212.227.76.200:6001;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -165,20 +165,20 @@ server {
 
 
     listen 443 ssl; # managed by Certbot
-    ssl_certificate /etc/letsencrypt/live/api.vanlog-express.com/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/api.vanlog-express.com/privkey.pem; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/api.samlogistic.tn/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/api.samlogistic.tn/privkey.pem; # managed by Certbot
     include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
 
 }
 
 server {
-    if ($host = api.vanlog-express.com) {
+    if ($host = api.samlogistic.tn) {
         return 301 https://$host$request_uri;
     } # managed by Certbot
 
 
-    server_name api.vanlog-express.com;
+    server_name api.samlogistic.tn;
     listen 80;
     return 404; # managed by Certbot
 
@@ -240,7 +240,7 @@ sudo systemctl restart nginx
 - **production**: Built for distribution to the Apple/Google Stores, and automatically increments the build number for us.
 
 ```bash
-cd vanlog
+cd samlogistic
 npm i
 npm i -g eas-cli
 npx expo login

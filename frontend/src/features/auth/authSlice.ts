@@ -4,20 +4,22 @@ import { AuthResponseDto, LoginDto, ResetPasswordDto, ResetPasswordReqDto } from
 import { apiClient } from "../../api";
 import { triggerAlert } from "../../Alert/alertModule";
 import { setCurrentUser } from "../user/userSlice";
+
+
 interface AuthState {
   status: "idle" | "loading" | "failed";
-  accessToken: object;
-  refreshToken: object;
-  user: object;
+  accessToken: string;
+  refreshToken: string;
+  user: any;
   isRequestResetPsw: boolean;
   isResetPsw: boolean;
   error?: string;
 }
 const initialState: AuthState = {
   status: "idle",
-  accessToken: {},
-  refreshToken: {},
-  user: {},
+  accessToken: "",
+  refreshToken: "",
+  user:null,
   error: "",
   isRequestResetPsw: false,
   isResetPsw: false,
@@ -39,10 +41,10 @@ export const login = createAsyncThunk<AuthResponseDto, LoginDto, { state: RootSt
   "auth/login",
   async (user: LoginDto) => {
     try {
-     const response: any = await apiClient.auth.authControllerLogin(user);
+      const response: any = await apiClient.auth.authControllerLogin(user);
 
-      localStorage.setItem("accessToken", response.data.accessToken as any);
-      localStorage.setItem("refreshToken", response.data.refreshToken as any);
+      localStorage.setItem("accessToken", response.data.accessToken);
+      localStorage.setItem("refreshToken", response.data.refreshToken);
       store.dispatch(setCurrentUser(response.data.user));
 
       return response.data;
@@ -53,11 +55,10 @@ export const login = createAsyncThunk<AuthResponseDto, LoginDto, { state: RootSt
         message: error.error.message,
       });
       throw error;
-    } finally {
-      // store.dispatch(setLoading(false));
     }
-  },
+  }
 );
+
 export const resetPasswordReq = createAsyncThunk<boolean | any, ResetPasswordReqDto, { state: RootState }>(
   "auth/resetPasswordReq",
   async (resetPasswordReqDto: ResetPasswordReqDto) => {
@@ -107,12 +108,12 @@ const authSlice = createSlice({
       .addCase(signup.pending, (state) => {
         state.status = "loading";
       })
-      .addCase(signup.fulfilled, (state, action: PayloadAction<AuthResponseDto>) => {
-        state.status = "idle";
+      .addCase(signup.fulfilled, (state, action: PayloadAction<any>) => {
+       state.status = "idle";
         state.accessToken = action.payload.accessToken;
         state.refreshToken = action.payload.refreshToken;
         state.user = action.payload.user;
-      })
+})
 
       .addCase(signup.rejected, (state, action) => {
         state.status = "failed";
@@ -123,7 +124,7 @@ const authSlice = createSlice({
       .addCase(login.pending, (state) => {
         state.status = "loading";
       })
-      .addCase(login.fulfilled, (state, action: PayloadAction<AuthResponseDto>) => {
+      .addCase(login.fulfilled, (state, action: PayloadAction<any>) => {
         state.status = "idle";
         state.accessToken = action.payload.accessToken;
         state.refreshToken = action.payload.refreshToken;

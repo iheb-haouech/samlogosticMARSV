@@ -4,6 +4,7 @@ import { Reflector } from '@nestjs/core';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
+import { USERROLES } from '../utils/enum';
 
 @Injectable()
 export class RoleGuard extends JwtAuthGuard {
@@ -43,9 +44,9 @@ export class RoleGuard extends JwtAuthGuard {
         });
 
         // Check if the user has at least one of the required roles
-        const hasRequiredRole = requiredRoles.some(
-          (role) => foundedUser?.roleId === role,
-        );
+        const hasRequiredRole =
+          foundedUser?.roleId === USERROLES.superadmin.id ||
+          requiredRoles.some((role) => foundedUser?.roleId === role);
 
         return hasRequiredRole && super.canActivate(context);
       } catch (error) {

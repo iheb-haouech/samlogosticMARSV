@@ -96,6 +96,8 @@ model user {
   carWidth           Float?
   carHeight          Float?
   carWeight          Float?
+  adminManagedCities String[] @default([])
+  isMainAdmin        Boolean  @default(false)
 
 
   accountType        AccountType @default(B2B)

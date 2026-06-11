@@ -2,21 +2,21 @@ export const InitUserRoles = async (prismaClient: any) => {
   await prismaClient.user_role.upsert({
     where: { id: 1 },
     update: {},
-    create: { id: 1, roleName: 'SUPERADMIN' },
+    create: { id: 1, roleName: 'ADMIN' },
   });
   await prismaClient.user_role.upsert({
     where: { id: 2 },
     update: {},
-    create: { id: 2, roleName: 'ADMIN' },
+    create: { id: 2, roleName: 'TRANSPORTER' },
   });
   await prismaClient.user_role.upsert({
     where: { id: 3 },
     update: {},
-    create: { id: 3, roleName: 'USER' },
+    create: { id: 3, roleName: 'CLIENT' },
   });
   await prismaClient.user_role.upsert({
     where: { id: 4 },
     update: {},
-    create: { id: 4, roleName: 'TRANSPORTER' },
+    create: { id: 4, roleName: 'SUPERADMIN' },
   });
 };

@@ -10,11 +10,19 @@ import { MdOutlineSpaceDashboard } from "react-icons/md";
 import { FiShoppingCart } from "react-icons/fi";
 import { AiOutlineCustomerService } from "react-icons/ai";
 import { FaRegUser } from "react-icons/fa";
-import { CarOutlined, ShopOutlined, FileTextOutlined, AimOutlined, WalletOutlined } from "@ant-design/icons";
+import {
+  CarOutlined,
+  ShopOutlined,
+  FileTextOutlined,
+  AimOutlined,
+  WalletOutlined,
+  UserSwitchOutlined,
+} from "@ant-design/icons";
 import { useTranslation } from "react-i18next"; // Importing the translation hook
 import { selectedStatistic } from "../../../features/statistics/statisticsSlice";
 import { useNavigate } from "react-router-dom";
 import { store } from "../../../store/store";
+import { rolesMap } from "../../../types/Roles";
 
 const { Content } = Layout;
 
@@ -30,8 +38,9 @@ const DashboardLayout: React.FC = () => {
   const currentUser: any = useSelector(selectCurrentUser);
   const statistics: any = useSelector(selectedStatistic);
   if (!currentUser) return null;
-  const isAdmin: boolean = currentUser?.roleId === 1;
-  const isTransporter: boolean = currentUser?.roleId === 2;
+  const isSuperAdmin: boolean = currentUser?.roleId === rolesMap.superAdmin;
+  const isAdmin: boolean = currentUser?.roleId === rolesMap.admin;
+  const isTransporter: boolean = currentUser?.roleId === rolesMap.transporter;
   // Dynamically create menu items with translation
   const userMenuItems = [
     { key: "/user/dashboard", label: t("dashboard"), icon: <MdOutlineSpaceDashboard /> },
@@ -93,11 +102,52 @@ const transporterAllMenuItems = [
   ];
 
   const adminAllMenuItems = [...adminMenuItems, { key: "/admin/profile", label: t("profile"), icon: <FaRegUser /> }];
+  const superAdminMenuItems = [
+    { key: "/superadmin/dashboard", label: t("dashboard"), icon: <MdOutlineSpaceDashboard /> },
+    { key: "/superadmin/users", label: "Users & roles", icon: <UserSwitchOutlined /> },
+    {
+      key: "/superadmin/orders",
+      label: t("ordersList"),
+      icon: <FiShoppingCart />,
+      badgeCount: statistics?.totalWaitingOrders,
+    },
+    {
+      key: "/superadmin/transporters",
+      label: t("transportersList"),
+      icon: <CarOutlined />,
+      badgeCount: statistics?.totalWaitingTransporters,
+    },
+    {
+      key: "/superadmin/providers",
+      label: t("providersList"),
+      icon: <ShopOutlined />,
+      badgeCount: statistics?.totalWaitingProviders,
+    },
+    { key: "/superadmin/invoices", label: t("paymentInvoices"), icon: <FileTextOutlined /> },
+    { key: "/superadmin/cashflow", label: t("cashflow"), icon: <WalletOutlined /> },
+    {
+      key: "/superadmin/complaints",
+      label: t("complaints"),
+      icon: <AiOutlineCustomerService />,
+      badgeCount: statistics?.totalComplaints,
+    },
+    { key: "/superadmin/track-orders", label: t("TrackingOrders"), icon: <AimOutlined /> },
+  ];
+  const superAdminAllMenuItems = [
+    ...superAdminMenuItems,
+    { key: "/superadmin/profile", label: t("profile"), icon: <FaRegUser /> },
+  ];
 
   useEffect(() => {
     const getPageDetails = () => {
       const path = location.pathname;
-      const allMenuItems = isAdmin ? adminAllMenuItems : isTransporter ? transporterAllMenuItems : userAllMenuItems;
+      const allMenuItems = isSuperAdmin
+        ? superAdminAllMenuItems
+        : isAdmin
+          ? adminAllMenuItems
+          : isTransporter
+            ? transporterAllMenuItems
+            : userAllMenuItems;
       const currentPage = allMenuItems.find((item) => item.key === path);
       if (currentPage) {
         setPageName(storedLang == "en" ? `${currentPage.label} - ${t("page")}` : `${t("page")} - ${currentPage.label}`);
@@ -108,7 +158,7 @@ const transporterAllMenuItems = [
       }
     };
     getPageDetails();
-  }, [location.pathname, isAdmin, t]); // Added 't' to the dependency array to re-translate when language changes
+  }, [location.pathname, isAdmin, isSuperAdmin, isTransporter, t]); // Added 't' to the dependency array to re-translate when language changes
 
   const handelLogOut = () => {
     localStorage.removeItem("accessToken");
@@ -125,7 +175,7 @@ const transporterAllMenuItems = [
   return (
     <Layout style={{ height: "100vh" }}>
       <SideMenu
-        menuItems={isAdmin ? adminMenuItems : isTransporter ? transporterMenuItems : userMenuItems}
+        menuItems={isSuperAdmin ? superAdminMenuItems : isAdmin ? adminMenuItems : isTransporter ? transporterMenuItems : userMenuItems}
         logOut={handelLogOut}
         collapsed={collapsed}
         onCollapse={() => setCollapsed(!collapsed)}
@@ -139,7 +189,15 @@ const transporterAllMenuItems = [
           pageName={pageName}
           userImg=''
           pageIcon={pageIcon}
-          profileRoute={isAdmin ? "/admin/profile" : isTransporter ? "/transporter/profile" : "/user/profile"}
+          profileRoute={
+            isSuperAdmin
+              ? "/superadmin/profile"
+              : isAdmin
+                ? "/admin/profile"
+                : isTransporter
+                  ? "/transporter/profile"
+                  : "/user/profile"
+          }
           walletBalance={currentUser?.walletBalance}
         />
         <Content style={{ margin: "12px" }}>

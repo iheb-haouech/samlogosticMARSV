@@ -58,6 +58,11 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <div className="admin-dashboard-statics" style={{ height: "100%", overflow: "auto" }}>
+      <div className="dashboard-hero">
+        <span>{statistic?.totalAcceptedProviders || statistic?.totalAcceptedTransporters ? "Operations dashboard" : "SAM LOGISTIC"}</span>
+        <h2>Project data overview</h2>
+        <p>Role-aware logistics metrics for orders, clients, transporters, complaints, and cashflow.</p>
+      </div>
       <section className="admin-dashboard-statics--orders-section">
         <Card className="orders-section--card" title={t("Orders Statistics")} style={{ height: "100%" }}>
           {/* Global stats */}

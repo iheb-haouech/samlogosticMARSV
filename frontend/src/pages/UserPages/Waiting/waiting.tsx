@@ -23,7 +23,7 @@ const navigate = useNavigate();
 
   return (
     <div className='waiting-page'>
-      <img className='waiting-page--image' src='./png/waitingImage.png' alt='vanlog Logo' />
+      <img className='waiting-page--image' src='./png/waitingImage.png' alt='SAM LOGISTIC logo' />
 
       <div className='waiting-description'>
         <div className='content'>

@@ -15,6 +15,7 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { AuthUserJWT } from '../utils/auth-user-jwt.decorator';
 import { AuthResponseDto } from './dto/auth-resp.dto';
 import { CreateTransporterDto } from '../transporters/dto/create-transporter.dto';
+import { USERROLES } from '../utils/enum';
 
 
 @Controller('auth')
@@ -63,8 +64,7 @@ register(@Body() user: UserDTO): Promise<ResponseDto> {
 @Post('admin/create-transporter')
 @UseGuards(JwtAuthGuard)
 async createTransporter(@Body() dto: CreateTransporterDto, @Req() req: any) {
-  // Admin check manuel
-  if (![1, 2].includes(req.user.roleId)) {
+  if (![USERROLES.admin.id, USERROLES.superadmin.id].includes(req.user.roleId)) {
     throw new HttpException('Accès admin seulement', 403);
   }
   return this.authService.createTransporterByAdmin(dto);
@@ -104,7 +104,9 @@ async createTransporter(@Body() dto: CreateTransporterDto, @Req() req: any) {
   @Get('admin/transporters')
 @UseGuards(JwtAuthGuard)
 async getAdminTransporters(@Req() req: any) {
-  if (req.user.roleId !== 1) throw new HttpException('Admin seulement', 403);
+  if (![USERROLES.admin.id, USERROLES.superadmin.id].includes(req.user.roleId)) {
+    throw new HttpException('Admin seulement', 403);
+  }
   
   return this.authService.getAdminTransporters();
 }

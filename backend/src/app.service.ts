@@ -37,7 +37,7 @@ export class AppService {
   async getStatistics(userToken: string) {
     // identify user or admin
     const { user } = await this.authService.getAuthUser(userToken);
-    if (user?.roleId == 1) {
+    if (user?.roleId == USERROLES.admin.id || user?.roleId == USERROLES.superadmin.id) {
   const totalWaitingOrders = await this.prisma.order.count({
     where: {
       orderStatusId: 1, // is created and not assigned
@@ -101,7 +101,7 @@ export class AppService {
 
   const totalWaitingTransporters = await this.prisma.user.count({
     where: {
-      roleId: 2,
+      roleId: USERROLES.transporter.id,
       verified: false,
     },
   });

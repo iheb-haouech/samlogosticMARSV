@@ -1,5 +1,7 @@
 import { Api } from "./myApi";
 
+export const API_BASE_URL = import.meta.env.VITE_BASE_URL || import.meta.env.VITE_API_BASE_URL;
+
 const apiClient = new Api({
   //baseApiParams: {
   //headers: {
@@ -7,7 +9,7 @@ const apiClient = new Api({
   //},
   //},
   // base url backend
-  baseUrl: `${import.meta.env.VITE_BASE_URL}`,
+  baseUrl: `${API_BASE_URL}`,
 });
 export const ApiClientWithHeaders = (token: string) => {
   const myClient = new Api({
@@ -16,7 +18,7 @@ export const ApiClientWithHeaders = (token: string) => {
         Authorization: `Bearer ${token}`,
       },
     },
-    baseUrl: `${import.meta.env.VITE_BASE_URL}`,
+    baseUrl: `${API_BASE_URL}`,
   });
   return myClient;
 };

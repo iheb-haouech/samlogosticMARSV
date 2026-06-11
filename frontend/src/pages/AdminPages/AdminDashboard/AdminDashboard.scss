@@ -2,6 +2,31 @@
   display: grid;
   grid-template-columns: 3fr 1fr;
   gap: 1rem;
+  background:
+    linear-gradient(135deg, rgba(0, 212, 255, 0.12), transparent 34%),
+    #061044;
+  border-radius: 8px;
+  padding: 18px;
+
+  .dashboard-hero {
+    grid-column: 1 / -1;
+  }
+
+  .ant-card {
+    background: rgba(9, 22, 78, 0.92);
+    border: 1px solid rgba(0, 212, 255, 0.18);
+    border-radius: 8px;
+    color: #dceaff;
+  }
+
+  .ant-card-head {
+    border-bottom-color: rgba(0, 212, 255, 0.16);
+    color: #fff;
+  }
+
+  h3 {
+    color: #8fefff;
+  }
 
   &--orders-section,
   &--users-section {
@@ -22,7 +47,11 @@
   }
 
   .orders-chart {
+    background: rgba(3, 12, 52, 0.75);
+    border: 1px solid rgba(0, 212, 255, 0.12);
+    border-radius: 8px;
     margin-top: 2rem;
+    padding: 16px;
   }
 
   &--providers-cards-summary {
@@ -44,6 +73,38 @@
     display: flex;
     flex-direction: column;
     row-gap: 1.5rem;
+  }
+}
+
+.dashboard-hero {
+  background:
+    radial-gradient(circle at 84% 0%, rgba(32, 227, 178, 0.24), transparent 30%),
+    linear-gradient(135deg, #08175a, #050b31);
+  border: 1px solid rgba(143, 239, 255, 0.2);
+  border-radius: 8px;
+  color: #fff;
+  padding: 22px;
+
+  span {
+    color: #20e3b2;
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  h2 {
+    color: #fff;
+    font-size: 30px;
+    margin: 0 0 8px;
+  }
+
+  p {
+    color: #bfd9ff;
+    margin: 0;
+    max-width: 720px;
   }
 }
 @media (max-width: 1100px) {

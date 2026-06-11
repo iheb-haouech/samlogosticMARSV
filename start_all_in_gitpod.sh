@@ -25,7 +25,7 @@ echo \n\n\n
 
 
 echo "[INFO] Preparing Mobile App infrastructure ................"
-cd ../vanlog
+cd ../samlogistic
 cp -f ../backend/src/api/myApi.ts ./src/api/myApi.ts
 cat .env.example >> .env
 echo -e  >> .env
