@@ -11,7 +11,8 @@ services:
       - "5432:5432"
 
   backend:
-    build: ./backend
+    context: ./backend
+    dockerfile: dockerfile.prod
     container_name: sam-backend
     restart: always
     ports:
@@ -19,7 +20,7 @@ services:
     env_file:
       - .env
     environment:
-    DATABASE_URL: postgresql://postgres:post123@postgres:5432/vanlog?schema=public
+      - DATABASE_URL: postgresql://postgres:post123@postgres:5432/vanlog?schema=public
     depends_on:
       - postgres
     command: sh -c "npx prisma migrate deploy && npx prisma db seed && node dist/src/main.js"
