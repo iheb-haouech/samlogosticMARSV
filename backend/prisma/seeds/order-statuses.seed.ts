@@ -24,4 +24,9 @@ export const InitOrderStatuses = async (prismaClient: any) => {
     update: {},
     create: { id: 5, statusName: 'Canceled' },
   });
+  await prismaClient.order_status.upsert({
+    where: { id: 6 },
+    update: {},
+    create: { id: 6, statusName: 'Returned' },
+  });
 };

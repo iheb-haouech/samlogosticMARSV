@@ -62,7 +62,7 @@ async triggerInvoice(@Param("id") id: string) {
   @Post('/create-order')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles(USERROLES?.user?.id, USERROLES?.admin?.id)
+  @Roles(USERROLES?.user?.id, USERROLES?.admin?.id, USERROLES?.superadmin?.id)
   @ApiOkResponse({
     description: 'Update order response',
     type: OrderDtoResponse,

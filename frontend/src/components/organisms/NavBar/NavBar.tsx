@@ -4,7 +4,7 @@ import { Avatar } from "antd";
 import { Link } from "react-router-dom";
 import React from "react";
 import { FaUser } from "react-icons/fa";
-import { WalletOutlined } from "@ant-design/icons";
+import { WalletOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import LanguageSwitcher from "../../molecules/LanguageSwitcher/LanguageSwitcher";
 import ThemeToggle from "../../atoms/ThemeToggle/ThemeToggle";
 
@@ -15,6 +15,8 @@ interface NavBarProps {
   pageIcon?: React.ReactNode;
   profileRoute: string;
   walletBalance?: number;
+  onMenuToggle?: () => void;
+  isMobile?: boolean;
 }
 
 const NavBar: React.FC<NavBarProps> = ({
@@ -24,11 +26,25 @@ const NavBar: React.FC<NavBarProps> = ({
   pageIcon,
   profileRoute,
   walletBalance,
+  onMenuToggle,
+  isMobile = false,
 }: NavBarProps) => {
+
   return (
     <Header className='header-container'>
       <div>
         <div className='header--page-label'>
+          {isMobile && onMenuToggle && (
+            <MenuUnfoldOutlined
+              onClick={onMenuToggle}
+              style={{
+                fontSize: 20,
+                cursor: 'pointer',
+                marginRight: 8,
+                color: 'var(--gray-700)',
+              }}
+            />
+          )}
           <span className='header--page-label-icon'>{pageIcon}</span>
           <h4 className='header--page-label--title'>{pageName}</h4>
         </div>
@@ -48,9 +64,9 @@ const NavBar: React.FC<NavBarProps> = ({
           <div className='header--user'>
             <h3 className='header--user-name'>{userName ? userName : "Mon profil"}</h3>
             {userImg ? (
-              <Avatar src={userImg} size={34} style={{ backgroundColor: "#fde3cf", color: "#f56a00" }} />
+              <Avatar src={userImg} size={isMobile ? 30 : 34} style={{ backgroundColor: "#fde3cf", color: "#f56a00" }} />
             ) : (
-              <Avatar icon={<FaUser />} size={34} style={{ backgroundColor: "#fde3cf", color: "#f56a00" }} />
+              <Avatar icon={<FaUser />} size={isMobile ? 30 : 34} style={{ backgroundColor: "#fde3cf", color: "#f56a00" }} />
             )}
           </div>
         </Link>

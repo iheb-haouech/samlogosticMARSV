@@ -132,9 +132,10 @@ model user {
   createOrders           order[]                 @relation("createOrders")
   claims                 claim[]                 @relation()
   claim_message          claim_message[]         @relation()
-  // 👇 relation inverse vers les codes d’email
+  // 👇 relation inverse vers les codes d'email
   emailVerificationCodes EmailVerificationCode[]
   cashflowTransactions    cashflow_transaction[]
+  notifications           notification[]
   vehicleNumber          String?
   vehicleSize            String? // "small", "medium", "large"
   maxWeightKg            Int?
@@ -296,6 +297,7 @@ model order_packages {
   weight   Float?
   price    Float?
   quantity Int?
+  qrCode   String?
   // relations
   order    order?  @relation(fields: [orderId], references: [id], onDelete: Cascade)
   orderId  String?
@@ -376,4 +378,19 @@ model claim {
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @default(now()) @updatedAt
   deletedAt     DateTime?
+}
+
+model notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  title     String
+  message   String
+  type      String   @default("info")
+  read      Boolean  @default(false)
+  orderId   String?
+  createdAt DateTime @default(now())
+
+  user user @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

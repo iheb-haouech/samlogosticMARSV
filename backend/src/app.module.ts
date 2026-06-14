@@ -17,6 +17,7 @@ import { UploadPodModule } from './upload-pod/upload-pod.module';
 import { PdfGeneratorModule } from './pdf-generator/pdf-generator.module';
 import { PdfDownloadModule } from './pdf-download/pdf-download.module';
 import { CashflowModule } from './cashflow/cashflow.module';
+import { NotificationModule } from './notifications/notification.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { CashflowModule } from './cashflow/cashflow.module';
     PdfGeneratorModule,
     PdfDownloadModule,
     CashflowModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, AuthService],

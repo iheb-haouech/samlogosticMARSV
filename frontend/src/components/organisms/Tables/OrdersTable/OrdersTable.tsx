@@ -4,51 +4,27 @@ import {
   Space,
   Table,
   Tooltip,
-  message,
-  Pagination,
   Select,
   Dropdown,
   Typography,
-  Avatar,
-  InputNumber,
+  Input,
+  Tag,
 } from "antd";
 import type { MenuProps, TableProps } from "antd";
-import { HiOutlineEye, HiOutlinePencilAlt, HiOutlineTrash, HiOutlineClipboardCopy } from "react-icons/hi";
-import copyToClipboard from "../../../../services/copy";
+import { HiOutlineEye, HiOutlinePencilAlt, HiOutlineTrash } from "react-icons/hi";
 import formatDate from "../../../../services/date";
-import { store } from "../../../../store/store";
-const { Text } = Typography;
 import { getOrderStatusesName } from "../../../../services/order_status";
-import "./OrdersTable.scss";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import {
-  CheckCircleOutlined,
-  CloseCircleOutlined,
   DownOutlined,
-  ExclamationCircleOutlined,
-  FieldTimeOutlined,
-  IssuesCloseOutlined,
-  UserOutlined,
+  CustomerServiceOutlined,
 } from "@ant-design/icons";
 import { getOrderStatusText } from "../../../../services/orderStatusService";
 import { useTranslation } from "react-i18next";
 import OrderStatusTag from "../../../atoms/orderStatusTag/OrderStatusTag";
-import { Order } from "../../../../types/Order";
-import { useSelector } from "react-redux";
-import { selectLoadingState, setLoading } from "../../../../features/loading/loadingSlice";
-import { IoAddCircleSharp } from "react-icons/io5";
-import { CheckOutlined } from "@ant-design/icons";
-import { updateOrder } from "../../../../features/order/orderSlice";
 
-interface OrderTableRow {
-  id: string;
-  trackingNumber: string;
-  createdAt: string;
-  recipientCompanyName: string;
-  orderStatus: any;
-  actions: Order;
-  totalPrice: number | null | undefined;
-}
+const { Text } = Typography;
+const { Search } = Input;
 
 interface OrdersTableProps {
   orders: any[];
@@ -65,15 +41,12 @@ interface OrdersTableProps {
   handleOrderStatusFilter: (status: string) => void;
   onChangeOrderState: (orderId: string, statusId: number) => void;
   onAssignDeliveryPerson: (order: any) => void;
-  onTogglePayment?: (orderId: string) => void;
-  onMarkPaid?: (orderId: string) => void;
-  onPayOnline?: (orderId: string, amount: number) => void;
 }
 
 const OrdersTable = ({
   orders,
-  status,
   totalOrders,
+  status,
   limitOrdersPerPage,
   isAdmin,
   orderStatuses,
@@ -87,168 +60,34 @@ const OrdersTable = ({
   onAssignDeliveryPerson,
 }: OrdersTableProps) => {
   const { t } = useTranslation();
-  const [pageSize, setPageSize] = useState<number>(limitOrdersPerPage);
-  const [tableContent, setTableContent] = useState<OrderTableRow[]>([]);
-  const [totalClientPrices, setTotalClientPrices] = useState<any>({});
-  const [totalTransporterPrices, setTotalTransporterPrices] = useState<any>({});
-  const [totalShipmentPrices, setTotalShipmentPrices] = useState<any>({});
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [clientFilter, setClientFilter] = useState("all");
 
-  const loading = useSelector(selectLoadingState);
-  const translatedOrderStatuses = getOrderStatusesName(orderStatuses);
-
-  // ✅ useEffect séparé pour resize
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // ✅ useEffect séparé pour tableContent
-  useEffect(() => {
-    const _tableContent = orders?.map((order) => ({
-      id: order?.id!,
-      trackingNumber: order?.id!,
-      trackingId: order?.trackingId,
-      createdAt: formatDate(order?.createdAt?.toString()),
-      recipientCompanyName: order?.recipient?.companyName,
-      clientName:
-        order?.createdBy?.companyName ||
-        `${order?.createdBy?.firstName || ""} ${order?.createdBy?.lastName || ""}`.trim() ||
-        order?.createdBy?.email ||
-        "-",
-      orderStatus: order?.orderStatusId,
-      deliveredByUserId: order?.deliveredByUserId,
-      actions: order,
-      totalPrice: order?.totalPrice,
-      clientPrice: order?.clientPrice,
-      transporterPrice: order?.transporterPrice,
-      shipmentPrice: order?.shipmentPrice,
-      subType: order?.subType,
-      clientPriceStatusId: order?.clientPriceStatusId,
-      transporterPriceStatusId: order?.transporterPriceStatusId,
-      paymentRequired: order?.paymentRequired,
-      paymentAmount: order?.paymentAmount,
-      paymentStatus: order?.paymentStatus,
+  const tableContent = useMemo(() => {
+    if (!orders) return [];
+    return orders.map((order, idx) => ({
+      ...order,
+      _idx: idx + 1,
     }));
-    setTableContent(_tableContent);
   }, [orders]);
 
-  const handlePriceChange = (orderId: any, value: any) => {
-    setTotalClientPrices((prevPrices: any) => ({
-      ...prevPrices,
-      [orderId]: value,
-    }));
-  };
-
-  const handleTransporterPriceChange = (orderId: any, value: any) => {
-    setTotalTransporterPrices((prevPrices: any) => ({
-      ...prevPrices,
-      [orderId]: value,
-    }));
-  };
-
-  const handleShipmentPriceChange = (orderId: any, value: any) => {
-    setTotalShipmentPrices((prevPrices: any) => ({
-      ...prevPrices,
-      [orderId]: value,
-    }));
-  };
-
-  const confirmUpdatePrice = (orderId: any) => {
-    const clientPrice = totalClientPrices[orderId];
-    if (clientPrice) {
-      store.dispatch(updateOrder({ id: orderId, clientPrice: clientPrice, clientPriceStatusId: 2 }));
-    }
-  };
-
-  const confirmUpdateTranspoterPrice = (orderId: any) => {
-    const transporterPrice = totalTransporterPrices[orderId];
-    if (transporterPrice) {
-      store.dispatch(updateOrder({ id: orderId, transporterPrice: transporterPrice, transporterPriceStatusId: 2 }));
-    }
-  };
-
-  const confirmUpdateShipmentPrice = (orderId: any) => {
-    const shipmentPrice = totalShipmentPrices[orderId];
-    if (shipmentPrice !== undefined && shipmentPrice !== null) {
-      store.dispatch(updateOrder({ id: orderId, shipmentPrice }));
-    }
-  };
-
-  const cancel = (orderId: any, value: any) => {
-    setTotalClientPrices((prevPrices: any) => ({
-      ...prevPrices,
-      [orderId]: value,
-    }));
-  };
-
-  const cancelTransporter = (orderId: any, value: any) => {
-    setTotalTransporterPrices((prevPrices: any) => ({
-      ...prevPrices,
-      [orderId]: value,
-    }));
-  };
-
-  const cancelShipment = (orderId: any, value: any) => {
-    setTotalShipmentPrices((prevPrices: any) => ({
-      ...prevPrices,
-      [orderId]: value,
-    }));
-  };
-
-  const getActionsOrder = (order: any) => {
-    return (
-      <>
-        <Tooltip title='Edit'>
-          <Button
-            onClick={() => onUpdateOrder(order?.actions)}
-            className='table--action-btn'
-            icon={<HiOutlinePencilAlt />}
-          />
-        </Tooltip>
-
-        <Tooltip title={t("deleteTitle")}>
-          <Popconfirm
-            title={t("deleteOrder")}
-            onConfirm={() => {
-              store.dispatch(setLoading(true));
-              onDeleteOrder(order.id!);
-            }}
-          >
-            <Button className='table--action-btn' icon={<HiOutlineTrash />} loading={loading} />
-          </Popconfirm>
-        </Tooltip>
-      </>
-    );
-  };
+  const visibleOrders = useMemo(() => {
+    if (clientFilter === "all") return tableContent;
+    return tableContent.filter((o: any) => {
+      const type = o.createdBy?.accountType || o.accountType;
+      return type === clientFilter;
+    });
+  }, [tableContent, clientFilter]);
 
   const onOrderStatusFilterChange: MenuProps["onClick"] = ({ key }) => {
     handleOrderStatusFilter(key);
   };
 
-  const getOrderPriceStatus = (status: any) => {
-    switch (status) {
-      case 1:
-        return <ExclamationCircleOutlined />;
-      case 2:
-        return <FieldTimeOutlined style={{ color: "#146af5" }} />;
-      case 3:
-        return <CheckCircleOutlined style={{ color: "#39bf2a" }} />;
-      case 4:
-        return <CloseCircleOutlined style={{ color: "#e82020" }} />;
-      default:
-        return <IssuesCloseOutlined />;
-    }
-  };
+  const translatedOrderStatuses = getOrderStatusesName(orderStatuses);
 
   const items: MenuProps["items"] = [
-    {
-      key: "null",
-      label: t("all"),
-    },
-    ...orderStatuses.map((status) => ({
-      key: status.id.toString(),
+    { key: "all", label: t("all") },
+    ...(orderStatuses || []).map((status: any) => ({
+      key: String(status.id),
       label: getOrderStatusText(t, status?.statusName),
     })),
   ];
@@ -256,320 +95,161 @@ const OrdersTable = ({
   const columns: TableProps<any>["columns"] = [
     {
       title: "#",
-      key: "number",
-      width: 60,
+      key: "num",
+      width: 50,
       align: "center",
-      render: (_, _record, index) => index + 1,
-    },
-    {
-      title: t("trackingNumber"),
-      dataIndex: "trackingId",
-      key: "trackingId",
-      render: (text) => (
-        <Space>
-          <span style={{ fontWeight: 500 }}>
-            {text?.slice(0, 8)}...{text?.slice(-4)}
-          </span>
-          <Tooltip title={t("copy")}>
-            <Button
-              onClick={() => {
-                copyToClipboard(text);
-                message.success(`Numéro de suivi ${text} copié avec succès.`, 1.5);
-              }}
-              size="small"
-              className='table--action-btn'
-              icon={<HiOutlineClipboardCopy />}
-            />
-          </Tooltip>
-        </Space>
-      ),
+      render: (_: any, rec: any) => rec._idx,
     },
     {
       title: t("creationDate"),
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (creationDate: string) => formatDate(creationDate),
+      width: 110,
+      render: (d: string) => formatDate(d),
     },
     {
       title: t("recipientName"),
-      dataIndex: "recipientCompanyName",
-      key: "recipientCompanyName",
+      dataIndex: "recipient",
+      key: "recipient",
+      width: 160,
+      render: (r: any) => r?.companyName || r?.city || "-",
     },
     {
       title: "Client",
-      dataIndex: "clientName",
-      key: "clientName",
+      key: "client",
+      width: 170,
+      render: (_: any, rec: any) => {
+        const c = rec.createdBy || {};
+        const name = c.companyName || c.email || "-";
+        const color = c.accountType === "B2B" ? "blue" : c.accountType === "B2C" ? "green" : "default";
+        return (
+          <Space direction="vertical" size={0}>
+            <Text>{name}</Text>
+            {c.accountType && <Tag color={color}>{c.accountType}</Tag>}
+          </Space>
+        );
+      },
     },
     {
       title: (
-        <Dropdown
-          menu={{ items, selectable: true, defaultSelectedKeys: ["null"], onClick: onOrderStatusFilterChange }}
-        >
+        <Dropdown menu={{ items, selectable: true, defaultSelectedKeys: ["all"], onClick: onOrderStatusFilterChange }}>
           <Typography.Link>
             <Space>
-              {t("statut")}
-              <DownOutlined />
+              Statut <DownOutlined />
             </Space>
           </Typography.Link>
         </Dropdown>
       ),
       dataIndex: "orderStatus",
       key: "orderStatusId",
-      render: (orderStatusId: number, order: any) => {
-        const status = orderStatuses?.find((s) => s?.id === orderStatusId);
-        if (!status) return <span>-</span>;
-
+      width: 130,
+      render: (orderStatusId: number) => {
+        const status = orderStatuses?.find((s: any) => s.id === orderStatusId);
+        if (!status) return <Text>-</Text>;
         if (isAdmin) {
           return (
             <Select
-              value={status.id}
               size="small"
-              style={{ minWidth: 140 }}
-              onChange={(newStatus) => onChangeOrderState(order.id, newStatus)}
-              options={translatedOrderStatuses?.map((s: any) => ({
+              style={{ minWidth: 120 }}
+              value={status.id}
+              onChange={(newStatus) => onChangeOrderState(String(orderStatusId), newStatus)}
+              options={(translatedOrderStatuses || []).map((s: any) => ({
                 value: s.id,
                 label: getOrderStatusText(t, s.statusName),
               }))}
             />
           );
         }
-
         return <OrderStatusTag orderStatuses={orderStatuses} orderStatusId={orderStatusId} />;
+      },
+    },
+    {
+      title: "Transporteur",
+      key: "transporter",
+      width: 140,
+      render: (_: any, rec: any) => {
+        const order = rec;
+        const name = order.deliveredBy
+          ? `${order.deliveredBy.firstName || ""} ${order.deliveredBy.lastName || ""}`.trim() || order.deliveredBy.email
+          : null;
+        if (!name) {
+          return (
+            <Button type="link" size="small" onClick={() => onAssignDeliveryPerson(order)} icon={<CustomerServiceOutlined />}>
+              Assigner
+            </Button>
+          );
+        }
+        return <Text>{name}</Text>;
       },
     },
     {
       title: t("actions"),
       key: "action",
-      fixed: "right",
-      render: (order) => (
-        <Space size="middle">
-          <Tooltip title="View">
-            <Button
-              onClick={() => onViewOrder(order.actions)}
-              className="table--action-btn"
-              icon={<HiOutlineEye />}
-            />
+      width: 120,
+      fixed: "right" as const,
+      render: (_: any, rec: any) => (
+        <Space size="small">
+          <Tooltip title="Voir">
+            <Button size="small" icon={<HiOutlineEye />} onClick={() => onViewOrder(rec)} />
           </Tooltip>
-          {isAdmin || order.orderStatus === 1 || order.orderStatus === 2 ? getActionsOrder(order) : null}
+          {isAdmin && (
+            <>
+              <Tooltip title="Modifier">
+                <Button size="small" icon={<HiOutlinePencilAlt />} onClick={() => onUpdateOrder(rec)} />
+              </Tooltip>
+              <Popconfirm title={t("deleteOrder")} onConfirm={() => onDeleteOrder(rec.id)}>
+                <Tooltip title={t("deleteTitle")}>
+                  <Button size="small" danger icon={<HiOutlineTrash />} loading={status === "loading"} />
+                </Tooltip>
+              </Popconfirm>
+            </>
+          )}
         </Space>
       ),
     },
   ];
 
-  // ✅ Colonnes admin
-  if (isAdmin && columns) {
-    columns.splice(
-      -1,
-      0,
-      {
-        title: `${t("clientPrice")} (TND)`,
-        dataIndex: "clientPrice",
-        key: "clientPrice",
-        align: "right",
-        render: (clientPrice: any, order: any) => {
-          return (
-            <>
-              <Button
-                type="link"
-                className="assign-delivery-btn"
-                onClick={() => onAssignDeliveryPerson(order.actions)}
-                icon={<IoAddCircleSharp style={{ fontSize: 18 }} />}
-              >
-                {t("assignTransporter")}
-              </Button>
-              <Space.Compact style={{ width: "100%" }}>
-                <InputNumber
-                  style={{ width: 120 }}
-                  placeholder="0.0"
-                  variant="filled"
-                  type="number"
-                  step={1}
-                  min={0}
-                  value={totalClientPrices[order.id] || clientPrice}
-                  onChange={(value) => handlePriceChange(order.id, value)}
-                  suffix={<span>{getOrderPriceStatus(order.clientPriceStatusId)}</span>}
-                />
-                <Popconfirm
-                  title={t("confirmClientPrice")}
-                  description={`${t("updatePriceTo")} ${totalClientPrices[order.id] || clientPrice || 0} TND?`}
-                  onConfirm={() => confirmUpdatePrice(order.id)}
-                  onCancel={() => cancel(order.id, clientPrice)}
-                  okText='Oui'
-                  cancelText='Non'
-                >
-                  <Button icon={<CheckOutlined />} disabled={[3, 4, 5].includes(order.orderStatus)} />
-                </Popconfirm>
-              </Space.Compact>
-            </>
-          );
-        },
-      },
-      {
-        title: `${t("transporterPrice")} (TND)`,
-        dataIndex: "transporterPrice",
-        key: "transporterPrice",
-        align: "right",
-        render: (transporterPrice: any, order: any) => {
-          return (
-            <div style={{ minWidth: 100 }}>
-              <Space.Compact style={{ width: "100%" }}>
-                <InputNumber
-                  style={{ width: 120 }}
-                  placeholder='0.0'
-                  variant='filled'
-                  type='number'
-                  step='1'
-                  min={0}
-                  value={totalTransporterPrices[order.id] || transporterPrice}
-                  onChange={(value) => handleTransporterPriceChange(order.id, value)}
-                  suffix={<span>{getOrderPriceStatus(order?.transporterPriceStatusId)}</span>}
-                />
-                <Popconfirm
-                  title={t("confirmTransporterPrice")}
-                  description={`${t("updatePriceTo")} ${totalTransporterPrices[order.id] || transporterPrice || 0} TND?`}
-                  onConfirm={() => confirmUpdateTranspoterPrice(order.id)}
-                  onCancel={() => cancelTransporter(order.id, transporterPrice)}
-                  okText='Oui'
-                  cancelText='Non'
-                >
-                  <Button icon={<CheckOutlined />} disabled={[3, 4, 5].includes(order.orderStatus)} />
-                </Popconfirm>
-              </Space.Compact>
-            </div>
-          );
-        },
-      },
-      {
-        title: "Frais transport (TND)",
-        dataIndex: "shipmentPrice",
-        key: "shipmentPrice",
-        align: "right",
-        render: (shipmentPrice: any, order: any) => {
-          const isLightShipment = order?.subType === "envoieLegere";
-          return (
-            <div style={{ minWidth: 100 }}>
-              <Space.Compact style={{ width: "100%" }}>
-                <InputNumber
-                  style={{ width: 120 }}
-                  placeholder={isLightShipment ? "7" : "0.0"}
-                  variant="filled"
-                  type="number"
-                  step={1}
-                  min={0}
-                  disabled={isLightShipment}
-                  value={totalShipmentPrices[order.id] ?? shipmentPrice}
-                  onChange={(value) => handleShipmentPriceChange(order.id, value)}
-                />
-                <Popconfirm
-                  title="Confirmer le frais de transport"
-                  description={`Mettre a jour vers ${totalShipmentPrices[order.id] ?? shipmentPrice ?? 0} TND?`}
-                  onConfirm={() => confirmUpdateShipmentPrice(order.id)}
-                  onCancel={() => cancelShipment(order.id, shipmentPrice)}
-                  okText='Oui'
-                  cancelText='Non'
-                >
-                  <Button icon={<CheckOutlined />} disabled={isLightShipment || [3, 4, 5].includes(order.orderStatus)} />
-                </Popconfirm>
-              </Space.Compact>
-            </div>
-          );
-        },
-      },
-      {
-        title: `${t("transporter")}`,
-        dataIndex: "deliveredByUserId",
-        key: "deliveredByUserId",
-        render: (deliveredByUserId: any, order: any) => {
-          return (
-            <>
-              {deliveredByUserId ? (
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" }}
-                  onClick={() => onAssignDeliveryPerson(order?.actions)}
-                >
-                  <Avatar size='small' icon={<UserOutlined />} />
-                  <Text>{order?.actions?.deliveredBy?.firstName + " " + order?.actions?.deliveredBy?.lastName}</Text>
-                </div>
-              ) : (
-                <Text
-                  className='Assign-delivery-btn'
-                  type='danger'
-                  onClick={() => onAssignDeliveryPerson(order?.actions)}
-                >
-                  {(order?.actions?.deliveredBy?.firstName + " " + order?.actions?.deliveredBy?.lastName).slice(0, 18)}
-                  {((order?.actions?.deliveredBy?.firstName + " " + order?.actions?.deliveredBy?.lastName) || "").length > 18 ? "..." : ""}
-                  <IoAddCircleSharp style={{ width: "1.25rem", height: "1.25rem" }} /> {t("assignTransporter")}
-                </Text>
-              )}
-            </>
-          );
-        },
-      }
-    );
-  }
-
-  const onPageSizeChange = (_current: number, size: number) => {
-    setPageSize(size);
-    handlePageSizeChange(_current, size);
-  };
-
-  const [tableHeight, setTableHeight] = useState(300);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useLayoutEffect(() => {
-    if (ref.current) {
-      const { top } = ref.current.getBoundingClientRect();
-      const TABLE_HEADER_HEIGHT = 55;
-      setTableHeight(Math.max(260, window.innerHeight - top - TABLE_HEADER_HEIGHT - 100));
-    }
-  }, [ref]);
-
-  // ✅ Styles conditionnels propres
-  const containerStyle: React.CSSProperties = {
-    height: "100%",
-    overflow: "auto",
-    padding: isMobile ? '8px' : '0',
-  };
-
-  const paginationStyle: React.CSSProperties = isMobile
-    ? {
-        margin: "12px 8px",
-        textAlign: "center",
-        justifyContent: "center",
-      }
-    : {
-        margin: "26px",
-        textAlign: "right",
-        justifyContent: "flex-end",
-      };
-
   return (
-    <div ref={ref} style={containerStyle}>
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
+        <Text>{totalOrders} {t("items")}</Text>
+        <Space size="small" wrap>
+          <Select
+            size="small"
+            value={clientFilter}
+            onChange={setClientFilter}
+            style={{ width: 120 }}
+            options={[
+              { value: "all", label: "Tous" },
+              { value: "B2B", label: "B2B" },
+              { value: "B2C", label: "B2C" },
+            ]}
+          />
+          <Search
+            size="small"
+            placeholder="Rechercher..."
+            style={{ width: 200 }}
+            onSearch={(v) => {
+              console.log("Search:", v);
+            }}
+          />
+        </Space>
+      </div>
+
       <Table
+        size="small"
         loading={status === "loading"}
-        rowKey='id'
+        rowKey="id"
         columns={columns}
-        dataSource={tableContent}
-        pagination={false}
-        scroll={{
-          y: tableHeight,
-          x: isMobile ? 'max-content' : 700,
+        dataSource={visibleOrders}
+        pagination={{
+          pageSize: limitOrdersPerPage,
+          total: totalOrders,
+          showSizeChanger: true,
+          onChange: onPageChange,
+          onShowSizeChange: handlePageSizeChange,
         }}
-        size={isMobile ? 'small' : 'middle'}
-      />
-      <Pagination
-        style={paginationStyle}
-        total={totalOrders}
-        pageSize={pageSize}
-        showSizeChanger={!isMobile}
-        showTotal={(total, range) =>
-          isMobile
-            ? `${range[0]}-${range[1]}/${total}`
-            : `${range[0]}-${range[1]} ${t("of")} ${total} ${t("items")}`
-        }
-        onChange={onPageChange}
-        onShowSizeChange={onPageSizeChange}
-        simple={isMobile}
+        scroll={{ x: 850 }}
       />
     </div>
   );

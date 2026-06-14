@@ -1,31 +1,22 @@
-import { useSelector } from "react-redux";
-import { useEffect, useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   deleteOrder,
   fetchOrders,
   fetchOrderStatuses,
   selectcount,
-  selectLimit,
   selectOrders,
   selectOrderStatus,
-  setFilter,
-  setFiltredStatus,
-  setLimit,
-  setPage,
-  addOrder,
   updateOrder,
-  selectStatus,
   updateOrderStatus,
   updateOrderDeliverPerson,
   togglePayment,
   markPaid,
+  addOrder,
 } from "../../../features/order/orderSlice";
 import { store } from "../../../store/store";
-import OrdersTable from "../../../components/organisms/Tables/OrdersTable/OrdersTable";
-import OrdersTableHeader from "../../../components/organisms/header/OrdersTableHeader/OrdersTableHeader";
+import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../../features/user/userSlice";
 import "./Orders.scss";
-import Title from "antd/es/typography/Title";
 import DrawerComponent from "../../../components/molecules/drawer/DrawerComponent";
 import UpdateOrderForm from "../../../components/templates/Forms/UpdateOrderForm/UpdateOrderForm";
 import OrderInfo from "../../../components/templates/OrderDetails/OrderDetails";
@@ -40,39 +31,70 @@ import ReceiptDownloadModal from "../../../components/molecules/Modals/ReceiptDo
 import { addComplaint } from "../../../features/complaint/complaintSlice";
 import { rolesMap } from "../../../types/Roles";
 import { generateEtiquette } from "../../../services/generate_pdf";
-import { useTranslation } from "react-i18next";
-import { message } from "antd";
+import { message, Select, Button, Input, Tag, Modal, Form, InputNumber } from "antd";
+import { HiOutlineEye, HiOutlinePencilAlt, HiOutlineTrash, HiOutlineClock } from "react-icons/hi";
+import { MdOutlineLocationOn } from "react-icons/md";
+import { IoAddCircleSharp } from "react-icons/io5";
 import CreateOrderFlow from "../../../components/molecules/Modals/OrderTypeModal/CreateOrderFlow";
+
+const STATUS_MAP: Record<number, { label: string; color: string }> = {
+  1: { label: "Non suivi", color: "default" },
+  2: { label: "En attente", color: "orange" },
+  3: { label: "In transit", color: "blue" },
+  4: { label: "Livré", color: "green" },
+  5: { label: "Annuler", color: "red" },
+  6: { label: "Retour", color: "orange" },
+};
 
 const Orders = () => {
   const currentUser: any = useSelector(selectCurrentUser);
   const orders = useSelector(selectOrders);
   const orderStatuses = useSelector(selectOrderStatus);
   const totalOrders = useSelector(selectcount);
-  const status = useSelector(selectStatus);
+  const _transportersStatus = useSelector(transportersStatus);
+  const transporters = useSelector(selectAllTransportersNoPagination);
+
   const [isAssignDeliveryPersonModalOpen, setIsAssignDeliveryPersonModalOpen] = useState(false);
   const [createdOrder, setCreatedOrder] = useState<any>();
   const [isLabeltDownloadModalOpen, setIsLabeltDownloadModalOpen] = useState(false);
   const [clickedOrder, setClickedOrder] = useState<any>(null);
   const [updateDrawerOpen, setUpdateDrawerOpen] = useState(false);
   const [orderInfoDrawerOpen, setOrderInfoDrawerOpen] = useState(false);
-  const limitOrdersPerPage = useSelector(selectLimit);
-  const transporters = useSelector(selectAllTransportersNoPagination);
-  const _transportersStatus = useSelector(transportersStatus);
-  const { t } = useTranslation();
+  const [isCreateOrderFlowOpen, setIsCreateOrderFlowOpen] = useState(false);
+  const [clientFilter, setClientFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [priceModalOpen, setPriceModalOpen] = useState(false);
+  const [priceForm] = Form.useForm();
+  const [selectedOrderForPrice, setSelectedOrderForPrice] = useState<any>(null);
 
   useEffect(() => {
     store.dispatch(fetchOrderStatuses());
     store.dispatch(fetchOrders());
   }, []);
 
+  const filteredOrders = useMemo(() => {
+    if (!orders) return [];
+    let result = orders;
+    if (clientFilter !== "all") {
+      result = result.filter((o: any) => o.createdBy?.accountType === clientFilter);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter((o: any) => {
+        const clientName = o.createdBy?.companyName || o.createdBy?.email || "";
+        const tracking = o.trackingId || "";
+        const dest = o.recipient?.city || "";
+        return clientName.toLowerCase().includes(q) || tracking.toLowerCase().includes(q) || dest.toLowerCase().includes(q);
+      });
+    }
+    return result;
+  }, [orders, clientFilter, searchQuery]);
+
   const handleUpdateOrder = (order: any) => {
     setClickedOrder(order);
     setUpdateDrawerOpen(true);
     setOrderInfoDrawerOpen(false);
   };
-
-  const [isCreateOrderFlowOpen, setIsCreateOrderFlowOpen] = useState(false);
 
   const handleOrderInfo = (order: any) => {
     setClickedOrder(order);
@@ -89,87 +111,247 @@ const Orders = () => {
         }),
       );
       setIsAssignDeliveryPersonModalOpen(false);
+      setClickedOrder(null);
     }
   };
 
+  const handleDeleteOrder = (id: string) => {
+    Modal.confirm({
+      title: "Supprimer la commande",
+      content: "Etes-vous sûr de vouloir supprimer cette commande ?",
+      okText: "Oui, supprimer",
+      cancelText: "Non",
+      okButtonProps: { danger: true },
+      onOk: () => {
+        store.dispatch(deleteOrder(id));
+        message.success("Commande supprimée");
+      },
+    });
+  };
+
+  const openSetPriceModal = (order: any) => {
+    setSelectedOrderForPrice(order);
+    priceForm.setFieldsValue({
+      deliveryPrice: order.transporterPrice || order.deliveryPrice || 0,
+    });
+    setPriceModalOpen(true);
+  };
+
+  const handleSavePrice = async () => {
+    try {
+      const values = await priceForm.validateFields();
+      if (!selectedOrderForPrice) return;
+      await store.dispatch(
+        updateOrder({
+          ...selectedOrderForPrice,
+          transporterPrice: values.deliveryPrice,
+        }),
+      ).unwrap();
+      message.success("Prix de livraison mis à jour");
+      setPriceModalOpen(false);
+      setSelectedOrderForPrice(null);
+      priceForm.resetFields();
+    } catch (err) {
+      // validation failed
+    }
+  };
+
+  const handleTogglePayment = async (order: any) => {
+    const amount = order.transporterPrice || order.deliveryPrice || 0;
+    if (!amount || amount <= 0) {
+      message.warning("Veuillez d'abord définir le prix de livraison");
+      return;
+    }
+    try {
+      await store.dispatch(togglePayment({ orderId: order.id, amount })).unwrap();
+      message.success("Paiement activé");
+      store.dispatch(fetchOrders());
+    } catch (err) {
+      message.error("Erreur");
+    }
+  };
+
+  const handleMarkPaid = async (orderId: string) => {
+    try {
+      await store.dispatch(markPaid(orderId)).unwrap();
+      message.success("Marqué payé");
+      store.dispatch(fetchOrders());
+    } catch (err) {
+      message.error("Erreur");
+    }
+  };
+
+  const getStatusTag = (statusId: number) => {
+    const status = STATUS_MAP[statusId];
+    if (!status) return <Tag>Inconnu</Tag>;
+    return <Tag color={status.color}>{status.label}</Tag>;
+  };
+
   return (
-    <>
-      <div className="orders-container">
-        <div className="orders-container--header">
-          <Title level={4}>
-            {t("totalNumberOfOrders")}: {totalOrders}
-          </Title>
-
-          <OrdersTableHeader
-            onSearchChange={(value) => {
-              store.dispatch(setFilter(value));
-            }}
-            onClickBtn={() => {
-                setIsCreateOrderFlowOpen(true);
-              }}
-            btnText={t("addOrder")}
-          />
+    <div className="admin-orders-page">
+      <div className="admin-orders-page--header">
+        <div className="admin-orders-page--title">
+          <h2>Commandes</h2>
+          <span className="admin-orders-page--count">{totalOrders}</span>
         </div>
-
-        <div className="orders-container--table">
-          <OrdersTable
-            orders={orders}
-            totalOrders={totalOrders}
-            status={status}
-            limitOrdersPerPage={limitOrdersPerPage}
-            isAdmin={currentUser?.roleId === 1}
-            orderStatuses={orderStatuses}
-            onPayOnline={(orderId: string, amount: number) => {
-              alert(`Paiement Stripe ${amount} TND pour commande ${orderId}`);
-            }}
-            onPageChange={(page: any) => {
-              store.dispatch(setPage(page));
-            }}
-            handlePageSizeChange={(_current, size) => {
-              store.dispatch(setLimit(size));
-            }}
-            onUpdateOrder={handleUpdateOrder}
-            onDeleteOrder={(id) => {
-              store.dispatch(deleteOrder(id));
-            }}
-            onViewOrder={handleOrderInfo}
-            handleOrderStatusFilter={(selectedStatus) => {
-              store.dispatch(setFiltredStatus(selectedStatus));
-            }}
-            onChangeOrderState={(orderId: any, orderStatusId: any) => {
-              store.dispatch(
-                updateOrderStatus({
-                  id: orderId,
-                  orderStatusId: orderStatusId,
-                }),
-              );
-            }}
-            onAssignDeliveryPerson={(order: any) => {
-              store.dispatch(fetchAllTransportersNoPagination());
-              setClickedOrder(order);
-              setIsAssignDeliveryPersonModalOpen(true);
-            }}
-            onTogglePayment={async (orderId) => {
-              const amount = window.prompt("Montant en TND ?");
-              if (amount) {
-                try {
-                  await store.dispatch(togglePayment({ orderId, amount: parseFloat(amount) })).unwrap();
-                  message.success("Paiement activé");
-                  setTimeout(() => {
-                    store.dispatch(fetchOrders());
-                  }, 500);
-                } catch (err) {
-                  message.error("Erreur");
-                }
-              }
-            }}
-            onMarkPaid={async (orderId) => {
-              await store.dispatch(markPaid(orderId)).unwrap();
-              await store.dispatch(fetchOrders());
-              message.success("Marqué payé");
-            }}
-          />
+        <div className="admin-orders-page--actions">
+          <Button type="primary" icon={<IoAddCircleSharp />} onClick={() => setIsCreateOrderFlowOpen(true)}>
+            Nouvelle commande
+          </Button>
         </div>
+      </div>
+
+      <div className="admin-orders-page--filters">
+        <Select
+          size="small"
+          value={clientFilter}
+          onChange={setClientFilter}
+          style={{ width: 130 }}
+          options={[
+            { value: "all", label: "Tous" },
+            { value: "B2B", label: "B2B" },
+            { value: "B2C", label: "B2C" },
+          ]}
+        />
+        <Input
+          size="small"
+          placeholder="Rechercher client / tracking..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{ width: 220 }}
+          allowClear
+        />
+      </div>
+
+      <div className="admin-orders-page--list">
+        {filteredOrders.length === 0 ? (
+          <div className="admin-orders-page--empty">Aucune commande trouvée</div>
+        ) : (
+          filteredOrders.map((order: any) => {
+            const client = order.createdBy || {};
+            const clientName = client.companyName || client.email || "Inconnu";
+            const clientType = client.accountType || "B2C";
+            const isB2C = clientType === "B2C";
+            const isFixedPrice = isB2C && order.subType === "envoieLegere";
+            const deliveryPrice = order.transporterPrice || order.deliveryPrice || (isFixedPrice ? 7 : 0);
+
+            return (
+              <div key={order.id} className="order-card">
+                <div className="order-card--header">
+                  <div className="order-card--id">
+                    #{order.trackingId || order.id?.slice(0, 8)}
+                  </div>
+                  {getStatusTag(order.orderStatusId)}
+                </div>
+
+                <div className="order-card--body">
+                  <div className="order-card--row">
+                    <span className="order-card--label">Client:</span>
+                    <span className="order-card--value">{clientName}</span>
+                    <Tag color={clientType === "B2B" ? "blue" : "green"}>{clientType}</Tag>
+                  </div>
+                  <div className="order-card--row">
+                    <MdOutlineLocationOn className="order-card--icon" />
+                    <span className="order-card--value">
+                      {order.recipient?.city || order.recipient?.companyName || "-"}
+                    </span>
+                  </div>
+                  <div className="order-card--row">
+                    <HiOutlineClock className="order-card--icon" />
+                    <span className="order-card--value">
+                      {order.createdAt ? new Date(order.createdAt).toLocaleDateString("fr-FR") : "-"}
+                    </span>
+                  </div>
+                  <div className="order-card--row order-card--price-row">
+                    <span className="order-card--label">Prix livraison:</span>
+                    <span className="order-card--price">{deliveryPrice} DT</span>
+                    {!isFixedPrice && (
+                      <Button
+                        type="link"
+                        size="small"
+                        onClick={() => openSetPriceModal(order)}
+                      >
+                        {deliveryPrice > 0 ? "Modifier" : "Définir"}
+                      </Button>
+                    )}
+                  </div>
+                  {order.deliveredBy && (
+                    <div className="order-card--row">
+                      <span className="order-card--label">Transporteur:</span>
+                      <span className="order-card--value">
+                        {order.deliveredBy.firstName || ""} {order.deliveredBy.lastName || ""}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="order-card--actions">
+                  <Button size="small" icon={<HiOutlineEye />} onClick={() => handleOrderInfo(order)}>
+                    Détails
+                  </Button>
+                  <Button size="small" icon={<HiOutlinePencilAlt />} onClick={() => handleUpdateOrder(order)}>
+                    Modifier
+                  </Button>
+                  <Button
+                    size="small"
+                    icon={<IoAddCircleSharp />}
+                    onClick={() => {
+                      store.dispatch(fetchAllTransportersNoPagination());
+                      setClickedOrder(order);
+                      setIsAssignDeliveryPersonModalOpen(true);
+                    }}
+                  >
+                    {order.deliveredBy ? "Changer transporteur" : "Assigner"}
+                  </Button>
+                  {isB2C && order.orderStatusId === 4 && (
+                    <Button
+                      size="small"
+                      onClick={() => {
+                        setClickedOrder(order);
+                        store.dispatch(
+                          updateOrderStatus({ id: order.id, orderStatusId: 6 }),
+                        );
+                        message.success("Commande marquée en retour");
+                        store.dispatch(fetchOrders());
+                      }}
+                    >
+                      Retour
+                    </Button>
+                  )}
+                  {(order.orderStatusId === 1 || order.orderStatusId === 2) && (
+                    <Button
+                      size="small"
+                      danger
+                      onClick={() => {
+                        setClickedOrder(order);
+                        store.dispatch(
+                          updateOrderStatus({ id: order.id, orderStatusId: 5 }),
+                        );
+                        message.success("Commande annulée");
+                        store.dispatch(fetchOrders());
+                      }}
+                    >
+                      Annuler
+                    </Button>
+                  )}
+                  {!order.paymentConfirmed && deliveryPrice > 0 && (
+                    <Button size="small" type="primary" onClick={() => handleTogglePayment(order)}>
+                      Payer
+                    </Button>
+                  )}
+                  {order.paymentConfirmed && (
+                    <Button size="small" onClick={() => handleMarkPaid(order.id)}>
+                      Marqué payé
+                    </Button>
+                  )}
+                  <Button size="small" danger icon={<HiOutlineTrash />} onClick={() => handleDeleteOrder(order.id)}>
+                    Supprimer
+                  </Button>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
 
       <DeliveryPersonModal
@@ -230,7 +412,7 @@ const Orders = () => {
           setUpdateDrawerOpen(false);
           setClickedOrder(null);
         }}
-        title={"Modifier la commande"}
+        title="Modifier la commande"
       />
 
       <DrawerComponent
@@ -255,9 +437,32 @@ const Orders = () => {
           setOrderInfoDrawerOpen(false);
           setClickedOrder(null);
         }}
-        title={"Détails de la commande"}
+        title="Détails de la commande"
       />
-    </>
+
+      <Modal
+        title="Définir le prix de livraison"
+        open={priceModalOpen}
+        onOk={handleSavePrice}
+        onCancel={() => {
+          setPriceModalOpen(false);
+          setSelectedOrderForPrice(null);
+          priceForm.resetFields();
+        }}
+        okText="Enregistrer"
+        cancelText="Annuler"
+      >
+        <Form form={priceForm} layout="vertical">
+          <Form.Item
+            name="deliveryPrice"
+            label="Prix de livraison (DT)"
+            rules={[{ required: true, message: "Requis" }]}
+          >
+            <InputNumber min={0} step={0.5} style={{ width: "100%" }} />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </div>
   );
 };
 

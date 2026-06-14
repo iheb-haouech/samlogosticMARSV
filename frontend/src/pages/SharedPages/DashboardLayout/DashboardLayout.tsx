@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Layout } from "antd";
-import { Outlet, useLocation } from "react-router-dom";
+import { Layout, Drawer } from "antd";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import NavBar from "../../../components/organisms/NavBar/NavBar";
 import SideMenu from "../../../components/organisms/SideMenu/SideMenu";
 import colors from "../../../styles/colors/colors";
@@ -18,9 +18,8 @@ import {
   WalletOutlined,
   UserSwitchOutlined,
 } from "@ant-design/icons";
-import { useTranslation } from "react-i18next"; // Importing the translation hook
+import { useTranslation } from "react-i18next";
 import { selectedStatistic } from "../../../features/statistics/statisticsSlice";
-import { useNavigate } from "react-router-dom";
 import { store } from "../../../store/store";
 import { rolesMap } from "../../../types/Roles";
 
@@ -29,19 +28,36 @@ const { Content } = Layout;
 const DashboardLayout: React.FC = () => {
   const navigate = useNavigate();
   const storedLang = localStorage.getItem("i18nextLng");
-  const { t } = useTranslation(); // Initializing the translation hook
+  const { t } = useTranslation();
 
-  const [collapsed, setCollapsed] = useState(window.innerWidth <= 900 ? true : false);
+  const [collapsed, setCollapsed] = useState(window.innerWidth <= 900);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [pageName, setPageName] = useState<string>("");
   const [pageIcon, setPageIcon] = useState<any>(<></>);
   const location = useLocation();
   const currentUser: any = useSelector(selectCurrentUser);
   const statistics: any = useSelector(selectedStatistic);
+  const isMobile = window.innerWidth <= 768;
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      const shouldCollapse = window.innerWidth <= 900;
+      setCollapsed(shouldCollapse);
+      if (!mobile) {
+        setMobileMenuOpen(false);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   if (!currentUser) return null;
   const isSuperAdmin: boolean = currentUser?.roleId === rolesMap.superAdmin;
   const isAdmin: boolean = currentUser?.roleId === rolesMap.admin;
   const isTransporter: boolean = currentUser?.roleId === rolesMap.transporter;
-  // Dynamically create menu items with translation
+
   const userMenuItems = [
     { key: "/user/dashboard", label: t("dashboard"), icon: <MdOutlineSpaceDashboard /> },
     { key: "/user/orders", label: t("ordersList"), icon: <FiShoppingCart /> },
@@ -53,21 +69,21 @@ const DashboardLayout: React.FC = () => {
     },
     { key: "/user/track-orders", label: t("TrackingOrders"), icon: <AimOutlined /> },
   ];
-const transporterMenuItems = [
-  { key: "/transporter/dashboard", label: t("dashboard"), icon: <MdOutlineSpaceDashboard /> },
-  { key: "/transporter/orders", label: t("ordersList"), icon: <FiShoppingCart /> },
-  { key: "/transporter/invoices", label: t("paymentInvoices"), icon: <FileTextOutlined /> },
-  {
-    key: "/transporter/complaints",
-    label: t("complaints"),
-    icon: <AiOutlineCustomerService />,
-    badgeCount: statistics?.totalComplaints,
-  },
-];
-const transporterAllMenuItems = [
-  ...transporterMenuItems,
-  { key: "/transporter/profile", label: t("profile"), icon: <FaRegUser /> },
-];
+  const transporterMenuItems = [
+    { key: "/transporter/dashboard", label: t("dashboard"), icon: <MdOutlineSpaceDashboard /> },
+    { key: "/transporter/orders", label: t("ordersList"), icon: <FiShoppingCart /> },
+    { key: "/transporter/invoices", label: t("paymentInvoices"), icon: <FileTextOutlined /> },
+    {
+      key: "/transporter/complaints",
+      label: t("complaints"),
+      icon: <AiOutlineCustomerService />,
+      badgeCount: statistics?.totalComplaints,
+    },
+  ];
+  const transporterAllMenuItems = [
+    ...transporterMenuItems,
+    { key: "/transporter/profile", label: t("profile"), icon: <FaRegUser /> },
+  ];
   const userAllMenuItems = [...userMenuItems, { key: "/user/profile", label: t("profile"), icon: <FaRegUser /> }];
 
   const adminMenuItems = [
@@ -158,7 +174,7 @@ const transporterAllMenuItems = [
       }
     };
     getPageDetails();
-  }, [location.pathname, isAdmin, isSuperAdmin, isTransporter, t]); // Added 't' to the dependency array to re-translate when language changes
+  }, [location.pathname, isAdmin, isSuperAdmin, isTransporter, t]);
 
   const handelLogOut = () => {
     localStorage.removeItem("accessToken");
@@ -166,28 +182,55 @@ const transporterAllMenuItems = [
     store.dispatch(setCurrentUser(null));
     navigate("/login", { replace: true });
   };
-   const userDisplayName =
-             currentUser?.companyName ||
-             `${currentUser?.firstName || ""} ${currentUser?.lastName || ""}`.trim() ||
-               currentUser?.email ||
-             "";
+  const userDisplayName =
+    currentUser?.companyName ||
+    `${currentUser?.firstName || ""} ${currentUser?.lastName || ""}`.trim() ||
+    currentUser?.email ||
+    "";
+
+  const menuItems = isSuperAdmin ? superAdminMenuItems : isAdmin ? adminMenuItems : isTransporter ? transporterMenuItems : userMenuItems;
 
   return (
     <Layout style={{ height: "100vh" }}>
-      <SideMenu
-        menuItems={isSuperAdmin ? superAdminMenuItems : isAdmin ? adminMenuItems : isTransporter ? transporterMenuItems : userMenuItems}
-        logOut={handelLogOut}
-        collapsed={collapsed}
-        onCollapse={() => setCollapsed(!collapsed)}
-        width={245}
-      ></SideMenu>
+      {isMobile ? (
+        <Drawer
+          title={null}
+          placement="left"
+          onClose={() => setMobileMenuOpen(false)}
+          open={mobileMenuOpen}
+          width={260}
+          styles={{ body: { padding: 0 } }}
+          closable={false}
+          maskClosable={true}
+        >
+          <SideMenu
+            menuItems={menuItems}
+            logOut={handelLogOut}
+            collapsed={false}
+            onCollapse={() => setCollapsed(!collapsed)}
+            width={260}
+          />
+        </Drawer>
+      ) : (
+        <SideMenu
+          menuItems={menuItems}
+          logOut={handelLogOut}
+          collapsed={collapsed}
+          onCollapse={() => setCollapsed(!collapsed)}
+          width={245}
+        />
+      )}
 
-      <Layout style={{ marginLeft: !collapsed ? "245px" : "60px" }}>
+      <Layout
+        style={{
+          marginLeft: isMobile ? 0 : (!collapsed ? "245px" : "60px"),
+          transition: "margin-left 0.2s",
+        }}
+      >
         <NavBar
-       
           userName={userDisplayName}
           pageName={pageName}
-          userImg=''
+          userImg=""
           pageIcon={pageIcon}
           profileRoute={
             isSuperAdmin
@@ -199,11 +242,17 @@ const transporterAllMenuItems = [
                   : "/user/profile"
           }
           walletBalance={currentUser?.walletBalance}
+          onMenuToggle={isMobile ? () => setMobileMenuOpen(!mobileMenuOpen) : undefined}
+          isMobile={isMobile}
         />
-        <Content style={{ margin: "12px" }}>
+        <Content
+          style={{
+            margin: isMobile ? "8px" : "12px",
+          }}
+        >
           <div
             style={{
-              padding: 22,
+              padding: isMobile ? 12 : 22,
               background: colors.white,
               borderRadius: "4px",
               height: "100%",

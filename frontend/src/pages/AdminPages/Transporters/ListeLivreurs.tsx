@@ -1,10 +1,10 @@
-import { Layout, Table, Button, Modal, Form, Input, Select, InputNumber, message } from "antd";
+import { Layout, Table, Button, Modal, Form, Input, message } from "antd";
 import { useGetAdminTransportersQuery, useCreateTransporterMutation } from '../../../features/transporter/transportersApi';
 import { useState } from "react";
 
 const ListeLivreurs: React.FC = () => {
   const { data: transporters = [], isLoading: tableLoading } = useGetAdminTransportersQuery();
-  const [createTransporter, { isLoading: createLoading }] = useCreateTransporterMutation();  // ✅ CORRIGÉ
+  const [createTransporter, { isLoading: createLoading }] = useCreateTransporterMutation();
   const [openModal, setOpenModal] = useState(false);
   const [form] = Form.useForm();
 
@@ -14,8 +14,7 @@ const ListeLivreurs: React.FC = () => {
     { title: 'Nom', dataIndex: 'lastName', key: 'lastName' },
     { title: 'Email', dataIndex: 'email', key: 'email' },
     { title: 'Véhicule', dataIndex: 'vehicleNumber', key: 'vehicleNumber' },
-    { title: 'Taille', dataIndex: 'vehicleSize', render: (size: string) => size?.toUpperCase(), key: 'vehicleSize' },
-    { title: 'Poids max', dataIndex: 'maxWeightKg', render: (kg: number) => `${kg} kg`, key: 'maxWeightKg' },
+    { title: 'Série du véhicule', dataIndex: 'vehicleSize', key: 'vehicleSize' },
   ];
 
   const handleCreate = async (values: any) => {
@@ -54,11 +53,11 @@ const ListeLivreurs: React.FC = () => {
   okText="Créer"
   onOk={form.submit}  // ✅ form.submit()
   confirmLoading={createLoading}
->
+  >
   <Form 
     form={form} 
     layout="vertical" 
-    onFinish={handleCreate}  // ✅ onFinish
+    onFinish={handleCreate}
   >
     <Form.Item name="firstName" label="Prénom" rules={[{required:true}]}>
       <Input />
@@ -75,15 +74,8 @@ const ListeLivreurs: React.FC = () => {
     <Form.Item name="vehicleNumber" label="Véhicule" rules={[{required:true}]}>
       <Input />
     </Form.Item>
-    <Form.Item name="vehicleSize" label="Taille" rules={[{required:true}]}>
-      <Select>
-        <Select.Option value="small">Petit</Select.Option>
-        <Select.Option value="medium">Moyen</Select.Option>
-        <Select.Option value="large">Grand</Select.Option>
-      </Select>
-    </Form.Item>
-    <Form.Item name="maxWeightKg" label="Poids max kg" rules={[{required:true}]}>
-      <InputNumber min={100} />
+    <Form.Item name="vehicleSize" label="Série du véhicule" rules={[{required:true}]}>
+      <Input placeholder="Ex: 1234 TU 01" />
     </Form.Item>
   </Form>
 </Modal>

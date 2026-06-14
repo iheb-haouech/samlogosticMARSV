@@ -4,7 +4,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0px 2rem;
+  padding: 0px 1.5rem;
   .header--user {
     display: flex;
     align-items: center;
@@ -20,6 +20,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    flex-wrap: wrap;
     &-icon {
       font-size: 20px;
     }
@@ -49,54 +50,50 @@
     font-weight: 600;
     white-space: nowrap;
   }
-  // ===================================
-// DARK MODE TOGGLE IN NAVBAR
-// ===================================
-
-.header-container {
-  .header--right-section {
-    display: flex;
-    align-items: center;
-    gap: 20px; // Espacement entre éléments
-    
-    // Style du toggle
-    .theme-toggle {
-      display: flex;
-      align-items: center;
-    }
-  }
-}
-
-// ===================================
-// DARK MODE NAVBAR
-// ===================================
-
-[data-theme='dark'] {
-  .header-container {
-    background: var(--bg-secondary) !important;
-    border-bottom: 1px solid var(--border-color);
-    
-    .header--page-label--title,
-    .header--user-name {
-      color: var(--text-primary);
-    }
-    
-    .header--page-label-icon {
-      color: var(--text-secondary);
-    }
-  }
 }
 
 // Responsive mobile
 @media (max-width: 768px) {
   .header-container {
+    padding: 0 8px !important;
+    
     .header--right-section {
-      gap: 12px;
+      gap: 8px;
       
-      .header--user-name {
-        display: none; // Cacher nom sur mobile
+      .header--wallet {
+        display: none;
       }
+
+      .header--user-name {
+        display: none;
+      }
+    }
+
+    .header--page-label--title {
+      font-size: 0.8rem;
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
   }
 }
+
+@media (max-width: 480px) {
+  .header-container {
+    padding: 0 6px !important;
+
+    .header--right-section {
+      gap: 4px;
+
+      .header--wallet {
+        display: none;
+      }
+    }
+
+    .header--page-label--title {
+      font-size: 0.75rem;
+      max-width: 100px;
+    }
+  }
 }

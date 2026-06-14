@@ -1,10 +1,9 @@
 import { Badge, Button, Layout, Menu, MenuProps } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { TbLogout } from "react-icons/tb";
 import "./SideMenu.scss";
 import { useTranslation } from "react-i18next";
-import MenuItem from "antd/es/menu/MenuItem";
 import { BRAND_LOGO, BRAND_LOGO_ICON, BRAND_NAME } from "../../../constants/branding";
 
 type MenuItem = {
@@ -33,20 +32,32 @@ const SideMenu: React.FC<SideMenuProps> = ({ menuItems, logOut, collapsed, onCol
     setSelectedKey(location.pathname);
   }, [location.pathname]);
 
-  const renderMenuItem = (item: any) => {
-    return (
-      <>
-        <Badge
-          count={item?.badgeCount > 99 ? "+99" : item?.badgeCount}
-          style={{
-            color: "white",
-            fontSize: 10,
-            borderColor: "transparent",
-          }}
-        />
-      </>
-    );
+  const transformMenuItems = (items: MenuItem[]): MenuProps["items"] => {
+    return items.map((item) => {
+      const { badgeCount, ...rest } = item as any;
+      return {
+        ...rest,
+        label: badgeCount ? (
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            {item.label}
+            <Badge
+              count={badgeCount > 99 ? "+99" : badgeCount}
+              style={{
+                color: "white",
+                fontSize: 10,
+                borderColor: "transparent",
+                marginLeft: 4,
+              }}
+            />
+          </span>
+        ) : (
+          item.label
+        ),
+      };
+    });
   };
+
+  const cleanedMenuItems = useMemo(() => transformMenuItems(menuItems), [menuItems]);
 
   return (
     <Layout.Sider
@@ -77,12 +88,11 @@ const SideMenu: React.FC<SideMenuProps> = ({ menuItems, logOut, collapsed, onCol
             selectedKeys={[selectedKey]}
             theme='dark'
             mode='inline'
-            itemIcon={(item: any) => renderMenuItem(item)}
             onClick={(item) => {
               navigate(item.key.toString());
               setSelectedKey(item.key.toString());
             }}
-            items={menuItems as MenuProps["items"]}
+            items={cleanedMenuItems}
             className='side-menu--menu'
           />
         </div>

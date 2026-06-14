@@ -1,17 +1,12 @@
-import React, { useLayoutEffect, useRef, useState, useEffect  } from "react";
-import { Space, Table, Button, Drawer, Pagination, Popconfirm, Tooltip } from "antd";
-import { useSelector } from "react-redux";
+import React, { useState, useEffect, useMemo } from "react";
+import { Table, Button, Drawer, Popconfirm, Tooltip, Select, Tag, Card, Space, message } from "antd";
 import { HiOutlineEye, HiOutlineTrash } from "react-icons/hi";
+import { useSelector } from "react-redux";
 import { store } from "../../../../store/store";
 import { ApiClientWithHeaders } from "../../../../api";
-
 import {
-  selectLimit,
   selectProviders,
-  selectTotalCount,
   setFilter,
-  setLimit,
-  setPage,
   updateProviders,
 } from "../../../../features/provider/providerSlice";
 import ProviderInfo from "./ProviderInfo/ProviderInfo";
@@ -23,55 +18,55 @@ const ApprovedProvidersList: React.FC = () => {
 
   const [open, setOpen] = useState(false);
   const providers = useSelector(selectProviders);
+  const [clientTypeFilter, setClientTypeFilter] = useState<string>("all");
 
   const token: any = localStorage.getItem("accessToken");
   const myClient = ApiClientWithHeaders(token);
 
-  useEffect(() => {
-    const fetchProviders = async () => {
-      try {
-        const res = await myClient.user.userControllerFindAll();
-
-        console.log("PROVIDERS API:", res);
-
-        store.dispatch(setFilter({ verified: true }as any));
-        store.dispatch(updateProviders(res.data)); // ⚠️ important
-      } catch (err) {
-        console.error("Error fetching providers", err);
+  const fetchClients = async (typeFilter?: string) => {
+    try {
+      const filterParams: any = { verified: true };
+      if (typeFilter && typeFilter !== "all") {
+        filterParams.accountType = typeFilter;
       }
-    };
+      store.dispatch(setFilter({ verified: true, filtredEmail: "" } as any));
+      const res = await myClient.user.userControllerFindAllProviders({
+        page: "1",
+        limit: "100",
+        ...filterParams,
+      } as any);
+      store.dispatch(updateProviders(res.data));
+    } catch (err) {
+      console.error("Error fetching clients", err);
+    }
+  };
 
-    fetchProviders();
-  }, []);
+  useEffect(() => {
+    fetchClients(clientTypeFilter);
+  }, [clientTypeFilter]);
+
   const [selectedProviderId, setSelectedProviderId] = useState("");
-  const providersData = providers?.map((user: any) => {
-    return {
+  const providersData = useMemo(() => {
+    return providers?.map((user: any) => ({
       key: user.id,
       name: user.fullName || user.email,
-      createdAt: user.createdAt,
-      telephone: user.phone,
-      patent: user.patent,
+      email: user.email,
+      createdAt: user.createdAt ? new Date(user.createdAt).toLocaleDateString("fr-FR") : "-",
+      telephone: user.phone || "-",
+      patent: user.patent || "-",
+      accountType: user.accountType || "B2C",
       id: user.id,
-    };
-  });
+    })) ?? [];
+  }, [providers]);
 
-  // Pagination
-  const limit = useSelector(selectLimit);
-  const totalProviders = useSelector(selectTotalCount);
-
-  const [pageSizeLimit, setPageSizeLimit] = useState<number>(limit);
-
-  const onPageSizeLimitChange = (_current: number, size: number) => {
-    setPageSizeLimit(size);
-    store.dispatch(setLimit(size));
-  };
-  const handlePageChange = (page: number) => {
-    store.dispatch(setPage(page));
-  };
-  //TODO wrong call of api here we need to handleDeleteUser  in the store
   const handleDeleteUser = async (id: any) => {
-    store.dispatch(updateProviders(id));
-    await myClient.user.userControllerRemove(id);
+    try {
+      store.dispatch(updateProviders(id));
+      await myClient.user.userControllerRemove(id);
+      message.success("Client supprimé");
+    } catch (err) {
+      message.error("Erreur lors de la suppression");
+    }
   };
 
   const showDrawer = (id: string) => {
@@ -79,120 +74,122 @@ const ApprovedProvidersList: React.FC = () => {
     setSelectedProviderId(id);
   };
 
-  const onSearch: SearchProps["onSearch"] = (filtredEmail: string) => {
-    store.dispatch(setFilter({ verified: true, filtredEmail }));
+  const onSearch: SearchProps["onSearch"] = async (filtredEmail: string) => {
+    try {
+      const res = await myClient.user.userControllerFindAllProviders({
+        page: "1",
+        limit: "100",
+        verified: true,
+        email: filtredEmail,
+        ...(clientTypeFilter !== "all" ? { accountType: clientTypeFilter } : {}),
+      } as any);
+      store.dispatch(updateProviders(res.data));
+    } catch (err) {
+      console.error("Search error", err);
+    }
   };
+
   const onClose = () => {
     setOpen(false);
   };
+
   const columns: Array<any> = [
     {
-      title: t("provider_name"),
+      title: t("client_name", "Nom"),
       dataIndex: "name",
       key: "name",
     },
     {
-      title: t("registration_date"),
-      dataIndex: "createdAt",
-      key: "createdAt",
+      title: t("email", "Email"),
+      dataIndex: "email",
+      key: "email",
     },
     {
-      title: t("phone_number"),
+      title: t("client_type", "Type"),
+      dataIndex: "accountType",
+      key: "accountType",
+      render: (type: string) => <Tag color={type === "B2B" ? "blue" : "green"}>{type || "B2C"}</Tag>,
+    },
+    {
+      title: t("phone_number", "Téléphone"),
       dataIndex: "telephone",
       key: "telephone",
     },
     {
-      title: t("patent"),
+      title: t("patent", "Patent"),
       dataIndex: "patent",
       key: "patent",
     },
     {
-      title: t("actions"),
+      title: t("actions", "Actions"),
       key: "actions",
-      width: 160,
-      render: (user: any) => {
-        return (
-          <Space size='middle'>
-            <Button
-              style={styles.primaryBtn}
-              onClick={() => showDrawer(user.id)}
-              className='table--action-btn'
-              icon={<HiOutlineEye />}
-            />
-            <Tooltip title={t("delete")}>
-              <Popconfirm title={t("delete_confirmation")} onConfirm={() => handleDeleteUser(user.id)}>
-                <Button danger className='table--action-btn' style={{ border: "none" }} icon={<HiOutlineTrash />} />
-              </Popconfirm>
-            </Tooltip>
-          </Space>
-        );
-      },
+      width: 140,
+      render: (user: any) => (
+        <Space size="middle">
+          <Tooltip title={t("details", "Détails")}>
+            <Button type="primary" shape="circle" size="small" icon={<HiOutlineEye />} onClick={() => showDrawer(user.id)} />
+          </Tooltip>
+          <Tooltip title={t("delete", "Supprimer")}>
+            <Popconfirm title={t("delete_confirmation", "Confirmer la suppression")} onConfirm={() => handleDeleteUser(user.id)}>
+              <Button danger shape="circle" size="small" icon={<HiOutlineTrash />} />
+            </Popconfirm>
+          </Tooltip>
+        </Space>
+      ),
     },
   ];
-  const [tableHeight, setTableHeight] = useState(300);
-  const ref = useRef<HTMLDivElement>(null);
 
-  useLayoutEffect(() => {
-    if (ref.current) {
-      const { top } = ref.current.getBoundingClientRect();
-      // Adjust TABLE_HEADER_HEIGHT according to your actual header height.
-      const TABLE_HEADER_HEIGHT = 55;
-      setTableHeight(window.innerHeight - top - TABLE_HEADER_HEIGHT - 100);
-    }
-  }, [ref]);
   return (
-    <>
-      <div style={styles.tableHeader}>
+    <Card>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 16,
+          flexWrap: "wrap",
+          gap: 12,
+        }}
+      >
         <div>
           <b>
-            {t("number_of_providers")} {totalProviders}
+            {t("all_clients", "Liste des clients")} ({providersData.length})
           </b>
         </div>
-        <Search
-          placeholder={t("Search_by_email")}
-          allowClear
-          onSearch={onSearch}
-          style={{ width: 200, minWidth: "290px" }}
-        />
-      </div>
-      <div ref={ref} style={{ height: "100%", overflow: "auto" }}>
-        <Table
-          // loading={status == "loading"} //TODO
-          columns={columns}
-          dataSource={providersData}
-          rowKey='id'
-          pagination={false}
-          scroll={{ y: tableHeight, x: 700 }}
-        />
-        <Pagination
-          style={{ margin: "26px", textAlign: "right", justifyContent: "flex-end" }}
-          pageSize={pageSizeLimit}
-          total={totalProviders}
-          showSizeChanger
-          showTotal={(total, range) => `${range[0]}-${range[1]} ${t("of")} ${total} ${t("items")}`}
-          onChange={handlePageChange}
-          onShowSizeChange={onPageSizeLimitChange}
-        />
+        <Space wrap>
+          <Select
+            value={clientTypeFilter}
+            onChange={(val) => setClientTypeFilter(val)}
+            style={{ width: 140 }}
+            options={[
+              { value: "all", label: t("all", "Tous") },
+              { value: "B2B", label: "B2B" },
+              { value: "B2C", label: "B2C" },
+            ]}
+          />
+          <Search
+            placeholder={t("Search_by_email", "Rechercher par email")}
+            allowClear
+            onSearch={onSearch}
+            style={{ width: 220 }}
+          />
+        </Space>
       </div>
 
-      <Drawer title={t("provider_info_title")} onClose={onClose} open={open} size={"large"}>
+      <Table
+        columns={columns}
+        dataSource={providersData}
+        rowKey="id"
+        pagination={{ pageSize: 10, showSizeChanger: true, showTotal: (total) => `${total} clients` }}
+        size="middle"
+        scroll={{ x: 800 }}
+      />
+
+      <Drawer title={t("provider_info_title", "Informations client")} onClose={onClose} open={open} size="large">
         <ProviderInfo id={selectedProviderId} />
       </Drawer>
-    </>
+    </Card>
   );
 };
 
 export default ApprovedProvidersList;
-
-const styles = {
-  tableHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    padding: "30px 0 20px 0",
-  },
-  primaryBtn: {
-    borderColor: "#3779FB",
-    color: "#3779FB",
-    border: "none",
-  },
-};

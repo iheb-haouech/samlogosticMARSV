@@ -1,8 +1,8 @@
 // frontend/src/pages/TransporterPages/Orders/TransporterOrders.tsx
 import React, { useEffect, useRef, useState } from "react";
-import { Button, Table, Tag, message } from "antd";
+import { Button, Table, Tag, message, Modal } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { CameraOutlined } from "@ant-design/icons";
+import { CameraOutlined, CloseCircleOutlined, UndoOutlined } from "@ant-design/icons";
 import "./TransporterOrders.scss";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { useNavigate } from "react-router-dom";
@@ -14,7 +14,7 @@ import {
 import { selectCurrentUser } from "../../../features/user/userSlice";
 import { apiClient } from "../../../api";
 
-type OrderStatus = "WAITING" | "IN_TRANSIT" | "DELIVERED" | "CANCELED";
+type OrderStatus = "WAITING" | "IN_TRANSIT" | "DELIVERED" | "CANCELED" | "RETURNED";
 
 interface TransporterOrderRow {
   id: string;
@@ -34,6 +34,9 @@ const TransporterOrders: React.FC = () => {
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingScanOrderId, setPendingScanOrderId] = useState<string | null>(null);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [returnModalOpen, setReturnModalOpen] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -59,9 +62,14 @@ const TransporterOrders: React.FC = () => {
         case 4:
           status = "DELIVERED";
           break;
-        default:
+        case 5:
           status = "CANCELED";
           break;
+        case 6:
+          status = "RETURNED";
+          break;
+        default:
+          status = "CANCELED";
       }
 
       return {
@@ -78,6 +86,7 @@ const TransporterOrders: React.FC = () => {
     if (status === "WAITING") return <Tag color="orange">En attente</Tag>;
     if (status === "IN_TRANSIT") return <Tag color="blue">En cours</Tag>;
     if (status === "DELIVERED") return <Tag color="green">Livrée</Tag>;
+    if (status === "RETURNED") return <Tag color="orange">En retour</Tag>;
     return <Tag color="red">Annulée</Tag>;
   };
 
@@ -86,8 +95,8 @@ const TransporterOrders: React.FC = () => {
       message.error("Compte bloque. Livraison non autorisee.");
       return;
     }
+    if (record.status === "CANCELED" || record.status === "RETURNED") return;
 
-    if (record.status === "CANCELED") return;
     const nextOrderStatusId = record.status === "DELIVERED" ? 3 : 4;
 
     await dispatch(
@@ -99,6 +108,40 @@ const TransporterOrders: React.FC = () => {
 
     if (currentUser?.id) {
       dispatch(fetchOrdersByTransporter({ transporterId: currentUser?.id }));
+    }
+  };
+
+  const handleCancelOrder = async () => {
+    if (!selectedOrderId) return;
+    try {
+      await dispatch(
+        updateOrderStatus({
+          id: selectedOrderId,
+          orderStatusId: 5,
+        }),
+      ).unwrap();
+      message.success("Commande annulée.");
+      setCancelModalOpen(false);
+      setSelectedOrderId(null);
+    } catch {
+      message.error("Erreur lors de l'annulation.");
+    }
+  };
+
+  const handleReturnOrder = async () => {
+    if (!selectedOrderId) return;
+    try {
+      await dispatch(
+        updateOrderStatus({
+          id: selectedOrderId,
+          orderStatusId: 6,
+        }),
+      ).unwrap();
+      message.success("Commande marquée en retour.");
+      setReturnModalOpen(false);
+      setSelectedOrderId(null);
+    } catch {
+      message.error("Erreur lors du retour.");
     }
   };
 
@@ -143,7 +186,7 @@ const TransporterOrders: React.FC = () => {
       title: "Actions",
       key: "actions",
       render: (_, record) => (
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           <Button size="small" onClick={() => navigate(`/transporter/orders/${record.id}`)}>
             Détails
           </Button>
@@ -151,14 +194,41 @@ const TransporterOrders: React.FC = () => {
             size="small"
             icon={<CameraOutlined />}
             loading={uploadingId === record.id}
-            disabled={record.status === "CANCELED"}
+            disabled={record.status === "CANCELED" || record.status === "RETURNED"}
             onClick={() => openCameraForOrder(record.id)}
-            title="Scanner etiquette (optionnel)"
+            title="Scanner etiquette"
           />
+          {record.status !== "CANCELED" && record.status !== "RETURNED" && (
+            <Button
+              size="small"
+              danger
+              icon={<CloseCircleOutlined />}
+              onClick={() => {
+                setSelectedOrderId(record.id);
+                setCancelModalOpen(true);
+              }}
+              title="Annuler la commande"
+            >
+              Annuler
+            </Button>
+          )}
+          {record.status === "IN_TRANSIT" && (
+            <Button
+              size="small"
+              icon={<UndoOutlined />}
+              onClick={() => {
+                setSelectedOrderId(record.id);
+                setReturnModalOpen(true);
+              }}
+              title="Marquer comme retour"
+            >
+              Retour
+            </Button>
+          )}
           <Button
             size="small"
             type="primary"
-            disabled={record.status === "CANCELED"}
+            disabled={record.status === "CANCELED" || record.status === "RETURNED"}
             onClick={() => toggleStatus(record)}
           >
             {record.status === "DELIVERED" ? "Pas encore livree" : "Marquer comme livree"}
@@ -171,23 +241,52 @@ const TransporterOrders: React.FC = () => {
   return (
     <>
       <section className="transporter-orders-page">
-      <h2>Liste des commandes</h2>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        style={{ display: "none" }}
-        onChange={handleLabelCapture}
-      />
-      <Table
-        rowKey="id"
-        columns={columns}
-        dataSource={data}
-        loading={loading}
-        pagination={{ pageSize: 10 }}
-      />
+        <h2>Liste des commandes</h2>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          style={{ display: "none" }}
+          onChange={handleLabelCapture}
+        />
+        <Table
+          rowKey="id"
+          columns={columns}
+          dataSource={data}
+          loading={loading}
+          pagination={{ pageSize: 10 }}
+        />
       </section>
+
+      <Modal
+        title="Confirmer l'annulation"
+        open={cancelModalOpen}
+        onOk={handleCancelOrder}
+        onCancel={() => {
+          setCancelModalOpen(false);
+          setSelectedOrderId(null);
+        }}
+        okText="Oui, annuler"
+        cancelText="Non"
+        okButtonProps={{ danger: true }}
+      >
+        <p>Etes-vous sûr de vouloir annuler cette commande ?</p>
+      </Modal>
+
+      <Modal
+        title="Confirmer le retour"
+        open={returnModalOpen}
+        onOk={handleReturnOrder}
+        onCancel={() => {
+          setReturnModalOpen(false);
+          setSelectedOrderId(null);
+        }}
+        okText="Oui, retour"
+        cancelText="Non"
+      >
+        <p>Etes-vous sûr de vouloir marquer cette commande comme retournee ?</p>
+      </Modal>
     </>
   );
 };

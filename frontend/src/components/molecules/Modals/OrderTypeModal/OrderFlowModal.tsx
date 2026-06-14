@@ -5,7 +5,7 @@ export type MainOrderType = "international" | "national" | "quote";
 export type TradeType = "import" | "export";
 export type TransportType = "aerien" | "maritime" | "ground" | "livrer" | "apporter";
 export type SubType =
-  | "groupement"
+  | "consolidation"
   | "cts20"
   | "cts40"
   | "cts40hc"
@@ -28,25 +28,27 @@ interface Props {
     otherMessage?: string;
   }) => void;
   onCancel: () => void;
+  isB2B?: boolean;
 }
+
 type InternationalTransportType = "ground" | "aerien" | "maritime";
 
 const SUBTYPE_OPTIONS: Record<InternationalTransportType | "national", { label: string; value: SubType }[]> = {
   maritime: [
-    { label: "Groupement", value: "groupement" },
+    { label: "Consolidation", value: "consolidation" },
     { label: "CTS 20", value: "cts20" },
     { label: "CTS 40", value: "cts40" },
     { label: "CTS 40 HC", value: "cts40hc" },
     { label: "Autre", value: "other" },
   ],
   ground: [
-    { label: "Groupement", value: "groupement" },
+    { label: "Consolidation", value: "consolidation" },
     { label: "SR berlie", value: "srberlie" },
     { label: "SR tole", value: "srtole" },
     { label: "Autre", value: "other" },
   ],
   aerien: [
-    { label: "Groupement", value: "groupement" },
+    { label: "Consolidation", value: "consolidation" },
     { label: "Autre", value: "other" },
   ],
   national: [
@@ -59,8 +61,8 @@ const SUBTYPE_OPTIONS: Record<InternationalTransportType | "national", { label: 
   ],
 };
 
-const OrderFlowModal = ({ open, mainType, onConfirm, onCancel }: Props) => {
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+const OrderFlowModal = ({ open, mainType, onConfirm, onCancel, isB2B = false }: Props) => {
+  const [step, setStep] = useState<1 | 2>(1);
   const [tradeType, setTradeType] = useState<TradeType | null>(null);
   const [transportType, setTransportType] = useState<TransportType | null>(null);
   const [subType, setSubType] = useState<SubType | null>(null);
@@ -76,27 +78,32 @@ const OrderFlowModal = ({ open, mainType, onConfirm, onCancel }: Props) => {
 
   useEffect(() => {
     reset();
-  }, [open, mainType]);
+  }, [open, mainType, isB2B]);
 
   const isInternationalFlow = mainType === "international";
   const isNationalFlow = mainType === "national";
   const isQuoteFlow = mainType === "quote";
 
- const internationalTransport = transportType as InternationalTransportType | null;
+  const internationalTransport = transportType as InternationalTransportType | null;
 
-const options = useMemo(() => {
-  if (isInternationalFlow && step === 3 && internationalTransport) {
-    return SUBTYPE_OPTIONS[internationalTransport];
-  }
-  if (isNationalFlow || isQuoteFlow) {
-    return SUBTYPE_OPTIONS.national;
-  }
-  return [];
-}, [isInternationalFlow, isNationalFlow, isQuoteFlow, step, internationalTransport]);
+  const options = useMemo(() => {
+    if (isInternationalFlow && internationalTransport) {
+      return SUBTYPE_OPTIONS[internationalTransport];
+    }
+    if (isQuoteFlow) {
+      return SUBTYPE_OPTIONS.national;
+    }
+    if (isNationalFlow) {
+      return SUBTYPE_OPTIONS.national;
+    }
+    return [];
+  }, [isInternationalFlow, isNationalFlow, isQuoteFlow, internationalTransport]);
+
+  const needsTradeTypeStep = isB2B && (isNationalFlow || isInternationalFlow);
+
   const canGoNext =
     (isInternationalFlow && step === 1 && !!tradeType) ||
-    (isInternationalFlow && step === 2 && !!transportType) ||
-    (!isInternationalFlow && !!mainType);
+    (needsTradeTypeStep && step === 1 && !!tradeType);
 
   const canConfirm = !!subType && (subType !== "other" || otherMessage.trim().length > 0);
 
@@ -109,10 +116,10 @@ const options = useMemo(() => {
     if (!canGoNext) return;
     setSubType(null);
     setOtherMessage("");
-
     if (isInternationalFlow) {
-      setStep((prev) => (prev === 1 ? 2 : 3));
+      setTransportType(null);
     }
+    setStep(2);
   };
 
   const handleConfirm = () => {
@@ -138,7 +145,7 @@ const options = useMemo(() => {
         <Button key="cancel" onClick={handleCancel}>
           Annuler
         </Button>,
-        step < 3 && isInternationalFlow ? (
+        step === 1 && (isInternationalFlow || needsTradeTypeStep) ? (
           <Button key="next" type="primary" disabled={!canGoNext} onClick={handleNext}>
             Continuer
           </Button>
@@ -148,6 +155,7 @@ const options = useMemo(() => {
           </Button>
         ),
       ]}
+      width={isNationalFlow && !isInternationalFlow && !needsTradeTypeStep ? 500 : 600}
     >
       <Flex vertical gap={16}>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -158,14 +166,13 @@ const options = useMemo(() => {
           {otherMessage && <Tag color="red">{otherMessage}</Tag>}
         </div>
 
-        {step === 1 && isInternationalFlow && (
+        {step === 1 && (isInternationalFlow || needsTradeTypeStep) && (
           <div>
             <div style={{ marginBottom: 8, fontWeight: 500 }}>Type de commerce</div>
             <Radio.Group
               value={tradeType ?? undefined}
               onChange={(event) => {
                 setTradeType(event.target.value);
-                setTransportType(null);
                 setSubType(null);
                 setOtherMessage("");
               }}
@@ -210,7 +217,7 @@ const options = useMemo(() => {
           </div>
         )}
 
-        {((isInternationalFlow && step === 3) || isNationalFlow || isQuoteFlow) && (
+        {(step === 2 || (!isInternationalFlow && !needsTradeTypeStep)) && (
           <>
             <div>
               <div style={{ marginBottom: 8, fontWeight: 500 }}>

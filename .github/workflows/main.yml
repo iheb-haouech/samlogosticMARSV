@@ -76,7 +76,7 @@ jobs:
           SSH_PASSWORD: ${{ secrets.HOST_PASSWORD }}
         run: |
           sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST '
-          sudo rm -rf vanlog/
+          sudo rm -rf samlogistic/
           sudo apt-get update
           git clone https://github.com/iheb-haouech/samlogosticMARSV.git
 

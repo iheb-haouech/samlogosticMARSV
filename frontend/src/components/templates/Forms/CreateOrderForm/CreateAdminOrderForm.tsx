@@ -1,23 +1,20 @@
-import { useEffect, useRef, useState } from "react";
-import { Button, Col, Divider, Flex, Form, Input, InputRef, Row, Select, Tag, message } from "antd";
+import React, { useEffect, useRef, useState } from "react";
+import { Button, Col, Form, Input, InputRef, Row, Select, message, Space, Card, Typography, Flex, Tag } from "antd";
 import Title from "antd/es/typography/Title";
 import { PlusOutlined } from "@ant-design/icons";
 import { Order, PackagesData } from "../../../../types/Order";
 import PackageTable from "../../../organisms/Tables/PackageTable/PackageTable";
 import "./CreateOrderForm.scss";
 import { useSelector } from "react-redux";
-import { selectLoadingState, setLoading } from "../../../../features/loading/loadingSlice";
-import { store } from "../../../../store/store";
 import { useTranslation } from "react-i18next";
 import { ApiClientWithHeaders } from "../../../../api";
-import { primaryColor } from "../../../../globalVar/colors";
 
 interface OrderMeta {
   mainType: "international" | "national" | "quote";
   tradeType?: "import" | "export";
   transportType?: "aerien" | "maritime" | "ground" | "livrer" | "apporter";
   subType?:
-    | "groupement"
+    | "consolidation"
     | "cts20"
     | "cts40"
     | "cts40hc"
@@ -39,9 +36,10 @@ interface CreateAdminOrderFormProps {
 }
 
 const CreateAdminOrderForm = ({ onCreateOrder, currentUser, orderMeta }: CreateAdminOrderFormProps) => {
+  const { t } = useTranslation();
   const [providers, setProviders] = useState<any[]>([]);
   const [selectedClient, setSelectedClient] = useState<any>(null);
-  const { t } = useTranslation();
+  const [clientTypeFilter, setClientTypeFilter] = useState<"B2B" | "B2C" | "all">("B2C");
   const [form] = Form.useForm();
 
   const initialFormValues: Order = {
@@ -83,33 +81,46 @@ const CreateAdminOrderForm = ({ onCreateOrder, currentUser, orderMeta }: CreateA
     },
   };
 
-  
   const [formValues, setFormValues] = useState<Order>(initialFormValues);
-  const loading = useSelector(selectLoadingState);
   const [tags, setTags] = useState<string[]>([]);
   const [packagesData, setPackagesData] = useState<PackagesData>({ packages: [], totalQuantity: 0 });
   const [inputVisible, setInputVisible] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const inputRef = useRef<InputRef>(null);
 
-  const getProviders = async () => {
+  useEffect(() => {
+    if (inputVisible && inputRef.current) inputRef.current.focus();
+  }, [inputVisible]);
+
+  const getClientsForType = async (type: "B2B" | "B2C" | "all") => {
     const token: any = localStorage.getItem("accessToken");
     const myClient = ApiClientWithHeaders(token);
-    const response = await myClient.user.userControllerFindAllProviders({
-      page: 1,
-      limit: 12,
-      verified: true,
-    } as any);
-    return response.data;
+    const params: any = { page: 1, limit: 100 };
+    if (type !== "all") {
+      params.accountType = type;
+    }
+    const response = await myClient.user.userControllerFindAllProviders(params as any);
+    return (response.data as any)?.providers || [];
   };
 
-  const onSearch = async () => {
-    const response: any = await getProviders();
-    setProviders(response?.providers || []);
-  };
+  useEffect(() => {
+    const loadClients = async () => {
+      const list = await getClientsForType(clientTypeFilter);
+      setProviders(list);
+    };
+    loadClients();
+  }, [clientTypeFilter]);
 
-  const handleProviderSelect = (value: any) => {
-    const selected = providers.find((provider) => provider.id === value);
+  useEffect(() => {
+    if (orderMeta.tradeType === "import" || orderMeta.tradeType === "export") {
+      setClientTypeFilter("B2B");
+    } else if (orderMeta.mainType === "national") {
+      setClientTypeFilter("B2C");
+    }
+  }, [orderMeta]);
+
+  const handleClientSelect = (value: any) => {
+    const selected = providers.find((p: any) => p.id === value);
     if (!selected) return;
     setSelectedClient(selected);
     const updatedValues: any = { ...formValues, createdByUserId: selected.id };
@@ -127,13 +138,9 @@ const CreateAdminOrderForm = ({ onCreateOrder, currentUser, orderMeta }: CreateA
     form.setFieldsValue(updatedValues);
   };
 
-  useEffect(() => {
-    setFormValues((prev) => ({ ...prev, refrences: tags, packages: packagesData.packages }));
-  }, [packagesData, tags]);
-
   const handleSubmit = () => {
     if (!formValues.createdByUserId) {
-      message.error("Veuillez choisir le client lie a cette commande.");
+      message.error("Veuillez choisir le client.");
       return;
     }
     if (
@@ -158,22 +165,18 @@ const CreateAdminOrderForm = ({ onCreateOrder, currentUser, orderMeta }: CreateA
             )
           : formValues.totalPrice,
       shipmentPrice: selectedClient?.accountType === "B2C" && orderMeta.subType === "envoieLegere" ? 7 : formValues.shipmentPrice,
-      mainType: formValues?.mainType,
-      tradeType: formValues?.tradeType,
-      transportType: formValues?.transportType,
-      subType: formValues?.subType,
-      otherMessage: formValues?.otherMessage,
     };
-    store.dispatch(setLoading(true));
+
     onCreateOrder(newOrderToSend);
   };
 
   const handlePackagesChange = (newPackagesData: PackagesData) => {
     setPackagesData(newPackagesData);
-setFormValues((prev) => ({
-  ...prev,
-  totalQuantity: newPackagesData.totalQuantity || 0,
-}));  };
+    setFormValues((prev) => ({
+      ...prev,
+      totalQuantity: newPackagesData.totalQuantity || 0,
+    }));
+  };
 
   const handleNestedFieldsChange =
     (field: "source" | "recipient", nestedField: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -183,158 +186,209 @@ setFormValues((prev) => ({
       }));
     };
 
-  useEffect(() => {
-    if (inputVisible && inputRef.current) inputRef.current.focus();
-  }, [inputVisible]);
-
   const handleTagClose = (removedTag: string) => setTags(tags.filter((tag) => tag !== removedTag));
-
   const handleReferenceInputConfirm = () => {
     if (inputValue && !tags.includes(inputValue)) setTags([...tags, inputValue]);
     setInputVisible(false);
     setInputValue("");
   };
-
   const handleReferenceChange = (e: React.ChangeEvent<HTMLInputElement>) => setInputValue(e.target.value);
 
-  const getSearchInput = () => (
-    <div className='order-form--partners'>
-      <div
-        className='order-form--partners-header'
-        style={{ display: "flex", flexDirection: "row", alignItems: "center", border: `2px solid ${primaryColor}`, borderRadius: 5 }}
-      >
-        <Title style={{ margin: "1rem" }} level={5}>{t("for")}</Title>
+  const handleClientTypeChange = (val: any) => {
+    setClientTypeFilter(val);
+    setSelectedClient(null);
+    form.setFieldsValue({ createdByUserId: undefined });
+  };
+
+  return (
+    <Form form={form} onFinish={handleSubmit} layout="vertical" size="middle">
+      <Card size="small" style={{ marginBottom: 16 }}>
+        <Row gutter={12} align="middle">
+          <Col>
+            <Typography.Text strong>Type de client:</Typography.Text>
+          </Col>
+          <Col>
+            <Select
+              size="small"
+              value={clientTypeFilter}
+              onChange={handleClientTypeChange}
+              style={{ width: 140 }}
+              options={[
+                { value: "B2B", label: "B2B" },
+                { value: "B2C", label: "B2C" },
+                { value: "all", label: "Tous" },
+              ]}
+            />
+          </Col>
+        </Row>
+      </Card>
+
+      <Card size="small" style={{ marginBottom: 16 }}>
+        <Title level={5} style={{ marginBottom: 12 }}>
+          {t("for")}
+        </Title>
         <Select
           showSearch
-          placeholder={t("Search_by_email")}
-          optionFilterProp='children'
-          onSearch={onSearch}
-          onSelect={handleProviderSelect}
+          placeholder="Sélectionner un client..."
+          optionFilterProp="children"
+          onChange={handleClientSelect}
+          value={selectedClient?.id}
           filterOption={(input, option: any) => (option?.label ?? "").toLowerCase().includes(input.toLowerCase())}
-          style={{ width: 200, minWidth: "290px" }}
+          style={{ width: "100%" }}
+          size="large"
         >
-          {providers.map((provider) => (
-            <Select.Option key={provider.id} value={provider.id} label={provider.email}>
-              {provider.email}
+          {providers.map((client) => (
+            <Select.Option key={client.id} value={client.id} label={client.email}>
+              <Space>
+                {client.companyName || client.email}
+                <Tag color={client.accountType === "B2B" ? "blue" : client.accountType === "B2C" ? "green" : "default"}>
+                  {client.accountType || "B2C"}
+                </Tag>
+              </Space>
             </Select.Option>
           ))}
         </Select>
-      </div>
-    </div>
-  );
+      </Card>
 
-  return (
-    <Form form={form} style={{ marginTop: "0.5rem" }} onFinish={handleSubmit} layout='vertical' size='large' initialValues={formValues}>
-      {getSearchInput()}
-      <div className='order-form'>
-        <div className='order-form--partners'>
-          <div className='order-form--partners-header'>
-            <Title style={{ margin: "1rem" }} level={5}>{t("supplier2")}</Title>
-            <Divider className='order-form--partners-header-divider' />
-          </div>
-          <div className='order-form--partners-content'>
-            <Row gutter={16}>
-              <Col className='gutter-row' flex={1}>
-                <Form.Item label={t("company_name")} name={["source", "companyName"]} rules={[{ required: true, message: t("Required field") }]}>
-                  <Input placeholder={t("company_name")} onChange={handleNestedFieldsChange("source", "companyName")} value={formValues.source.companyName} />
-                </Form.Item>
-              </Col>
-              <Col className='gutter-row' flex={1}>
-                <Form.Item label={t("phone_number")} name={["source", "phone"]} rules={[{ required: true, message: t("Required field") }]}>
-                  <Input type='number' placeholder={t("phone_number")} onChange={handleNestedFieldsChange("source", "phone")} value={formValues.source.phone} />
-                </Form.Item>
-              </Col>
-              <Col className='gutter-row' flex={1}>
-                <Form.Item label={t("city")} name={["source", "city"]} rules={[{ required: true, message: t("Required field") }]}>
-                  <Input placeholder={t("city")} onChange={handleNestedFieldsChange("source", "city")} value={formValues.source.city} />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={16}>
-              <Col flex={2}>
-                <Form.Item label={t("street_address")} name={["source", "streetAddress"]} rules={[{ required: true, message: t("Required field") }]}>
-                  <Input placeholder={t("street_address")} onChange={handleNestedFieldsChange("source", "streetAddress")} value={formValues.source.streetAddress} />
-                </Form.Item>
-              </Col>
-              <Col flex={1}>
-                <Form.Item label={t("zip_code")} name={["source", "zipCode"]} rules={[{ required: true, message: t("Required field") }]}>
-                  <Input placeholder={t("zip_code")} onChange={handleNestedFieldsChange("source", "zipCode")} value={formValues.source.zipCode} />
-                </Form.Item>
-              </Col>
-            </Row>
-          </div>
-        </div>
-        <div className='order-form--partners'>
-          <div className='order-form--partners-header'>
-            <Title style={{ margin: "1rem" }} level={5}>{t("destination")}</Title>
-            <Divider className='order-form--partners-header-divider' />
-          </div>
-          <div className='order-form--partners-content'>
-            <Row gutter={16}>
-              <Col className='gutter-row' flex={1}>
-                <Form.Item label={t("recipient_name")} name={["recipient", "companyName"]} rules={[{ required: true, message: t("Required field") }]}>
-                  <Input placeholder={t("recipient_name")} onChange={handleNestedFieldsChange("recipient", "companyName")} value={formValues.recipient.companyName} />
-                </Form.Item>
-              </Col>
-              <Col className='gutter-row' flex={1}>
-                <Form.Item label={t("phone_number")} name={["recipient", "phone"]} rules={[{ required: true, message: t("Required field") }]}>
-                  <Input type='number' placeholder={t("phone_number")} onChange={handleNestedFieldsChange("recipient", "phone")} value={formValues.recipient.phone} />
-                </Form.Item>
-              </Col>
-              <Col className='gutter-row' flex={1}>
-                <Form.Item label={t("city")} name={["recipient", "city"]} rules={[{ required: true, message: t("Required field") }]}>
-                  <Input placeholder={t("city")} onChange={handleNestedFieldsChange("recipient", "city")} value={formValues.recipient.city} />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={16}>
-              <Col flex={2}>
-                <Form.Item label={t("street_address")} name={["recipient", "streetAddress"]} rules={[{ required: true, message: t("Required field") }]}>
-                  <Input placeholder={t("street_address")} onChange={handleNestedFieldsChange("recipient", "streetAddress")} value={formValues.recipient.streetAddress} />
-                </Form.Item>
-              </Col>
-              <Col flex={1}>
-                <Form.Item label={t("zip_code")} name={["recipient", "zipCode"]} rules={[{ required: true, message: t("Required field") }]}>
-                  <Input placeholder={t("zip_code")} onChange={handleNestedFieldsChange("recipient", "zipCode")} value={formValues.recipient.zipCode} />
-                </Form.Item>
-              </Col>
-            </Row>
-          </div>
-        </div>
-        <section>
-          <div className='order-form--description'>
-            <Form.Item name='description' label={t("order_description")}>
-              <Input.TextArea rows={4} value={formValues.description} onChange={(event) => setFormValues({ ...formValues, description: event.target.value })} placeholder={t("order_description")} />
+      {selectedClient && (
+        <Card size="small" style={{ marginBottom: 16 }}>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Typography.Text type="secondary">Client sélectionné:</Typography.Text>
+              <br />
+              <Typography.Text strong>{selectedClient.companyName || selectedClient.email}</Typography.Text>
+            </Col>
+            <Col span={12}>
+              <Typography.Text type="secondary">Ville:</Typography.Text>
+              <br />
+              <Typography.Text strong>{selectedClient.city || "-"}</Typography.Text>
+            </Col>
+          </Row>
+        </Card>
+      )}
+
+      <Card size="small" style={{ marginBottom: 16 }}>
+        <Title level={5} style={{ marginBottom: 12 }}>Expéditeur (source)</Title>
+        <Row gutter={12}>
+          <Col span={24}>
+            <Form.Item label="Société" name={["source", "companyName"]} rules={[{ required: true }]}>
+              <Input placeholder="Société expéditrice" onChange={handleNestedFieldsChange("source", "companyName")} value={formValues.source.companyName} />
             </Form.Item>
-          </div>
-          <div className='order-form--references'>
-            <Form.Item name='refrences' label={t("add_references")}>
-              <Flex className='order-form--references-container' gap='4px 0' wrap='wrap'>
-                {tags.map((tag, index) => (
-                  <Tag key={index} closable onClose={() => handleTagClose(tag)}>{tag}</Tag>
+          </Col>
+          <Col span={12}>
+            <Form.Item label="Ville" name={["source", "city"]} rules={[{ required: true }]}>
+              <Input placeholder="Ville" onChange={handleNestedFieldsChange("source", "city")} value={formValues.source.city} />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item label="Téléphone" name={["source", "phone"]}>
+              <Input placeholder="+216 XX XXX XXX" onChange={handleNestedFieldsChange("source", "phone")} value={formValues.source.phone} />
+            </Form.Item>
+          </Col>
+          <Col span={16}>
+            <Form.Item label="Adresse" name={["source", "streetAddress"]}>
+              <Input placeholder="Adresse" onChange={handleNestedFieldsChange("source", "streetAddress")} value={formValues.source.streetAddress} />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item label="Code postal" name={["source", "zipCode"]}>
+              <Input placeholder="XXXX" onChange={handleNestedFieldsChange("source", "zipCode")} value={formValues.source.zipCode} />
+            </Form.Item>
+          </Col>
+        </Row>
+      </Card>
+
+      <Card size="small" style={{ marginBottom: 16 }}>
+        <Title level={5} style={{ marginBottom: 12 }}>Destinataire</Title>
+        <Row gutter={12}>
+          <Col span={24}>
+            <Form.Item label="Société" name={["recipient", "companyName"]} rules={[{ required: true, message: "Requis" }]}>
+              <Input placeholder="Société destinataire" onChange={handleNestedFieldsChange("recipient", "companyName")} value={formValues.recipient.companyName} />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item label="Ville" name={["recipient", "city"]} rules={[{ required: true, message: "Requis" }]}>
+              <Input placeholder="Ville" onChange={handleNestedFieldsChange("recipient", "city")} value={formValues.recipient.city} />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item label="Téléphone" name={["recipient", "phone"]}>
+              <Input placeholder="+216 XX XXX XXX" onChange={handleNestedFieldsChange("recipient", "phone")} value={formValues.recipient.phone} />
+            </Form.Item>
+          </Col>
+          <Col span={16}>
+            <Form.Item label="Adresse" name={["recipient", "streetAddress"]}>
+              <Input placeholder="Adresse" onChange={handleNestedFieldsChange("recipient", "streetAddress")} value={formValues.recipient.streetAddress} />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item label="Code postal" name={["recipient", "zipCode"]}>
+              <Input placeholder="XXXX" onChange={handleNestedFieldsChange("recipient", "zipCode")} value={formValues.recipient.zipCode} />
+            </Form.Item>
+          </Col>
+        </Row>
+      </Card>
+
+      <Card size="small" style={{ marginBottom: 16 }}>
+        <Title level={5} style={{ marginBottom: 12 }}>Détails de la commande</Title>
+        <Row gutter={12}>
+          <Col span={24}>
+            <Form.Item label="Description">
+              <Input.TextArea
+                rows={2}
+                value={formValues.description}
+                onChange={(e) => setFormValues({ ...formValues, description: e.target.value })}
+                placeholder="Description optionnelle..."
+              />
+            </Form.Item>
+          </Col>
+          <Col span={24}>
+            <Form.Item label="Références">
+              <Flex gap="4px" wrap>
+                {tags.map((tag, i) => (
+                  <Tag key={i} closable onClose={() => handleTagClose(tag)}>{tag}</Tag>
                 ))}
                 {inputVisible ? (
-                  <Input ref={inputRef} type='text' size='small' value={inputValue} onChange={handleReferenceChange} onBlur={handleReferenceInputConfirm} onPressEnter={handleReferenceInputConfirm} />
+                  <Input
+                    ref={inputRef}
+                    size="small"
+                    value={inputValue}
+                    onChange={handleReferenceChange}
+                    onBlur={handleReferenceInputConfirm}
+                    onPressEnter={handleReferenceInputConfirm}
+                  />
                 ) : (
-                  <Tag onClick={() => setInputVisible(true)} icon={<PlusOutlined />}>{t("add_reference")}</Tag>
+                  <Tag onClick={() => setInputVisible(true)} icon={<PlusOutlined />}>Ajouter référence</Tag>
                 )}
               </Flex>
             </Form.Item>
-          </div>
-          <div className='order-form--package-table'>
-            <Form.Item name={'packages'} rules={[() => ({ validator() { if (formValues.packages && formValues.packages.length > 0) return Promise.resolve(); return Promise.reject(new Error(t("add_packages"))); } })]}>
-              <PackageTable
-                packages={packagesData.packages}
-                showPrice={selectedClient?.accountType === "B2C"}
-                fixedShipmentPrice={selectedClient?.accountType === "B2C" && orderMeta.subType === "envoieLegere" ? 7 : undefined}
-                onPackagesChanges={handlePackagesChange}
-              />
-            </Form.Item>
-          </div>
-        </section>
-        <div className='order-form--submit-btn' style={{ marginTop: '1.5rem' }}>
-          <Button loading={loading} icon={<PlusOutlined />} size='large' type='primary' htmlType='submit' shape='round'>{t('submit_order')}</Button>
-        </div>
+          </Col>
+        </Row>
+      </Card>
+
+      <Card size="small" style={{ marginBottom: 16 }}>
+        <Form.Item
+          label="Colis"
+          rules={[() => ({
+            validator: async () => {
+              if (packagesData.packages && packagesData.packages.length > 0) return;
+              return Promise.reject(new Error("Ajoutez au moins un colis."));
+            },
+          })]}
+        >
+          <PackageTable
+            packages={packagesData.packages}
+            showPrice={selectedClient?.accountType === "B2C"}
+            fixedShipmentPrice={selectedClient?.accountType === "B2C" && orderMeta.subType === "envoieLegere" ? 7 : undefined}
+            onPackagesChanges={handlePackagesChange}
+          />
+        </Form.Item>
+      </Card>
+
+      <div style={{ textAlign: "right", marginTop: 8 }}>
+        <Button icon={<PlusOutlined />} size="large" type="primary" htmlType="submit" shape="round">
+          Créer la commande
+        </Button>
       </div>
     </Form>
   );

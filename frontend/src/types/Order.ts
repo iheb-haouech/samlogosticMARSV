@@ -54,7 +54,7 @@ export type Order = {
   tradeType?: "import" | "export";
   transportType?: "aerien" | "maritime" | "ground" | "livrer" | "apporter";
   subType?:
-    | "groupement"
+    | "consolidation"
     | "cts20"
     | "cts40"
     | "cts40hc"

@@ -9,7 +9,7 @@ type MainOrderType = "international" | "national" | "quote";
 type TradeType = "import" | "export";
 type TransportType = "aerien" | "maritime" | "ground" | "livrer" | "apporter";
 type SubType =
-  | "groupement"
+  | "consolidation"
   | "cts20"
   | "cts40"
   | "cts40hc"
@@ -88,6 +88,8 @@ const CreateOrderFlow = ({ isOpen, onClose, currentUser, onCreateOrder }: Props)
     onClose();
   };
 
+  const isB2B = currentUser?.accountType === "B2B";
+
   return (
     <>
       <OrderTypeModal
@@ -101,6 +103,7 @@ const CreateOrderFlow = ({ isOpen, onClose, currentUser, onCreateOrder }: Props)
         mainType={orderMeta?.mainType ?? null}
         onConfirm={handleFlowConfirm}
         onCancel={handleCloseAll}
+        isB2B={isB2B}
       />
 
       <DrawerComponent
@@ -109,7 +112,7 @@ const CreateOrderFlow = ({ isOpen, onClose, currentUser, onCreateOrder }: Props)
         title="Créer une commande"
         content={
           orderMeta ? (
-            currentUser?.roleId === 1 ? (
+            currentUser?.roleId === 1 || currentUser?.roleId === 4 ? (
               <CreateAdminOrderForm onCreateOrder={onCreateOrder} currentUser={currentUser} orderMeta={orderMeta} />
             ) : (
               <CreateOrderForm onCreateOrder={onCreateOrder} currentUser={currentUser} orderMeta={orderMeta} />
