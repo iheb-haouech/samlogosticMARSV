@@ -25,11 +25,14 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: 'temurin'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+
+      - name: Regenerate Android project
+        run: cd frontend && npx cap update android
 
       - name: Build APK
         run: |
