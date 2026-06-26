@@ -1,0 +1,56 @@
+.splash-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #1890ff 0%, #0958d9 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+
+  .splash-content {
+    text-align: center;
+
+    .splash-logo {
+      width: 200px;
+      height: auto;
+      margin-bottom: 32px;
+      filter: brightness(0) invert(1);
+    }
+
+    .splash-loader {
+      width: 40px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.3);
+      margin: 0 auto;
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+
+      &::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 40%;
+        background: white;
+        animation: loading 1.5s infinite ease-in-out;
+      }
+    }
+  }
+}
+
+@keyframes loading {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(250%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
