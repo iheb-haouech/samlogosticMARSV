@@ -10,3 +10,7 @@ android {
 dependencies {
     implementation project(':capacitor-push-notifications')
 }
+
+if (file("../capacitor-cordova-android-plugins/cordova.variables.gradle").exists()) {
+    apply from: "../capacitor-cordova-android-plugins/cordova.variables.gradle"
+}

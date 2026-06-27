@@ -35,49 +35,18 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Prepare Android project
-        run: |
-          chmod +x frontend/android/gradlew
-          mkdir -p frontend/android/capacitor-cordova-android-plugins/src/main/libs
-          cat > frontend/android/capacitor-cordova-android-plugins/build.gradle << 'EOF'
-apply plugin: 'com.android.library'
-android {
-    compileSdk = rootProject.ext.compileSdkVersion
-    namespace = "com.getcapacitor.cordova"
-    defaultConfig {
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
-    }
-    buildTypes { release { minifyEnabled false } }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_22
-        targetCompatibility JavaVersion.VERSION_22
-    }
-}
-repositories { google(); mavenCentral() }
-dependencies { implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion" }
-EOF
+      - name: Make Gradle executable
+        run: chmod +x frontend/android/gradlew
 
-      - name: Generate self-signed keystore
+      - name: Build Unsigned APK
         run: |
-          keytool -genkeypair -v -keystore frontend/android/app/release-key.jks \
-            -alias sam-logistic-key -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass ${{ secrets.KEYSTORE_PASSWORD || 'samlogistic123' }} \
-            -keypass ${{ secrets.KEY_PASSWORD || 'samlogistic123' }} \
-            -dname "CN=SAM LOGISTIC, OU=Dev, O=SAM, L=Tunis, S=Tunisia, C=TN" \
-            -storetype JKS
-
-      - name: Build Signed APK
-        run: |
-          cd frontend/android
-          ./gradlew assembleRelease \
-            -Pandroid.injected.signing.store.file=$(pwd)/app/release-key.jks \
-            -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD || 'samlogistic123' }} \
-            -Pandroid.injected.signing.key.alias=sam-logistic-key \
-            -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD || 'samlogistic123' }}
+          cd frontend
+          npx cap sync android
+          cd android
+          ./gradlew assembleRelease
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: SamLogisticApp-signed.apk
+          name: app-release-unsigned.apk
           path: frontend/android/app/build/outputs/apk/release/*.apk
