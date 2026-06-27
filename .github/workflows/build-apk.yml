@@ -36,7 +36,10 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Make Gradle executable
-        run: chmod +x frontend/android/gradlew
+        run: |
+          chmod +x frontend/android/gradlew
+          mkdir -p frontend/android/capacitor-cordova-android-plugins
+          echo '// Cordova variables placeholder' > frontend/android/capacitor-cordova-android-plugins/cordova.variables.gradle
 
       - name: Generate self-signed keystore
         run: |
