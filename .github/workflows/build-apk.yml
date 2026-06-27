@@ -17,10 +17,14 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: cd frontend && npm install --no-package-lock
+        run: |
+          cd frontend
+          npm install
 
       - name: Build web assets
-        run: cd frontend && npm run build
+        run: |
+          cd frontend
+          npm run build
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
