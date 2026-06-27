@@ -1,14 +1,18 @@
 // backend/src/pdf-download/pdf-download.controller.ts
-import { Controller, Get, Param, Res, HttpException } from '@nestjs/common';
+import { Controller, Get, Param, Res, HttpException, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import * as path from 'path';
 import * as fs from 'fs';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('downloads')
 export class PdfDownloadController {
   private readonly pdfPath = path.join(__dirname, '../../generated-pdfs');
 
   @Get(':filename')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   downloadPdf(@Param('filename') filename: string, @Res() res: Response) {
     // Sécurité: vérifier que le nom de fichier est valide (PDF uniquement)
     const pdfRegex = /^[a-zA-Z0-9_-]+\.pdf$/;
@@ -32,6 +36,8 @@ export class PdfDownloadController {
   }
 
   @Get('view/:filename')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   viewPdf(@Param('filename') filename: string, @Res() res: Response) {
     // Pour visualiser le PDF dans le navigateur
     const pdfRegex = /^[a-zA-Z0-9_-]+\.pdf$/;

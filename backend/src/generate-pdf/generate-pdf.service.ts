@@ -3,11 +3,21 @@ import * as handlebars from 'handlebars';
 import * as pdf from 'html-pdf';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as QRCode from 'qrcode';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class GeneratePdfService {
   constructor(private prisma: PrismaService) {}
+
+  private async generateQRCodeDataUrl(text: string): Promise<string> {
+    try {
+      return await QRCode.toDataURL(text);
+    } catch (err) {
+      console.error('QR generation error:', err);
+      return '';
+    }
+  }
   async generatePdf(
     data: any,
     template_name: string,
@@ -73,7 +83,19 @@ export class GeneratePdfService {
           },
         },
       });
-      // Generate PDF buffer
+
+      const packagesWithQr = await Promise.all(
+        (order?.packages || []).map(async (pkg) => {
+          const qrText = pkg?.qrCode || `${order?.trackingId || order?.id}-pkg${pkg?.id || ''}`;
+          const qrDataUrl = await this.generateQRCodeDataUrl(qrText);
+          return {
+            ...pkg,
+            totalPrice: (pkg?.quantity || 0) * (pkg?.price || 0),
+            qrDataUrl,
+          };
+        }),
+      );
+
       const template_name = 'etiquette-commande.hbs';
       const saved_file_name = 'output.pdf';
       const pdfBuffer = await this.generatePdf(
@@ -81,12 +103,11 @@ export class GeneratePdfService {
           ...order,
           references: order?.refrences,
           createdAt: `${order?.createdAt?.getDate()}/${order?.createdAt?.getMonth()}/${order?.createdAt?.getFullYear()}`,
-          startTransitAt: `${order?.startTransitAt?.getDate()}/${order?.startTransitAt?.getMonth()}/${order?.startTransitAt?.getFullYear()}`,
-          packagesLength: order?.packages?.length,
-          packages: order?.packages?.map((pkg) => ({
-            ...pkg,
-            totalPrice: pkg?.quantity * pkg?.price,
-          })),
+          startTransitAt: order?.startTransitAt
+            ? `${order.startTransitAt.getDate()}/${order.startTransitAt.getMonth()}/${order.startTransitAt.getFullYear()}`
+            : '-',
+          packagesLength: packagesWithQr.length,
+          packages: packagesWithQr,
           source: {
             ...order?.source,
             companyName: order?.source?.companyName?.toUpperCase(),

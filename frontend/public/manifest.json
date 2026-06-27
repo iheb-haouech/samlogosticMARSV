@@ -1,0 +1,37 @@
+{
+  "name": "SAM Logistic",
+  "short_name": "SAM Logistic",
+  "description": "Application SAM Logistic - Gestion des commandes et livraisons",
+  "start_url": "/login",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3479E8",
+  "orientation": "portrait",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/png/logosam.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/png/logosam.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Accueil",
+      "url": "/home",
+      "icons": [
+        {
+          "src": "/png/logosam.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}

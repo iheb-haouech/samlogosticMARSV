@@ -15,7 +15,7 @@ export class UploadPodResponseDto {
 
   @ApiProperty({
     description: 'The URL to access the uploaded POD file',
-    example: 'http://example.com/uploadedFiles/POD-order-id-12345.jpg',
+    example: 'https://api.samlogistic.tn/uploadedFiles/POD-order-id-12345.jpg',
   })
   podUrl: string;
 }

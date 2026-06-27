@@ -7,6 +7,7 @@ import * as handlebars from 'handlebars';
 import * as pdf from 'html-pdf';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as QRCode from 'qrcode';
 import generateUniqueInvoiceId from '../utils/generate-facture-id';
 
 @Injectable()
@@ -613,6 +614,11 @@ export class UserService {
             companyName: user?.companyName?.toUpperCase(),
           },
           ordersLength: orders.length,
+          qrDataUrl: generatedInvoice
+            ? await QRCode.toDataURL(
+                `Facture: ${generatedInvoice.matricule}, Total: ${net} TND, Date: ${this.formatDate(generatedInvoice?.createdAt)}`,
+              )
+            : '',
           totalWeight: orders.reduce(
             (sum, ord) => sum + (+ord?.totalWeight || 0),
             0,

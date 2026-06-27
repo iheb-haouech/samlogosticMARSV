@@ -45,13 +45,13 @@ const ResetPassword = () => {
   }, [isResetPsw, navigate]);
   return (
     <div className='auth-page'>
-      <img className='auth-page--image' src='./png/loginImage.png' alt='login Image' />
+      <img className='auth-page--image' src='/png/loginImage.png' alt='login Image' />
       <div className='auth-page--form'>
         <div className='auth-form'>
           <img
             className='auth-form--logo'
             style={{ width: 250 }}
-            src='/png/sam-logo.svg'
+            src='/png/logoslogan.png'
             alt='SAM LOGISTIC logo'
           />
           <Title className='auth-form--title' level={3}>

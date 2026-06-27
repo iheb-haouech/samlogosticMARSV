@@ -9,6 +9,7 @@ import { plainToClass } from 'class-transformer';
 import { AuthService } from '../auth/auth.service';
 import { PackagesService } from '../packages/packages.service';
 import generateCustomTrackingID from '../utils/generate-id';
+import * as QRCode from 'qrcode';
 
 @Injectable()
 export class OrdersService {
@@ -17,6 +18,62 @@ export class OrdersService {
     private authService: AuthService,
     private packagesService: PackagesService,
   ) {}
+
+  private async ensureSeedData() {
+    // Ensure order_status records exist
+    await this.prisma.order_status.upsert({
+      where: { id: 1 },
+      update: {},
+      create: { id: 1, statusName: 'Created' },
+    });
+    await this.prisma.order_status.upsert({
+      where: { id: 2 },
+      update: {},
+      create: { id: 2, statusName: 'Pending' },
+    });
+    await this.prisma.order_status.upsert({
+      where: { id: 3 },
+      update: {},
+      create: { id: 3, statusName: 'In transit' },
+    });
+    await this.prisma.order_status.upsert({
+      where: { id: 4 },
+      update: {},
+      create: { id: 4, statusName: 'Delivered' },
+    });
+    await this.prisma.order_status.upsert({
+      where: { id: 5 },
+      update: {},
+      create: { id: 5, statusName: 'Canceled' },
+    });
+    await this.prisma.order_status.upsert({
+      where: { id: 6 },
+      update: {},
+      create: { id: 6, statusName: 'Returned' },
+    });
+
+    // Ensure order_prices_status records exist
+    await this.prisma.order_prices_status.upsert({
+      where: { id: 1 },
+      update: {},
+      create: { id: 1, statusName: 'No action' },
+    });
+    await this.prisma.order_prices_status.upsert({
+      where: { id: 2 },
+      update: {},
+      create: { id: 2, statusName: 'Waiting' },
+    });
+    await this.prisma.order_prices_status.upsert({
+      where: { id: 3 },
+      update: {},
+      create: { id: 3, statusName: 'Confirmed' },
+    });
+    await this.prisma.order_prices_status.upsert({
+      where: { id: 4 },
+      update: {},
+      create: { id: 4, statusName: 'Refused' },
+    });
+  }
 
   generateUniqueCustomID = async (user: any, sequence?: number) => {
     const nextSequence =
@@ -36,6 +93,9 @@ export class OrdersService {
 
   async create(userToken: string, createOrderDto: CreateOrderDto) {
     try {
+      // Ensure required seed data exists
+      await this.ensureSeedData();
+
       const orderData = plainToClass(CreateOrderDto, createOrderDto);
       // find who is the command creator id
       let user;
@@ -91,9 +151,35 @@ export class OrdersService {
         }
       }
 
+      // Ensure default status IDs exist or use defaults
+      const defaultOrderStatusId = 1;
+      const defaultPriceStatusId = 1;
+
       // Generate a unique customID
       const customID = await this.generateUniqueCustomID(user);
-      const createdOrder = await this.prisma.order.create({
+
+      const packagesWithQr = await Promise.all(
+        (orderData?.packages || []).map(async (packageData: any) => {
+          const qrText = `${customID}-pkg${packageData?.id || Math.random().toString(36).slice(2, 8)}`;
+          let qrDataUrl = '';
+          try {
+            qrDataUrl = await QRCode.toDataURL(qrText);
+          } catch (err) {
+            console.error('QR generation error on create:', err);
+          }
+          return {
+            ...packageData,
+            qrCode: qrText,
+            references: {
+              create: packageData?.references?.map(
+                (referenceData: any) => referenceData,
+              ),
+            },
+          };
+        }),
+      );
+
+const createdOrder = await this.prisma.order.create({
         data: {
           ...orderData,
           trackingId: customID,
@@ -107,14 +193,7 @@ export class OrdersService {
             create: orderData?.recipient,
           },
           packages: {
-            create: orderData?.packages?.map((packageData: any) => ({
-              ...packageData,
-              references: {
-                create: packageData?.references?.map(
-                  (referenceData: any) => referenceData,
-                ),
-              },
-            })),
+            create: packagesWithQr,
           },
         },
 
@@ -134,15 +213,14 @@ export class OrdersService {
 
       return createdOrder;
     } catch (error: any) {
-      console.error(error?.message);
-      throw new HttpException(
-      error?.message || 'Erreur lors de la création',
-      error.status || HttpStatus.INTERNAL_SERVER_ERROR
-    );
+      console.error('Create order error:', error);
+      const status = error?.status || error?.statusCode || HttpStatus.INTERNAL_SERVER_ERROR;
+      const message = error?.message || 'Erreur lors de la création';
+      throw new HttpException(message, status);
+    }
   }
-}
 
-async generateInvoiceAutomatically(order: any) {
+  async generateInvoiceAutomatically(order: any) {
   try {
     const providerId = order.createdByUserId;
 
@@ -194,8 +272,8 @@ async generateInvoiceAutomatically(order: any) {
     if (status !== 'null') {
       conditions = { ...conditions, orderStatusId: parseInt(status) };
     }
-    if (user?.roleId === 1) {
-  // ADMIN : voit toutes les commandes
+    if (user?.roleId === 1 || user?.roleId === 4) {
+  // ADMIN / SUPERADMIN : voit toutes les commandes
   totalCount = await this.prisma.order.count({ where: conditions });
   orders = await this.prisma.order.findMany({
     where: conditions,

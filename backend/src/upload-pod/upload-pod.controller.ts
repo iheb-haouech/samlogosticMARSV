@@ -140,8 +140,8 @@ export class UploadPodController {
   }
 
   @Get('download-pod/files/:filepath')
-  //@ApiBearerAuth()
-  //@UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Visualize uploaded file' })
   seeUploadedFile(@Param('filepath') file: string, @Res() res) {
     return res.sendFile(file, { root: UPLOADED_FILES_PATH });

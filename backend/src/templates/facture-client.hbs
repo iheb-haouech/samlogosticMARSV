@@ -16,8 +16,8 @@
       border: none; padding: 2px; text-align: right; } .totals-table
       td:first-child { text-align: left; } .content-wrapper { position:
       relative; min-height: 100vh; padding-bottom: 50px; } p { margin: 3px 0; }
-      .table p { margin: 0px 0; } /* Adjust the margin of paragraphs within
-      tables */ .signature{ text-align: right; margin-top: 25px; }
+      .table p { margin: 0px 0; }
+      .signature{ text-align: right; margin-top: 25px; }
     </style>
   </head>
 
@@ -45,11 +45,11 @@
               <p><strong>Raison Sociale:</strong>
                 {{this.provider.companyName}}</p>
               <p><strong>Téléphone:</strong> {{this.provider.phone}}</p>
-              <p><strong>Adresse:</strong>
-                {{this.provider.streetAddress}},
-                {{this.provider.zipCode}},
-                {{this.provider.city}},
-                {{this.provider.Country}}</p>
+               <p><strong>Adresse:</strong>
+                 {{this.provider.streetAddress}},
+                 {{this.provider.zipCode}},
+                 {{this.provider.city}},
+                 {{this.provider.country}}</p>
               <p><strong>Matricule fiscale:</strong>
                 {{this.provider.patent}}</p>
             </td>
@@ -97,9 +97,14 @@
           </table>
         </div>
         <div class='signature'>
-          <p style="margin-right: 15px;"><strong>Signature</p>
+          <p style="margin-right: 15px;"><strong>Signature</strong></p>
           <p style="margin-top: 8px;">. . . . . . . . . .</p>
         </div>
+        {{#if qrDataUrl}}
+        <div style="text-align: center; margin-top: 20px;">
+          <img src="{{qrDataUrl}}" style="width: 100px; height: 100px;" alt="QR Code Facture" />
+        </div>
+        {{/if}}
       </div>
     </div>
 

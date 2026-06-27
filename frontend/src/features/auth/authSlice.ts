@@ -100,7 +100,14 @@ export const resetPassword = createAsyncThunk<boolean | any, ResetPasswordDto, {
 const authSlice = createSlice({
   name: "auth",
   initialState,
-  reducers: {},
+  reducers: {
+    setGoogleAuth: (state, action: PayloadAction<{ accessToken: string; refreshToken: string; user: any }>) => {
+      state.status = "idle";
+      state.accessToken = action.payload.accessToken;
+      state.refreshToken = action.payload.refreshToken;
+      state.user = action.payload.user;
+    },
+  },
 
   extraReducers: (builder) => {
     builder
@@ -188,6 +195,8 @@ const authSlice = createSlice({
       });
   },
 });
+
+export const { setGoogleAuth } = authSlice.actions;
 
 export const selectUser = (state: RootState) => state.auth.user;
 

@@ -4,7 +4,6 @@ import Title from "antd/es/typography/Title";
 import { PlusOutlined } from "@ant-design/icons";
 import { Order, PackagesData } from "../../../../types/Order";
 import PackageTable from "../../../organisms/Tables/PackageTable/PackageTable";
-import { useTranslation } from "react-i18next";
 import type { InputRef } from "antd";
 
 interface OrderMeta {
@@ -34,8 +33,7 @@ interface CreateOrderFormProps {
 }
 
 const CreateOrderForm = ({ onCreateOrder, currentUser, orderMeta }: CreateOrderFormProps) => {
-  const { t } = useTranslation();
-  const isB2C = currentUser?.accountType === "B2C";
+   const isB2C = currentUser?.accountType === "B2C";
   const isLightShipment = orderMeta.subType === "envoieLegere";
 
   const newOrder: Order = {
@@ -74,13 +72,13 @@ const CreateOrderForm = ({ onCreateOrder, currentUser, orderMeta }: CreateOrderF
     },
   };
 
-  const [formValues, setFormValues] = useState<Order>(newOrder);
-  const [tags, setTags] = useState<string[]>([]);
-  const [packagesData, setPackagesData] = useState<PackagesData>({ packages: [], totalQuantity: 0 });
-  const [inputVisible, setInputVisible] = useState(false);
-  const [inputValue, setInputValue] = useState("");
-  const inputRef = useRef<InputRef>(null);
-  const [loading, setLoading] = useState(false);
+const [formValues, setFormValues] = useState<Order>(newOrder);
+   const [tags, setTags] = useState<string[]>([]);
+   const [packagesData, setPackagesData] = useState<PackagesData>({ packages: [], totalQuantity: 0 });
+   const [inputVisible, setInputVisible] = useState(false);
+   const [inputValue, setInputValue] = useState("");
+   const inputRef = useRef<InputRef>(null);
+   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setFormValues((prev) => ({
@@ -95,38 +93,6 @@ const CreateOrderForm = ({ onCreateOrder, currentUser, orderMeta }: CreateOrderF
   useEffect(() => {
     if (inputVisible && inputRef.current) inputRef.current.focus();
   }, [inputVisible]);
-
-  const handleSubmit = () => {
-    if (isB2C && packagesData?.packages.some((pkg) => !pkg.price || pkg.price <= 0)) {
-      message.error("Veuillez saisir le prix de chaque colis.");
-      return;
-    }
-
-    const packagesTotalPrice =
-      packagesData?.packages.reduce(
-        (total, pkg) => total + Number(pkg.price || 0) * Number(pkg.quantity || 1),
-        0,
-      ) || 0;
-    const shipmentPrice = isB2C && isLightShipment ? 7 : formValues?.shipmentPrice;
-
-    const newOrderToSend: Order = {
-      ...formValues,
-      refrences: tags,
-      totalWeight: packagesData?.totalWeight || 0,
-      totalQuantity: packagesData?.totalQuantity || 0,
-      totalPrice: isB2C ? packagesTotalPrice : formValues?.totalPrice,
-      shipmentPrice,
-      packages: packagesData?.packages.map(({ index, ...pakg }: any) => pakg),
-      mainType: formValues?.mainType,
-      tradeType: formValues?.tradeType,
-      transportType: formValues?.transportType,
-      subType: formValues?.subType,
-      otherMessage: formValues?.otherMessage,
-    };
-
-    setLoading(true);
-    onCreateOrder(newOrderToSend);
-  };
 
   const handlePackagesChange = (newPackagesData: PackagesData) => {
     setPackagesData(newPackagesData);
@@ -154,9 +120,41 @@ const CreateOrderForm = ({ onCreateOrder, currentUser, orderMeta }: CreateOrderF
     setInputValue("");
   };
 
-  const handleReferenceChange = (e: React.ChangeEvent<HTMLInputElement>) => setInputValue(e.target.value);
+const handleReferenceChange = (e: React.ChangeEvent<HTMLInputElement>) => setInputValue(e.target.value);
 
-  return (
+   const handleSubmit = () => {
+     if (isB2C && packagesData?.packages.some((pkg) => !pkg.price || pkg.price <= 0)) {
+       message.error("Veuillez saisir le prix de chaque colis.");
+       return;
+     }
+
+     const packagesTotalPrice =
+       packagesData?.packages.reduce(
+         (total, pkg) => total + Number(pkg.price || 0) * Number(pkg.quantity || 1),
+         0,
+       ) || 0;
+     const shipmentPrice = isB2C && isLightShipment ? 7 : formValues?.shipmentPrice;
+
+     const newOrderToSend: Order = {
+       ...formValues,
+       refrences: tags,
+       totalWeight: packagesData?.totalWeight || 0,
+       totalQuantity: packagesData?.totalQuantity || 0,
+       totalPrice: isB2C ? packagesTotalPrice : formValues?.totalPrice,
+       shipmentPrice,
+       packages: packagesData?.packages.map(({ index, ...pakg }: any) => pakg),
+       mainType: formValues?.mainType,
+       tradeType: formValues?.tradeType,
+       transportType: formValues?.transportType,
+       subType: formValues?.subType,
+       otherMessage: formValues?.otherMessage,
+     };
+
+     setLoading(true);
+     onCreateOrder(newOrderToSend);
+   };
+
+   return (
     <Card>
       <Space direction="vertical" style={{ width: "100%" }} size="large">
         <div>
@@ -274,14 +272,14 @@ const CreateOrderForm = ({ onCreateOrder, currentUser, orderMeta }: CreateOrderF
           />
         </div>
 
-        <div style={{ textAlign: "right" }}>
-          <Button loading={loading} icon={<PlusOutlined />} size="large" type="primary" htmlType="submit">
-            Créer la commande
-          </Button>
-        </div>
-      </Space>
-    </Card>
-  );
-};
+<div style={{ textAlign: "right" }}>
+           <Button loading={loading} icon={<PlusOutlined />} size="large" type="primary" onClick={handleSubmit}>
+             Créer la commande
+           </Button>
+         </div>
+       </Space>
+     </Card>
+   );
+ };
 
-export default CreateOrderForm;
+ export default CreateOrderForm;

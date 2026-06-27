@@ -53,15 +53,17 @@ function bootstrap() {
                     const allowedOrigins = [
                         process.env.FRONTEND_URL,
                         'http://localhost:3000',
-                        'http://localhost:5173', // 🔥 important (Vite)
-                        ];
+                        'http://localhost:5173',
+                        'https://samlogistic.tn',
+                        'https://www.samlogistic.tn',
+                        ].filter(Boolean);
 
                         app.enableCors({
                         origin: (origin, callback) => {
                             if (!origin || allowedOrigins.includes(origin)) {
-                            callback(null, true); // ✅ FIX
+                            callback(null, true);
                             } else {
-                            callback(new Error('Not allowed by CORS'));
+                            callback(new Error('Not allowed by CORS'), false);
                             }
                         },
                         credentials: true,

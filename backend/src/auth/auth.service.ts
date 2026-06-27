@@ -8,6 +8,8 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
+import { randomBytes } from 'crypto';
+import axios from 'axios';
 import { ResetPasswordDto } from './dto/login.dto';
 import { USERROLES } from '../utils/enum';
 import { CreateTransporterDto } from '../transporters/dto/create-transporter.dto';
@@ -280,6 +282,63 @@ export class AuthService {
 
     delete transporter.password;
     return transporter;
+  }
+
+  async loginWithGoogle(code: string, redirectUri: string): Promise<any> {
+    if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+      throw new HttpException('Google login is not configured', 500);
+    }
+
+    const tokenResponse = await axios.post(
+      'https://oauth2.googleapis.com/token',
+      new URLSearchParams({
+        code,
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        redirect_uri: redirectUri,
+        grant_type: 'authorization_code',
+      }),
+      {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      },
+    );
+
+    const profileResponse = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: { Authorization: `Bearer ${tokenResponse.data.access_token}` },
+    });
+
+    const profile = profileResponse.data;
+    const email = String(profile.email || '').toLowerCase().trim();
+
+    if (!email) {
+      throw new UnauthorizedException('Google did not return an email address');
+    }
+
+    let user = await this.prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      const temporaryPassword = randomBytes(32).toString('hex');
+      user = await this.prisma.user.create({
+        data: {
+          firstName: profile.given_name || '',
+          lastName: profile.family_name || '',
+          email,
+          password: await bcrypt.hash(temporaryPassword, 10),
+          verified: true,
+          roleId: USERROLES.user.id,
+          accountType: 'B2C',
+        },
+      });
+    }
+
+    if (user.blocked) {
+      throw new UnauthorizedException('Account blocked');
+    }
+
+    const { accessToken, refreshToken } = await this.generateTokens({ userId: user.id });
+
+    delete user.password;
+    return { accessToken, refreshToken, user };
   }
 
   async getAuthUser(token: any) {

@@ -81,6 +81,8 @@ export class AppController {
   }
 
   @Get('/company-types')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiOkResponse({
     description: 'response',
     type: ResponseDto,
@@ -90,6 +92,8 @@ export class AppController {
   }
 
   @Get('/company-activities')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiOkResponse({
     description: 'response',
     type: ResponseDto,
@@ -99,6 +103,8 @@ export class AppController {
   }
 
   @Get('/car-types')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiOkResponse({
     description: 'response',
     type: ResponseDto,
@@ -108,6 +114,8 @@ export class AppController {
   }
 
   @Get('/order-statuses-list')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiOkResponse({
     description: 'response',
     type: ResponseDto,

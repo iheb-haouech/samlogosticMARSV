@@ -83,6 +83,7 @@ export type Package = {
   updatedAt?: string;
   createdAt?: string;
   index?: number;
+  qrCode?: string;
 };
 export type PackagesData = {
   packages: Package[];

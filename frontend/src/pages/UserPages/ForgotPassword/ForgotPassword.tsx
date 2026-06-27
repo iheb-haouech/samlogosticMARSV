@@ -22,14 +22,14 @@ const ForgotPassword = () => {
 
   return (
     <div className='auth-page'>
-      <img className='auth-page--image' src='./png/loginImage.png' alt='' />
+      <img className='auth-page--image' src='/png/loginImage.png' alt='' />
       <div className='auth-page--form'>
         <div className='auth-form'>
           <div style={{ width: "100%", textAlign: "center" }}>
             <img
               className='auth-form--logo'
               style={{ width: 250 }}
-              src='/png/sam-logo.svg'
+              src='/png/logoslogan.png'
               alt='SAM LOGISTIC logo'
             />
           </div>

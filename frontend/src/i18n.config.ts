@@ -4,12 +4,8 @@ import en from "./translations/en.json";
 import i18next from "i18next";
 i18next.use(initReactI18next).init({
   resources: {
-    fr: {
-      translation: fr,
-    },
-    en: {
-      translation: en,
-    },
+    fr: { translation: fr },
+    en: { translation: en },
   },
   lng: localStorage.getItem("i18nextLng") || "fr",
   fallbackLng: "fr",

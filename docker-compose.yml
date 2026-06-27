@@ -3,12 +3,14 @@ services:
     image: postgres:13.5
     container_name: sam-db
     restart: always
-    env_file:
-      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-samlogistic}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-post123}
+      POSTGRES_DB: ${POSTGRES_DB:-samlogistic}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
 
   backend:
     build:
@@ -17,11 +19,14 @@ services:
     container_name: sam-backend
     restart: always
     ports:
-      - "6001:6001"
-    env_file:
-      - .env
+      - "127.0.0.1:6001:6001"
     environment:
-     DATABASE_URL: postgresql://postgres:post123@postgres:5432/samlogistic?schema=public
+      DATABASE_URL: ${DATABASE_URL:-postgresql://samlogistic:post123@postgres:5432/samlogistic?schema=public}
+      JWT_SECRET: ${JWT_SECRET:-change-me-access-secret}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change-me-refresh-secret}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1d}
+      JWT_REFRESH_EXPIRES: ${JWT_REFRESH_EXPIRES:-7d}
+      PORT: ${PORT:-6001}
     depends_on:
       - postgres
     command: sh -c "npx prisma migrate deploy && node dist/src/main.js"
@@ -35,9 +40,11 @@ services:
     container_name: sam-frontend
     restart: always
     ports:
-      - "3000:80"
+      - "127.0.0.1:3000:80"
     depends_on:
       - backend
+    volumes:
+      - /var/www/samlogistic/app/SamLogisticApp.apk:/usr/share/nginx/html/SamLogisticApp.apk:ro
 
 volumes:
   postgres_data:

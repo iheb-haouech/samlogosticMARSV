@@ -2,21 +2,21 @@ export const IniOrderPricesStatuses = async (prismaClient: any) => {
   await prismaClient.order_prices_status.upsert({
     where: { id: 1 },
     update: {},
-    create: { id: 1, statusName: 'No action' },
+    create: { id: 1, statusName: 'Aucune action' },
   });
   await prismaClient.order_prices_status.upsert({
     where: { id: 2 },
     update: {},
-    create: { id: 2, statusName: 'Waiting' },
+    create: { id: 2, statusName: 'En attente' },
   });
   await prismaClient.order_prices_status.upsert({
     where: { id: 3 },
     update: {},
-    create: { id: 3, statusName: 'Confirmed' },
+    create: { id: 3, statusName: 'Confirmé' },
   });
   await prismaClient.order_prices_status.upsert({
     where: { id: 4 },
     update: {},
-    create: { id: 4, statusName: 'Refused' },
+    create: { id: 4, statusName: 'Refusé' },
   });
 };

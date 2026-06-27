@@ -1,46 +1,38 @@
 <html>
-
   <head>
     <meta charset='UTF-8' />
     <title>Shipment Details</title>
     <style>
-      body { font-family: Arial, sans-serif; padding: 20px; } table { width:
-      100%; border-collapse: collapse; margin-bottom: 20px; } td { border: 1px
-      solid #d7d5d5; padding: 2px; } .bold {font-size: 11px; font-weight: bold;
-      } p, span {font-size: 11px; }
+      body { font-family: Arial, sans-serif; padding: 20px; }
+      table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+      td { border: 1px solid #d7d5d5; padding: 8px; vertical-align: top; }
+      .bold { font-size: 11px; font-weight: bold; }
+      p, span { font-size: 11px; margin: 2px 0; }
+      .qr-cell { text-align: center; padding: 10px; }
+      .qr-img { width: 80px; height: 80px; }
+      .package-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+      .package-table th { background: #f5f5f5; font-size: 10px; padding: 6px; border: 1px solid #d7d5d5; }
+      .package-table td { font-size: 10px; padding: 6px; border: 1px solid #d7d5d5; }
     </style>
   </head>
-
   <body>
-    <img
-      src='https://samlogistic.tn/png/logosam.png'
-      alt='Company Logo'
-      height='50'
-      style='margin-bottom: 20px;'
-    />
+    <img src='https://samlogistic.tn/png/logosam.png' alt='Company Logo' height='50' style='margin-bottom: 20px;' />
 
     <table>
       <tr>
-        <td>
+        <td style="width: 50%;">
           <p class='bold'>FROM:</p>
-          <p>{{this.source.companyName}}</p>
-          <p>{{this.source.phone}}</p>
-          <p>{{this.source.streetAddress}},
-            {{this.source.zipCode}}</p>
-          <p>
-            {{this.source.city}},
-            {{this.source.Country}}</p>
+          <p>{{source.companyName}}</p>
+          <p>{{source.phone}}</p>
+          <p>{{source.streetAddress}}, {{source.zipCode}}</p>
+          <p>{{source.city}}, {{source.country}}</p>
         </td>
-        <td>
+        <td style="width: 50%;">
           <p class='bold'>SHIP TO:</p>
-          <p>{{this.recipient.firstName}} {{this.recipient.lastName}}</p>
-          <p>{{this.recipient.companyName}}</p>
-          <p>{{this.recipient.phone}}</p>
-          <p>{{this.recipient.streetAddress}},
-            {{this.recipient.zipCode}}</p>
-          <p>
-            {{this.recipient.city}},
-            {{this.recipient.Country}}</p>
+          <p>{{recipient.companyName}}</p>
+          <p>{{recipient.phone}}</p>
+          <p>{{recipient.streetAddress}}, {{recipient.zipCode}}</p>
+          <p>{{recipient.city}}, {{recipient.country}}</p>
         </td>
       </tr>
     </table>
@@ -51,42 +43,45 @@
         <td><p>{{createdAt}}</p></td>
       </tr>
       <tr>
-        <td class='bold'>TOTAL NUMBER OF PACKAGES:</td>
-        <td><p>{{totalQuantity}}</p></td>
-      </tr>
-      <tr>
-        <td class='bold'>TOTAL WEIGHT:</td>
-        <td><p>{{totalWeight}} Kg</p></td>
-      </tr>
-      <tr>
-        <td class='bold'>DESCRIPTION:</td>
-        <td><p>{{description}}</p></td>
-      </tr>
-      <tr>
-        <td class='bold'>REFERENCE:</td>
-        <td>
-          {{#each references}}
-            <span>{{this}} - </span>
-          {{/each}}</td>
-      </tr>
-      <tr>
         <td class='bold'>TRACKING NUMBER:</td>
         <td><p>{{trackingId}}</p></td>
       </tr>
       <tr>
-        <td class='bold'>MONTANT COLIS:</td>
-        <td><p>{{colisAmount}} DT</p></td>
-      </tr>
-      <tr>
-        <td class='bold'>FRAIS LIVRAISON:</td>
-        <td><p>{{shipmentPrice}} DT</p></td>
-      </tr>
-      <tr>
-        <td class='bold'>TOTAL A ENCAISSER:</td>
-        <td><p>{{totalToCollect}} DT</p></td>
+        <td class='bold'>TOTAL COLIS:</td>
+        <td><p>{{packagesLength}}</p></td>
       </tr>
     </table>
 
-  </body>
+    {{#if packages}}
+    <table class="package-table">
+      <thead>
+        <tr>
+          <th>Colis</th>
+          <th>QR Code</th>
+          <th>Dimensions (LxlxH)</th>
+          <th>Poids</th>
+          <th>Prix (DT)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each packages}}
+        <tr>
+          <td>{{#if id}}{{id}}{{else}}{{@index}}{{/if}}</td>
+          <td class="qr-cell">
+            {{#if qrDataUrl}}
+            <img src="{{qrDataUrl}}" class="qr-img" alt="QR Code" />
+            {{else}}
+            <span style="font-size:9px;">N/A</span>
+            {{/if}}
+          </td>
+          <td>{{length}} x {{width}} x {{height}}</td>
+          <td>{{weight}} kg</td>
+          <td>{{#if totalPrice}}{{totalPrice}}{{else}}{{#if price}}{{price}}{{/if}}{{/if}}</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+    {{/if}}
 
+  </body>
 </html>

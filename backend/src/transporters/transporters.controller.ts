@@ -28,8 +28,6 @@ import { ResponseDto } from '../utils/response.dto';
 
 @Controller('transporters')
 @ApiTags('transporter')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 export class TransportersController {
   constructor(
     private readonly transportersService: TransportersService,
@@ -42,6 +40,7 @@ export class TransportersController {
   }
 
   @Get()
+  @ApiBearerAuth()
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
   @ApiQuery({ name: 'verified', required: false })
@@ -50,8 +49,8 @@ export class TransportersController {
     description: 'Get all transporters response',
     type: AllTransportersDTO,
   })
-  @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles(USERROLES?.admin?.id)
+  @UseGuards(RoleGuard)
+  @Roles(USERROLES.admin.id)
   async findAll(@Query() query: FindManyTransporterDto) {
     return this.transportersService.findAll(query);
   }
@@ -68,12 +67,12 @@ export class TransportersController {
   @Post('transporter-orders/:id')
   @ApiOkResponse({
     description: 'Paginated response',
-    type: ResponseDto, // Ideally, update this to reflect paginated data (e.g., PaginatedResponseDto)
+    type: ResponseDto,
   })
   findTransporterOrders(
     @Param('id') id: string,
-    @Query('page') page: number = 1, // Default page is 1
-    @Query('limit') limit: number = 12, // Default limit is 10
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 12,
   ) {
     return this.transportersService.findTransporterOrders(+id, +page, +limit);
   }
@@ -102,8 +101,8 @@ export class TransportersController {
   })
   async findTransporterDeliveredOrders(
     @Param('id') id: string,
-    @Query('page') page: number = 1, // Default page is 1
-    @Query('limit') limit: number = 10, // Default limit is 10
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
   ) {
     return this.transportersService.findTransporterDeliveredOrders(
       +id,

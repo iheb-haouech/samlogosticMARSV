@@ -11,11 +11,11 @@
         .company-info p { font-size: 12px; line-height: 1.5; }
         .invoice-details { text-align: right; }
         .invoice-number { font-size: 24px; font-weight: bold; color: #2563eb; }
-        .payment-status { 
-            display: inline-block; 
-            padding: 5px 15px; 
-            border-radius: 4px; 
-            font-weight: bold; 
+        .payment-status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 4px;
+            font-weight: bold;
             margin-top: 10px;
             font-size: 12px;
         }
@@ -37,15 +37,17 @@
         .total-row { font-size: 16px; font-weight: bold; color: #2563eb; border-top: 2px solid #2563eb; }
         .total-row td { padding-top: 12px; }
         .footer { margin-top: 50px; text-align: center; color: #6b7280; font-size: 11px; border-top: 1px solid #e5e7eb; padding-top: 20px; line-height: 1.6; }
+        .qr-cell { text-align: center; padding: 5px; }
+        .qr-img { width: 60px; height: 60px; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <div class="company-info">
-                <h1>{{companyName}}</h1>
-                <p>{{companyAddress}}</p>
-                <p>{{companyPhone}} | {{companyEmail}}</p>
+                <h1>SAM LOGISTIC</h1>
+                <p>2063 Cité Ennasime N.M Ben Arous, Tunisie</p>
+                <p>+216 25 294 513 | contact@samlogistic.tn</p>
             </div>
             <div class="invoice-details">
                 <div class="invoice-number">FACTURE #{{invoiceNumber}}</div>
@@ -61,21 +63,25 @@
                 <p>{{clientAddress}}</p>
                 <p>{{clientCity}}, {{clientZipCode}}</p>
                 <p>{{clientEmail}}</p>
+                <p>Type: {{clientType}}</p>
             </div>
             <div class="address-block">
                 <h3>Détails de livraison:</h3>
                 <p>Tracking: <strong>{{trackingId}}</strong></p>
                 <p>Transporteur: {{transporterName}}</p>
                 <p>Date d'expédition: {{shippingDate}}</p>
+                <p>Type: {{orderType}}</p>
             </div>
         </div>
 
         <table>
             <thead>
                 <tr>
+                    <th>Colis</th>
+                    <th>QR</th>
                     <th>Description</th>
                     <th>Dimensions</th>
-                    <th>Poids (kg)</th>
+                    <th>Poids</th>
                     <th>Qté</th>
                     <th>Prix Unit.</th>
                     <th>Total</th>
@@ -84,6 +90,12 @@
             <tbody>
                 {{#each items}}
                 <tr>
+                    <td>{{this.index}}</td>
+                    <td class="qr-cell">
+                        {{#if qrDataUrl}}
+                        <img src="{{qrDataUrl}}" class="qr-img" alt="QR" />
+                        {{/if}}
+                    </td>
                     <td>{{this.description}}</td>
                     <td>{{this.dimensions}}</td>
                     <td>{{this.weight}}</td>
@@ -107,6 +119,10 @@
             <tr>
                 <td>Timbre Fiscal:</td>
                 <td>{{timbreFiscale}} TND</td>
+            </tr>
+            <tr>
+                <td>Frais livraison:</td>
+                <td>{{shipmentPrice}} TND</td>
             </tr>
             <tr class="total-row">
                 <td>TOTAL TTC:</td>

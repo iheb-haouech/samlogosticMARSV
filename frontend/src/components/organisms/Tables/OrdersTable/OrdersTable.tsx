@@ -143,7 +143,7 @@ const OrdersTable = ({
       dataIndex: "orderStatus",
       key: "orderStatusId",
       width: 130,
-      render: (orderStatusId: number) => {
+      render: (orderStatusId: number, rec: any) => {
         const status = orderStatuses?.find((s: any) => s.id === orderStatusId);
         if (!status) return <Text>-</Text>;
         if (isAdmin) {
@@ -152,7 +152,7 @@ const OrdersTable = ({
               size="small"
               style={{ minWidth: 120 }}
               value={status.id}
-              onChange={(newStatus) => onChangeOrderState(String(orderStatusId), newStatus)}
+              onChange={(newStatus) => onChangeOrderState(rec.id, newStatus)}
               options={(translatedOrderStatuses || []).map((s: any) => ({
                 value: s.id,
                 label: getOrderStatusText(t, s.statusName),

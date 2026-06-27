@@ -12,4 +12,6 @@ export default interface LoginFormProps {
    * @default undefined
    */
   onSubmit: ({ email, password }: { email: string; password: string }) => void;
+
+  onGoogleLogin?: () => void;
 }

@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import "./SplashScreen.scss";
 
 interface SplashScreenProps {
@@ -7,20 +6,18 @@ interface SplashScreenProps {
 }
 
 const SplashScreen = ({ isAuthenticated }: SplashScreenProps) => {
-  const navigate = useNavigate();
-
   useEffect(() => {
     const timer = setTimeout(() => {
       if (isAuthenticated) {
-        navigate("/user/dashboard", { replace: true });
+        window.location.href = "/user/dashboard";
       } else {
         localStorage.setItem("hasSeenSplash", "true");
-        navigate("/login", { replace: true });
+        window.location.href = "/login";
       }
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [navigate, isAuthenticated]);
+  }, [isAuthenticated]);
 
   return (
     <div className="splash-screen">

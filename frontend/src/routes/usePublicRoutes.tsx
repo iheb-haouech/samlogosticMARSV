@@ -11,14 +11,13 @@ export const usePublicRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/home" element={<Home />} />
       <Route path="/login" element={<Login />} />
-
       <Route path="/signup" element={<Signup />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/tracking-orders" element={<TrackingOrders />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
-
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

@@ -1,7 +1,11 @@
 import { BrowserRouter as Router } from "react-router-dom";
 import "./i18n.config";
 import { useEffect, useState } from "react";
-import { fetchCurrentUser, selectCurrentUser, setCurrentUser } from "./features/user/userSlice";
+import {
+  fetchCurrentUser,
+  selectCurrentUser,
+  setCurrentUser,
+} from "./features/user/userSlice";
 import { store } from "./store/store";
 import { ConfigProvider } from "antd";
 import { antdThemeConfig } from "./styles/antdTheme/antdThemeConfig";
@@ -18,34 +22,39 @@ import "./styles/tables-professional.scss";
 import "./styles/dark-theme.scss";
 import { ThemeProvider } from "./context/ThemeContext";
 import CookieBanner from "./CookieBanner";
+import SplashScreen from "./components/atoms/SplashScreen/SplashScreen";
+import { initPushNotifications } from "./services/pushNotifications";
 
 function App() {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isAppReady, setIsAppReady] = useState(false);
+  const [showSplash, setShowSplash] = useState(false);
   const currentUser: any = useSelector(selectCurrentUser);
   const { i18n } = useTranslation();
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const initializeApp = async () => {
       const token = localStorage.getItem("accessToken");
+      const hasSeenSplash = localStorage.getItem("hasSeenSplash");
 
-      if (!token) {
-        store.dispatch(setCurrentUser(null));
-        setIsLoading(false);
-        return;
+      if (!hasSeenSplash) {
+        setShowSplash(true);
       }
 
-      try {
-        await store.dispatch(fetchCurrentUser(token)).unwrap();
-      } catch {
-        store.dispatch(setCurrentUser(null));
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-      } finally {
-        setIsLoading(false);
+      if (token) {
+        try {
+          await store.dispatch(fetchCurrentUser(token)).unwrap();
+          initPushNotifications();
+        } catch {
+          store.dispatch(setCurrentUser(null));
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
+        }
       }
+
+      setIsAppReady(true);
     };
 
-    fetchUserData();
+    initializeApp();
   }, []);
 
   useEffect(() => {
@@ -56,6 +65,15 @@ function App() {
   }, [i18n]);
 
   const isAuthenticated = !!currentUser;
+
+  if (showSplash) {
+    return <SplashScreen isAuthenticated={isAuthenticated} />;
+  }
+
+  if (!isAppReady) {
+    return <Loading />;
+  }
+
   const publicRoutes = usePublicRoutes();
   const adminRoutes = useAdminRoutes();
   const userRoutes = useUserRoutes();
@@ -66,23 +84,19 @@ function App() {
     <ThemeProvider>
       <ConfigProvider theme={antdThemeConfig}>
         <CookieBanner />
-        {isLoading ? (
-          <Loading />
-        ) : (
-          <Router future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
-            {!isAuthenticated
-              ? publicRoutes
-              : currentUser?.roleId === rolesMap.superAdmin
-                ? superAdminRoutes
-                : currentUser?.roleId === rolesMap.admin
+        <Router future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+          {!isAuthenticated
+            ? publicRoutes
+            : currentUser?.roleId === rolesMap.superAdmin
+              ? superAdminRoutes
+              : currentUser?.roleId === rolesMap.admin
                 ? adminRoutes
                 : currentUser?.roleId === rolesMap.transporter
                   ? transporterRoutes
                   : currentUser?.roleId === rolesMap.user
                     ? userRoutes
                     : publicRoutes}
-          </Router>
-        )}
+        </Router>
       </ConfigProvider>
     </ThemeProvider>
   );

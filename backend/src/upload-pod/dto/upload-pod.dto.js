@@ -65,7 +65,7 @@ var UploadPodResponseDto = function () {
                 })];
             _podUrl_decorators = [(0, swagger_1.ApiProperty)({
                     description: 'The URL to access the uploaded POD file',
-                    example: 'http://example.com/uploadedFiles/POD-order-id-12345.jpg',
+                    example: 'https://api.samlogistic.tn/uploadedFiles/POD-order-id-12345.jpg',
                 })];
             __esDecorate(null, null, _filename_decorators, { kind: "field", name: "filename", static: false, private: false, access: { has: function (obj) { return "filename" in obj; }, get: function (obj) { return obj.filename; }, set: function (obj, value) { obj.filename = value; } }, metadata: _metadata }, _filename_initializers, _instanceExtraInitializers);
             __esDecorate(null, null, _type_decorators, { kind: "field", name: "type", static: false, private: false, access: { has: function (obj) { return "type" in obj; }, get: function (obj) { return obj.type; }, set: function (obj, value) { obj.type = value; } }, metadata: _metadata }, _type_initializers, _instanceExtraInitializers);

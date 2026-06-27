@@ -2,12 +2,12 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "./ProtectedRoute";
 import Orders from "../pages/SharedPages/Orders/Orders";
 import DashboardLayout from "../pages/SharedPages/DashboardLayout/DashboardLayout";
-// import Payment from "../pages/UserPages/Payment/Payment";
 import ComplaintsChat from "../pages/SharedPages/ComplaintsChat/ComplaintsChat";
 import UserDashboard from "../pages/UserPages/UserDashboard/UserDashboard";
 import useSharedRoutes from "./useSharedRoutes";
 import { UserProfile } from "../pages/SharedPages/UserProfile/UserProfile";
 import { TrackOrderForm } from "../pages/SharedPages/TrackingOrders/TrackOrderForm";
+import CreateMobileOrder from "../pages/UserPages/CreateMobileOrder/CreateMobileOrder";
 
 const useUserRoutes = () => {
   const sharedRoutes = useSharedRoutes();
@@ -24,7 +24,7 @@ const useUserRoutes = () => {
       >
         <Route path='dashboard' element={<UserDashboard />} />
         <Route path='orders' element={<Orders />} />
-        {/* <Route path='payment' element={<Payment />} /> */}
+        <Route path='create-order' element={<CreateMobileOrder />} />
         <Route path='complaints' element={<ComplaintsChat />} />
         <Route path='track-orders' element={<TrackOrderForm displayLogo={false} />} />
         <Route path='profile' element={<UserProfile />} />
@@ -41,7 +41,7 @@ const useUserRoutes = () => {
       {/* <Route path="*" element={<Navigate replace to="profile" />} /> */}
       {/* Shared Routes* */}
       {sharedRoutes}
-           
+            
       <Route
         path='*'
         element={

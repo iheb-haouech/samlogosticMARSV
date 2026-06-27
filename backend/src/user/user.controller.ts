@@ -46,6 +46,9 @@ export class UserController {
     return this.userService.create(createUserDto);
   }
   @Get('/invoices')
+  @ApiBearerAuth()
+  @UseGuards(RoleGuard)
+  @Roles(USERROLES.admin.id, USERROLES.superadmin.id)
   getAllInvoices(@Query() query: any) {
     return this.userService.getAllInvoices(query);
   }
@@ -62,7 +65,7 @@ export class UserController {
 
   @Get('/superadmin/all-users')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RoleGuard)
+  @UseGuards(RoleGuard)
   @Roles(USERROLES.superadmin.id)
   findAllForSuperAdmin() {
     return this.userService.findAll();
@@ -70,7 +73,7 @@ export class UserController {
 
   @Patch('/superadmin/users/:id/role')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RoleGuard)
+  @UseGuards(RoleGuard)
   @Roles(USERROLES.superadmin.id)
   updateRoleAndScope(@Param('id') id: string, @Body() body: any) {
     return this.userService.updateRoleAndScope(+id, body);
@@ -78,7 +81,6 @@ export class UserController {
 
   @Get('all-providers')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
   @ApiQuery({ name: 'verified', required: false })
@@ -87,37 +89,37 @@ export class UserController {
     description: 'Get all providers response',
     type: AllProvidersDTO,
   })
-  @UseGuards(JwtAuthGuard, RoleGuard)
+  @UseGuards(RoleGuard)
   @Roles(USERROLES.admin.id, USERROLES.superadmin.id)
   async findAllProviders(@Query() query: FindManyProvidersDto) {
     return this.userService.findAllProviders(query);
   }
 
   @Get('/invoice-pdf')
-async downloadInvoice(
-  @Query('userId') userId: string,
-  @Query('from') from: string,
-  @Query('to') to: string,
-  @Query('type') type: number,
-  @Res() res,
-) {
-  const pdf = await this.userService.generateInvoicePdf(
-    Number(userId),
-    from,
-    to,
-    type,
-  );
+  @ApiBearerAuth()
+  @UseGuards(RoleGuard)
+  @Roles(USERROLES.admin.id, USERROLES.superadmin.id)
+  async downloadInvoice(
+    @Query('userId') userId: string,
+    @Query('from') from: string,
+    @Query('to') to: string,
+    @Query('type') type: number,
+    @Res() res,
+  ) {
+    const pdf = await this.userService.generateInvoicePdf(
+      Number(userId),
+      from,
+      to,
+      type,
+    );
 
-  res.setHeader('Content-Type', 'application/pdf');
-  return res.send(pdf);
-}
+    res.setHeader('Content-Type', 'application/pdf');
+    return res.send(pdf);
+  }
 
   @Get(':id')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  // @ApiBearerAuth()
-  // @UseGuards(JwtAuthGuard, RoleGuard)
-  // @Roles(3)
   @ApiOkResponse({
     description: 'users response',
     type: ResponseDto,
@@ -200,12 +202,14 @@ async downloadInvoice(
   }
 
   @Post('/generate-provider-invoice')
+  @ApiBearerAuth()
+  @UseGuards(RoleGuard)
+  @Roles(USERROLES.admin.id, USERROLES.superadmin.id)
   @ApiOkResponse({
     description: 'generate provider invoice in specific period',
     type: ResponseDto,
   })
   getProvidersInvoice(@Body() query: GetProviderInvoiceDto, @Res() res: any) {
-    console.log('ccccccccccccc', query);
     return this.userService.getProvidersInvoice(
       +query?.id,
       query?.from,

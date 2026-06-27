@@ -12,6 +12,7 @@ async function bootstrap() {
     'http://localhost:3000',
     'http://localhost:5173',
     'https://samlogistic.tn',
+    'https://www.samlogistic.tn',
   ].filter(Boolean);
 
   app.use(
@@ -20,7 +21,7 @@ async function bootstrap() {
         if (!origin || allowedOrigins.includes(origin)) {
           callback(null, true);
         } else {
-          callback(null, true);
+          callback(new Error('Not allowed by CORS'), false);
         }
       },
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],

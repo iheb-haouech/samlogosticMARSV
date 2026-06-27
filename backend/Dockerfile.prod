@@ -8,7 +8,7 @@ COPY prisma ./prisma/
 COPY tsconfig.json ./
 
 # Install app dependencies
-RUN npm install
+RUN npm ci
 COPY . .
 
 RUN npm run build

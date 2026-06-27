@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Res, UseGuards } from '@nestjs/common';
 import { GeneratePdfService } from './generate-pdf.service';
 import { CreateGeneratePdfDto } from './dto/create-generate-pdf.dto';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import * as path from 'path';
 import { ResponseDto } from '../utils/response.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('generate-pdf')
 @ApiTags('generate-pdf')
@@ -11,6 +12,8 @@ export class GeneratePdfController {
   constructor(private readonly generatePdfService: GeneratePdfService) {}
 
   @Get()
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   async getPdf(@Res() res: any): Promise<void> {
     const data = {
       title: 'Sample Title',
@@ -43,6 +46,8 @@ export class GeneratePdfController {
   }
 
   @Post('/etiquette-commande')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiOkResponse({
     description: 'Get order etiquette',
     type: ResponseDto,

@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as pdf from 'html-pdf';
 import * as puppeteer from 'puppeteer'; // ✅ AJOUTER
+import * as QRCode from 'qrcode';
 
 @Injectable()
 export class PdfGeneratorService {
@@ -14,6 +15,15 @@ export class PdfGeneratorService {
   private readonly outputPath = path.join(__dirname, '../../generated-pdfs');
 
   constructor(private prisma: PrismaService) {}
+
+  private async generateQRCodeDataUrl(text: string): Promise<string> {
+    try {
+      return await QRCode.toDataURL(text);
+    } catch (err) {
+      console.error('QR generation error:', err);
+      return '';
+    }
+  }
 
   async generatePdf(
     data: any,
@@ -213,10 +223,17 @@ export class PdfGeneratorService {
           ? `${order.startTransitAt.getDate()}/${order.startTransitAt.getMonth()}/${order.startTransitAt.getFullYear()}`
           : null,
         packagesLength: order?.packages?.length,
-        packages: order?.packages?.map((pkg: any) => ({
-          ...pkg,
-          totalPrice: pkg?.quantity * pkg?.price,
-        })),
+        packages: await Promise.all(
+          (order?.packages || []).map(async (pkg: any) => {
+            const qrText = pkg?.qrCode || `${order?.trackingId || order?.id}-pkg${pkg?.id || ''}`;
+            const qrDataUrl = await this.generateQRCodeDataUrl(qrText);
+            return {
+              ...pkg,
+              totalPrice: pkg?.quantity * pkg?.price,
+              qrDataUrl,
+            };
+          }),
+        ),
         colisAmount: order?.totalPrice || 0,
         shipmentPrice: order?.shipmentPrice || 0,
         totalToCollect: (order?.totalPrice || 0) + (order?.shipmentPrice || 0),

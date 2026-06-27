@@ -5,7 +5,6 @@ import { PlusOutlined } from "@ant-design/icons";
 import { Order, PackagesData } from "../../../../types/Order";
 import PackageTable from "../../../organisms/Tables/PackageTable/PackageTable";
 import "./CreateOrderForm.scss";
-import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { ApiClientWithHeaders } from "../../../../api";
 

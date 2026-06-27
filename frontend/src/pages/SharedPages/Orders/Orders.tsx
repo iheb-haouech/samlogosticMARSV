@@ -40,11 +40,19 @@ import CreateOrderFlow from "../../../components/molecules/Modals/OrderTypeModal
 const STATUS_MAP: Record<number, { label: string; color: string }> = {
   1: { label: "Non suivi", color: "default" },
   2: { label: "En attente", color: "orange" },
-  3: { label: "In transit", color: "blue" },
-  4: { label: "Livré", color: "green" },
-  5: { label: "Annuler", color: "red" },
-  6: { label: "Retour", color: "orange" },
+  3: { label: "En cours", color: "blue" },
+  4: { label: "Livrée", color: "green" },
+  5: { label: "Annulée", color: "red" },
+  6: { label: "Retour colis", color: "orange" },
 };
+
+const STATUS_OPTIONS = [
+  { value: 2, label: "En attente" },
+  { value: 3, label: "En cours" },
+  { value: 4, label: "Expédiée" },
+  { value: 5, label: "Annulée" },
+  { value: 6, label: "Retour colis" },
+];
 
 const Orders = () => {
   const currentUser: any = useSelector(selectCurrentUser);
@@ -187,6 +195,16 @@ const Orders = () => {
     return <Tag color={status.color}>{status.label}</Tag>;
   };
 
+  const handleChangeOrderStatus = async (orderId: string, newStatusId: number) => {
+    try {
+      await store.dispatch(updateOrderStatus({ id: orderId, orderStatusId: newStatusId })).unwrap();
+      message.success("Statut mis à jour");
+      store.dispatch(fetchOrders());
+    } catch (err) {
+      message.error("Erreur lors de la mise à jour du statut");
+    }
+  };
+
   return (
     <div className="admin-orders-page">
       <div className="admin-orders-page--header">
@@ -241,7 +259,20 @@ const Orders = () => {
                   <div className="order-card--id">
                     #{order.trackingId || order.id?.slice(0, 8)}
                   </div>
-                  {getStatusTag(order.orderStatusId)}
+                  {[rolesMap.admin, rolesMap.superAdmin].includes(currentUser?.roleId) ? (
+                    <Select
+                      size="small"
+                      value={order.orderStatusId}
+                      onChange={(newStatusId) => handleChangeOrderStatus(order.id, newStatusId)}
+                      style={{ minWidth: 120 }}
+                      options={STATUS_OPTIONS.filter((opt) => {
+                        if (opt.value === 6) return isB2C;
+                        return true;
+                      })}
+                    />
+                  ) : (
+                    getStatusTag(order.orderStatusId)
+                  )}
                 </div>
 
                 <div className="order-card--body">

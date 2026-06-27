@@ -6,11 +6,9 @@ import { ApiClientWithHeaders } from "../../../../../api";
 import ProvidersOrdersDataTable from "./ProvidersOrdersDataTable";
 import { store } from "../../../../../store/store";
 import { fetchOrderStatuses } from "../../../../../features/order/orderSlice";
-import { useTranslation } from "react-i18next";
 
 const ProviderInfo: React.FC<{ id: string }> = ({ id }) => {
-  const { t } = useTranslation();
-  const [provider, setProvider]: any = useState(null);
+   const [provider, setProvider]: any = useState(null);
   const token: any = localStorage.getItem("accessToken");
   const myClient = ApiClientWithHeaders(token);
 

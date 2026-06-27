@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsOptional, IsNumber, Min } from 'class-validator';
 import { UpdateOrderRecipientDTO } from './update-recipient.dto';
 import { UpdateOrderPackagesDTO } from '../../packages/dto/update-package.dto';
 import { UpdateOrderSourceDTO } from './update-source.dto';
@@ -9,54 +10,84 @@ export class UpdateOrderTransporterDto {
 }
 
 export class UpdateOrderDto {
-  @ApiProperty()
-  description: string;
+  @ApiProperty({ required: false })
+  @IsOptional()
+  description?: string;
 
-  @ApiProperty()
-  totalWeight: number;
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  totalWeight?: number;
 
-  @ApiProperty()
-  totalLength: number;
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  totalLength?: number;
 
-  @ApiProperty()
-  totalWidth: number;
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  totalWidth?: number;
 
-  @ApiProperty()
-  totalHeight: number;
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  totalHeight?: number;
 
-  @ApiProperty()
-  totalPrice: number;
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  totalPrice?: number;
 
-  @ApiProperty()
-  clientPrice: number;
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  clientPrice?: number;
 
-  @ApiProperty()
-  transporterPrice: number;
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  transporterPrice?: number;
 
-  @ApiProperty()
-  totalQuantity: number;
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  totalQuantity?: number;
 
-  @ApiProperty()
-  shipmentPrice: number;
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  shipmentPrice?: number;
 
-  @ApiProperty({ isArray: false })
-  refrences: string[];
+  @ApiProperty({ required: false })
+  @IsOptional()
+  refrences?: string[];
 
-  @ApiProperty()
-  orderStatusId: number;
+  @ApiProperty({ required: false })
+  @IsOptional()
+  orderStatusId?: number;
 
-  @ApiProperty()
-  deliveredByUserId: number;
+  @ApiProperty({ required: false })
+  @IsOptional()
+  deliveredByUserId?: number;
 
   @ApiProperty({
     type: () => UpdateOrderSourceDTO,
-    isArray: false,
+    required: false,
   })
   source?: UpdateOrderSourceDTO | undefined | any;
 
   @ApiProperty({
     type: () => UpdateOrderRecipientDTO,
-    isArray: false,
     required: false,
   })
   recipient?: UpdateOrderRecipientDTO | undefined | any;
@@ -69,7 +100,8 @@ export class UpdateOrderDto {
   packages?: UpdateOrderPackagesDTO | undefined | any;
 
   @ApiProperty({ nullable: true, required: false })
-  pods: any;
+  @IsOptional()
+  pods?: any;
 }
 export class UpdateOrderDtoRes extends UpdateOrderDto {
   @ApiProperty()

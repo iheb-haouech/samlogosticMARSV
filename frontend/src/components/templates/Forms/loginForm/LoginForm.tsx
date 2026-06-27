@@ -6,8 +6,10 @@ import Link from "antd/es/typography/Link";
 import LoginFormProps from "./LoginFormProps";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { DownloadOutlined } from "@ant-design/icons";
+import { FaGoogle } from "react-icons/fa";
 
-const LoginForm: React.FC<LoginFormProps> = ({ onLoginClick, onSubmit }) => {
+const LoginForm: React.FC<LoginFormProps> = ({ onLoginClick, onSubmit, onGoogleLogin }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [login, setLogin] = useState({ email: "", password: "" });
@@ -20,8 +22,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginClick, onSubmit }) => {
   };
   return (
     <div className='auth-form'>
-      
-
       <Title className='auth-form--title' level={3}>
         {t("Log in")}
       </Title>
@@ -45,7 +45,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginClick, onSubmit }) => {
             onChange={handleChange("email")}
             value={login.email}
             type='text'
-            
           />
         </Form.Item>
         <Form.Item
@@ -77,13 +76,33 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginClick, onSubmit }) => {
         <Button className='auth-form--submit-btn' block htmlType='submit' type='primary' shape='round' size={"large"}>
           {t("Log in")}
         </Button>
+        {onGoogleLogin && (
+          <Button
+            className='auth-form--google-btn'
+            block
+            type='default'
+            shape='round'
+            size='large'
+            onClick={onGoogleLogin}
+            style={{ marginTop: 12 }}
+            icon={<FaGoogle />}
+          >
+            {t("Continue with Google")}
+          </Button>
+        )}
+        <Typography.Text className='auth-form--text'>
+          {t("Don't have an account?")}{" "}
+          <Typography.Link className='auth-form--textLink' onClick={onLoginClick}>
+            {t("Register")}
+          </Typography.Link>
+        </Typography.Text>
+        <div style={{ textAlign: "center", marginTop: 16 }}>
+          <Typography.Link href="https://samlogistic.tn/SamLogisticApp.apk" target="_blank" rel="noopener noreferrer">
+            <DownloadOutlined style={{ marginRight: 4 }} />
+            {t("Télécharger l'application")}
+          </Typography.Link>
+        </div>
       </Form>
-      <Typography.Text className='auth-form--text'>
-        {t("Don't have an account?")}{" "}
-        <Typography.Link className='auth-form--textLink' onClick={onLoginClick}>
-          {t("Register")}
-        </Typography.Link>
-      </Typography.Text>
     </div>
   );
 };

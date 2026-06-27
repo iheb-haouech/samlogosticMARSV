@@ -1,6 +1,6 @@
 //src/auth/auth.controller.ts
 
-import { Body, Controller, Get, Post, UseGuards, HttpException, Req } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards, HttpException, Req, Res, Query } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import {
@@ -48,6 +48,50 @@ register(@Body() user: UserDTO): Promise<ResponseDto> {
   @Body() body: { email: string; code: string },): Promise<any> {
   return this.authService.verifyEmail(body);
 }
+
+  @Get('google')
+  async googleLogin(@Req() req: any, @Res() res: any) {
+    if (!process.env.GOOGLE_CLIENT_ID) {
+      throw new HttpException('Google login is not configured', 500);
+    }
+
+    const frontendUrl = process.env.FRONTEND_URL || 'https://samlogistic.tn';
+    const callbackUrl =
+      process.env.GOOGLE_CALLBACK_URL || `${req.protocol}://${req.get('host')}/auth/google/callback`;
+
+    const authUrl =
+      'https://accounts.google.com/o/oauth2/v2/auth?' +
+      new URLSearchParams({
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        redirect_uri: callbackUrl,
+        response_type: 'code',
+        scope: 'email profile',
+        access_type: 'offline',
+        prompt: 'consent',
+      }).toString();
+
+    res.redirect(authUrl);
+  }
+
+  @Get('google/callback')
+  async googleCallback(@Req() req: any, @Res() res: any, @Query() query: any) {
+    if (!query.code) {
+      throw new HttpException('Missing Google authorization code', 400);
+    }
+
+    const callbackUrl =
+      process.env.GOOGLE_CALLBACK_URL || `${req.protocol}://${req.get('host')}/auth/google/callback`;
+    const frontendUrl = process.env.FRONTEND_URL || 'https://samlogistic.tn';
+    const result = await this.authService.loginWithGoogle(query.code, callbackUrl);
+    const returnUrl = `${frontendUrl}/login`;
+    const params = new URLSearchParams({
+      google_access_token: result.accessToken,
+      google_refresh_token: result.refreshToken,
+      google_user: JSON.stringify(result.user),
+    });
+
+    res.redirect(`${returnUrl}?${params.toString()}`);
+  }
 
   @Post('refresh-token')
   @ApiBearerAuth()

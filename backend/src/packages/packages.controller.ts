@@ -14,7 +14,6 @@ import { CreatePackageDto } from './dto/create-package.dto';
 import { ResponseDto } from '../utils/response.dto';
 import { UpdateOrderPackagesDTO } from './dto/update-package.dto';
 import { Roles } from '../auth/roles.decorator';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RoleGuard } from '../auth/role.guard';
 import { USERROLES } from '../utils/enum';
 import {
@@ -25,10 +24,19 @@ import {
 @Controller('packages')
 @ApiTags('orders_packages')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RoleGuard)
-@Roles(USERROLES?.user?.id)
+@UseGuards(RoleGuard)
 export class PackagesController {
   constructor(private readonly packagesService: PackagesService) {}
+
+  @Get()
+  @Roles(USERROLES.user.id)
+  @ApiOkResponse({
+    description: 'Get all packages response',
+    type: AllPackagesResponseDTO,
+  })
+  findAll() {
+    return this.packagesService.findAll();
+  }
 
   @Post()
   @ApiOkResponse({
@@ -37,15 +45,6 @@ export class PackagesController {
   })
   create(@Body() createPackageDto: CreatePackageDto) {
     return this.packagesService.create(createPackageDto);
-  }
-
-  @Get()
-  @ApiOkResponse({
-    description: 'Get all packages response',
-    type: AllPackagesResponseDTO,
-  })
-  findAll() {
-    return this.packagesService.findAll();
   }
 
   @Get(':id')

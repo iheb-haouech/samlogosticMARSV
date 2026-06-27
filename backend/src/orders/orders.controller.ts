@@ -1,5 +1,5 @@
-import { HttpService } from "@nestjs/axios"; // à ajouter en haut si pas encore
-import { firstValueFrom } from "rxjs";       // idem
+import { HttpService } from "@nestjs/axios";
+import { firstValueFrom } from "rxjs";
 import {
   Controller,
   Get,
@@ -36,35 +36,35 @@ import { PdfGeneratorService } from "../pdf-generator/pdf-generator.service";
 export class OrdersController {
   constructor(
     private readonly ordersService: OrdersService,
-    private readonly httpService: HttpService, // 👈 ajoute ça
-    private readonly pdfGeneratorService: PdfGeneratorService, // 👈 AJOUTER
-
+    private readonly httpService: HttpService,
+    private readonly pdfGeneratorService: PdfGeneratorService,
   ) {}
   @Post(":id/invoice-trigger")
-async triggerInvoice(@Param("id") id: string) {
-  const order = await this.ordersService.findOne(id);
+  @ApiBearerAuth()
+  @UseGuards(RoleGuard)
+  @Roles(USERROLES.admin.id, USERROLES.superadmin.id)
+  async triggerInvoice(@Param("id") id: string) {
+    const order = await this.ordersService.findOne(id);
 
-  // TODO: adapter quand on connaîtra exactement les champs
-  const payload = {
-    orderId: order.id,
-    trackingId: order.trackingId,
-    customerEmail: order.recipient?.email,
-    customerName: order.recipient?.companyName,
-  };
+    const payload = {
+      orderId: order.id,
+      trackingId: order.trackingId,
+      customerEmail: order.recipient?.email,
+      customerName: order.recipient?.companyName,
+    };
 
-  // 👉 remplace l’URL par celle que n8n te donnera (Webhook URL)
-  const n8nUrl = "https://TON_N8N_URL/webhook/invoice-trigger";
+    const n8nUrl = "https://TON_N8N_URL/webhook/invoice-trigger";
 
-  await firstValueFrom(this.httpService.post(n8nUrl, payload));
+    await firstValueFrom(this.httpService.post(n8nUrl, payload));
 
-  return { success: true };
-}
+    return { success: true };
+  }
   @Post('/create-order')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles(USERROLES?.user?.id, USERROLES?.admin?.id, USERROLES?.superadmin?.id)
+  @UseGuards(RoleGuard)
+  @Roles(USERROLES.user.id, USERROLES.admin.id, USERROLES.superadmin.id)
   @ApiOkResponse({
-    description: 'Update order response',
+    description: 'Create order response',
     type: OrderDtoResponse,
   })
   create(
@@ -76,8 +76,8 @@ async triggerInvoice(@Param("id") id: string) {
 
   @Get('/all-orders')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles(USERROLES?.user?.id, USERROLES?.admin?.id, USERROLES?.transporter?.id,)
+  @UseGuards(RoleGuard)
+  @Roles(USERROLES.user.id, USERROLES.admin.id, USERROLES.transporter.id)
   @ApiOkResponse({
     description: 'Get all orders response',
     type: AllOrderDtoResponse,
@@ -100,9 +100,8 @@ async triggerInvoice(@Param("id") id: string) {
 
   @Get('/order-details/:id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles(USERROLES?.user?.id, USERROLES?.admin?.id,
-  USERROLES?.transporter?.id,)
+  @UseGuards(RoleGuard)
+  @Roles(USERROLES.user.id, USERROLES.admin.id, USERROLES.transporter.id)
   @ApiOkResponse({
     description: 'Get order details response',
     type: OrderDtoResponse,
@@ -112,6 +111,9 @@ async triggerInvoice(@Param("id") id: string) {
   }
 
   @Get('/order-status-details/:id')
+  @ApiBearerAuth()
+  @UseGuards(RoleGuard)
+  @Roles(USERROLES.user.id, USERROLES.admin.id, USERROLES.transporter.id)
   @ApiOkResponse({
     description: 'Get order details response',
     type: OrderDtoResponse,
@@ -122,8 +124,8 @@ async triggerInvoice(@Param("id") id: string) {
 
   @Patch('/update-order/:id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles(USERROLES?.user?.id, USERROLES?.admin?.id)
+  @UseGuards(RoleGuard)
+  @Roles(USERROLES.user.id, USERROLES.admin.id)
   @ApiOkResponse({
     description: 'Update order response',
     type: OrderDtoResponse,
@@ -134,8 +136,8 @@ async triggerInvoice(@Param("id") id: string) {
 
   @Patch('/update-order-transporter/:id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles(USERROLES?.user?.id, USERROLES?.admin?.id)
+  @UseGuards(RoleGuard)
+  @Roles(USERROLES.user.id, USERROLES.admin.id)
   @ApiOkResponse({
     description: 'Update order response',
     type: OrderDtoResponse,
@@ -147,22 +149,22 @@ async triggerInvoice(@Param("id") id: string) {
     return this.ordersService.updateOrderTransporter(id, updateOrderDto);
   }
   @Patch(':id/payment')
-  @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles(USERROLES?.admin?.id)
+  @UseGuards(RoleGuard)
+  @Roles(USERROLES.admin.id)
   async togglePayment(@Param('id') id: string, @Body() dto: { amount: number }) {
     return this.ordersService.togglePaymentRequired(id, dto);
   }
 
   @Patch(':id/paid')
-  @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles(USERROLES?.admin?.id)
+  @UseGuards(RoleGuard)
+  @Roles(USERROLES.admin.id)
   async markPaid(@Param('id') id: string) {
     return this.ordersService.markPaid(id);
   }
   @Patch('/update-order-status/:id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles(USERROLES?.user?.id, USERROLES?.admin?.id, USERROLES?.transporter?.id)
+  @UseGuards(RoleGuard)
+  @Roles(USERROLES.user.id, USERROLES.admin.id, USERROLES.transporter.id)
   @ApiOkResponse({
     description: 'Update order response',
     type: OrderDtoResponse,
@@ -177,10 +179,10 @@ async triggerInvoice(@Param("id") id: string) {
 
   @Delete('/delete-order/:id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles(USERROLES?.user?.id, USERROLES?.admin?.id)
+  @UseGuards(RoleGuard)
+  @Roles(USERROLES.user.id, USERROLES.admin.id)
   @ApiOkResponse({
-    description: 'Update order response',
+    description: 'Delete order response',
     type: ResponseDto,
   })
   remove(@Param('id') id: string) {

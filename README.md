@@ -65,14 +65,17 @@ Change the GitHub project secrets in: https://github.com/iheb-haouech/samlogosti
 ```bash
 DOCKER_USERNAME: docker account username
 DOCKER_PASSWORD: docker account password
-FRONTEND_URL: Frontend server URL (http://212.227.76.200:3000)
-BACKEND_URL: Frontend server URL (http://212.227.76.200:6001)
+FRONTEND_URL: Frontend server URL (https://samlogistic.tn)
+BACKEND_URL: Backend server URL (https://api.samlogistic.tn)
 HOST: Server IP address (212.227.76.200)
 HOST_PASSWORD: Server user password
 HOST_PORT: Server SSH port (22)
 HOST_USERNAME: Server username (root)
 JWT_REFRESH_SECRET: Used key to generate JWT token
 JWT_SECRET: Used key to generate JWT token
+GOOGLE_CLIENT_ID: Google OAuth client ID
+GOOGLE_CLIENT_SECRET: Google OAuth client secret
+GOOGLE_CALLBACK_URL: https://api.samlogistic.tn/auth/google/callback
 # [Brevo SMTP server info](https://app.brevo.com/settings/keys/smtp)
 MAIL_FROM: Email source
 MAIL_HOST: Brevo SMTP Server (smtp-relay.brevo.com)
@@ -83,7 +86,7 @@ POSTGRES_DB: PostgreSQL Database name
 POSTGRES_HOST: PostgreSQL Server host (postgres or server IP address)
 POSTGRES_PASSWORD: PostgreSQL Database password
 POSTGRES_USER: PostgreSQL user
-VITE_BASE_URL: Backend Server IP address (http://212.227.76.200:6001)
+VITE_BASE_URL: Backend Server URL (https://api.samlogistic.tn)
 EXPO_TOKEN: expo token (https://expo.dev/accounts/iheb-haouech/settings/access-tokens)
 ```
 
@@ -91,14 +94,9 @@ EXPO_TOKEN: expo token (https://expo.dev/accounts/iheb-haouech/settings/access-t
 
 | Action | Protocole | Port (ou plage) | Source | Détail de la source |
 | ------ | --------- | --------------- | ------ | ------------------- |
-| accept | SSH       | 22              | any    | any                 |
-| accept | TCP       | 3000            | any    | any                 |
-| accept | TCP       | 6001            | any    | any                 |
-| accept | TCP       | 5432            | any    | any                 |
-| accept | TCP       | 8080            | any    | any                 |
-| accept | TCP       | 80              | any    | any                 |
-| accept | TCP       | 465             | any    | any                 |
-| accept | TCP       | 587             | any    | any                 |
+| accept | SSH       | 22  | any | any                 |
+| accept | TCP       | 80  | any | any                 |
+| accept | TCP       | 443 | any | any                 |
 
 ### 2. Run pipeline
 
@@ -139,7 +137,7 @@ server {
     server_name api.samlogistic.tn;
 
     location / {
-        proxy_pass http://212.227.76.200:6001;
+        proxy_pass http://127.0.0.1:6001;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';

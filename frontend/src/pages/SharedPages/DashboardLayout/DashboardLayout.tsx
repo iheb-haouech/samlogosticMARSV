@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from "react";
 import { Layout, Drawer } from "antd";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import NavBar from "../../../components/organisms/NavBar/NavBar";
@@ -6,7 +5,7 @@ import SideMenu from "../../../components/organisms/SideMenu/SideMenu";
 import colors from "../../../styles/colors/colors";
 import { useSelector } from "react-redux";
 import { selectCurrentUser, setCurrentUser } from "../../../features/user/userSlice";
-import { MdOutlineSpaceDashboard } from "react-icons/md";
+import { MdOutlineSpaceDashboard, MdOutlineAddCircle } from "react-icons/md";
 import { FiShoppingCart } from "react-icons/fi";
 import { AiOutlineCustomerService } from "react-icons/ai";
 import { FaRegUser } from "react-icons/fa";
@@ -22,6 +21,7 @@ import { useTranslation } from "react-i18next";
 import { selectedStatistic } from "../../../features/statistics/statisticsSlice";
 import { store } from "../../../store/store";
 import { rolesMap } from "../../../types/Roles";
+import { useState, useEffect } from "react";
 
 const { Content } = Layout;
 
@@ -57,10 +57,14 @@ const DashboardLayout: React.FC = () => {
   const isSuperAdmin: boolean = currentUser?.roleId === rolesMap.superAdmin;
   const isAdmin: boolean = currentUser?.roleId === rolesMap.admin;
   const isTransporter: boolean = currentUser?.roleId === rolesMap.transporter;
+  const isB2C = currentUser?.accountType === "B2C";
 
   const userMenuItems = [
     { key: "/user/dashboard", label: t("dashboard"), icon: <MdOutlineSpaceDashboard /> },
     { key: "/user/orders", label: t("ordersList"), icon: <FiShoppingCart /> },
+    ...(isB2C
+      ? [{ key: "/user/create-order", label: "Créer une commande", icon: <MdOutlineAddCircle /> }]
+      : []),
     {
       key: "/user/complaints",
       label: t("complaints"),
@@ -69,6 +73,7 @@ const DashboardLayout: React.FC = () => {
     },
     { key: "/user/track-orders", label: t("TrackingOrders"), icon: <AimOutlined /> },
   ];
+
   const transporterMenuItems = [
     { key: "/transporter/dashboard", label: t("dashboard"), icon: <MdOutlineSpaceDashboard /> },
     { key: "/transporter/orders", label: t("ordersList"), icon: <FiShoppingCart /> },
