@@ -38,18 +38,26 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x frontend/android/gradlew
 
-      - name: Build APK
+      - name: Generate self-signed keystore
         run: |
-          cd frontend
-          npx cap sync android
-          cd android
-          ./gradlew assembleRelease
+          keytool -genkeypair -v -keystore frontend/android/app/release-key.jks \
+            -alias sam-logistic-key -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass ${{ secrets.KEYSTORE_PASSWORD || 'samlogistic123' }} \
+            -keypass ${{ secrets.KEY_PASSWORD || 'samlogistic123' }} \
+            -dname "CN=SAM LOGISTIC, OU=Dev, O=SAM, L=Tunis, S=Tunisia, C=TN" \
+            -storetype JKS
 
-      - name: List APK files
-        run: find frontend/android -name "*.apk" -type f
+      - name: Build Signed APK
+        run: |
+          cd frontend/android
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file=$(pwd)/app/release-key.jks \
+            -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD || 'samlogistic123' }} \
+            -Pandroid.injected.signing.key.alias=sam-logistic-key \
+            -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD || 'samlogistic123' }}
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-release
+          name: SamLogisticApp-signed.apk
           path: frontend/android/app/build/outputs/apk/release/*.apk
