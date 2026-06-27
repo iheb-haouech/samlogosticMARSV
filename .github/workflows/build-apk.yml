@@ -21,10 +21,10 @@ jobs:
           cd frontend
           npm ci
 
-      - name: Build web assets
+      - name: Build web assets (Production)
         run: |
           cd frontend
-          npm run build
+          VITE_BASE_URL=https://api.samlogistic.tn npm run build
 
       - name: Setup Java 22
         uses: actions/setup-java@v4
