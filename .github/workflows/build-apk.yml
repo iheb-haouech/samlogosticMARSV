@@ -45,8 +45,11 @@ jobs:
           cd android
           ./gradlew assembleRelease
 
+      - name: List APK files
+        run: find frontend/android -name "*.apk" -type f
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-release.apk
-          path: frontend/android/app/build/outputs/apk/release/app-release.apk
+          name: app-release
+          path: frontend/android/app/build/outputs/apk/release/*.apk
