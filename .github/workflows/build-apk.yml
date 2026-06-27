@@ -38,15 +38,21 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x frontend/android/gradlew
 
-      - name: Build Unsigned APK
+      - name: Generate self-signed keystore
         run: |
-          cd frontend
-          npx cap sync android
-          cd android
-          ./gradlew assembleRelease
+          keytool -genkeypair -v -keystore frontend/android/app/release-key.jks \
+            -alias sam-logistic-key -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass samlogistic123 \
+            -keypass samlogistic123 \
+            -dname "CN=SAM LOGISTIC, OU=Dev, O=SAM, L=Tunis, S=Tunisia, C=TN" \
+            -storetype JKS
+
+      - name: Build Signed APK
+        working-directory: ./frontend/android
+        run: ./gradlew assembleRelease
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-unsigned.apk
+          name: SamLogisticApp-signed.apk
           path: frontend/android/app/build/outputs/apk/release/*.apk

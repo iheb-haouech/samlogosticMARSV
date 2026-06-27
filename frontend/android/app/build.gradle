@@ -19,9 +19,9 @@ android {
     signingConfigs {
         release {
             storeFile file("release-key.jks")
-            storePassword System.getenv("KEYSTORE_PASSWORD") ?: "samlogistic123"
+            storePassword "samlogistic123"
             keyAlias "sam-logistic-key"
-            keyPassword System.getenv("KEY_PASSWORD") ?: "samlogistic123"
+            keyPassword "samlogistic123"
         }
     }
     buildTypes {
@@ -55,12 +55,3 @@ dependencies {
 }
 
 apply from: 'capacitor.build.gradle'
-
-try {
-    def servicesJSON = file('google-services.json')
-    if (servicesJSON.text) {
-        apply plugin: 'com.google.gms.google-services'
-    }
-} catch(Exception e) {
-    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
-}
