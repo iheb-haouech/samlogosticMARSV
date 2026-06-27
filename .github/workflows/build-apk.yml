@@ -35,11 +35,28 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Make Gradle executable
+      - name: Prepare Android project
         run: |
           chmod +x frontend/android/gradlew
-          mkdir -p frontend/android/capacitor-cordova-android-plugins
-          echo '// Cordova variables placeholder' > frontend/android/capacitor-cordova-android-plugins/cordova.variables.gradle
+          mkdir -p frontend/android/capacitor-cordova-android-plugins/src/main/libs
+          cat > frontend/android/capacitor-cordova-android-plugins/build.gradle << 'EOF'
+apply plugin: 'com.android.library'
+android {
+    compileSdk = rootProject.ext.compileSdkVersion
+    namespace = "com.getcapacitor.cordova"
+    defaultConfig {
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+    }
+    buildTypes { release { minifyEnabled false } }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_22
+        targetCompatibility JavaVersion.VERSION_22
+    }
+}
+repositories { google(); mavenCentral() }
+dependencies { implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion" }
+EOF
 
       - name: Generate self-signed keystore
         run: |
