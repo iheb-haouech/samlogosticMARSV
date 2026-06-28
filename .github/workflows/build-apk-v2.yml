@@ -1,0 +1,60 @@
+# Modified workflow to force rebuild
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm ci
+        env:
+          VITE_BASE_URL: https://api.samlogistic.tn
+
+      - name: Build web assets
+        run: |
+          cd frontend
+          npm run build
+        env:
+          VITE_BASE_URL: https://api.samlogistic.tn
+
+      - name: Setup Java 22
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: 34
+
+      - name: Make Gradle executable
+        run: chmod +x frontend/android/gradlew
+
+      - name: Generate keystore
+        run: |
+          keytool -genkeypair -v -keystore frontend/android/app/release-key.jks \
+            -alias sam-logistic-key -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass samlogistic123 \
+            -keypass samlogistic123 \
+            -dname "CN=SAM LOGISTIC, OU=Dev, O=SAM, L=Tunis, S=Tunisia, C=TN" \
+            -storetype JKS
+
+      - name: Build Signed APK
+        working-directory: ./frontend/android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SamLogisticApp.apk
+          path: frontend/android/app/build/outputs/apk/release/*.apk
