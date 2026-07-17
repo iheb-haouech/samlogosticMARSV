@@ -1,116 +1,233 @@
-"use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-var client_1 = require("@prisma/client");
-var user_role_seed_1 = require("./seeds/user-role.seed");
-var company_type_seed_1 = require("./seeds/company-type.seed");
-var order_statuses_seed_1 = require("./seeds/order-statuses.seed");
-var car_types_seed_1 = require("./seeds/car-types.seed");
-var user_seed_1 = require("./seeds/user.seed");
-var claim_statuses_seed_1 = require("./seeds/claim-statuses.seed");
-var company_activity_seed_1 = require("./seeds/company-activity.seed");
-var order_prices_status_seed_1 = require("./seeds/order-prices-status.seed");
-// initialize Prisma Client
-var prisma = new client_1.PrismaClient();
-function main() {
-    return __awaiter(this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: 
-                // INIT ROLES
-                return [4 /*yield*/, (0, user_role_seed_1.InitUserRoles)(prisma)];
-                case 1:
-                    // INIT ROLES
-                    _a.sent();
-                    // INIT COmpany types and activities
-                    return [4 /*yield*/, (0, company_type_seed_1.InitCompanyTypes)(prisma)];
-                case 2:
-                    // INIT COmpany types and activities
-                    _a.sent();
-                    return [4 /*yield*/, (0, company_activity_seed_1.InitCompanyActivities)(prisma)];
-                case 3:
-                    _a.sent();
-                    // INIT car types
-                    return [4 /*yield*/, (0, car_types_seed_1.InitCarTypes)(prisma)];
-                case 4:
-                    // INIT car types
-                    _a.sent();
-                    // INIT order statuses
-                    return [4 /*yield*/, (0, order_statuses_seed_1.InitOrderStatuses)(prisma)];
-                case 5:
-                    // INIT order statuses
-                    _a.sent();
-                    // INIT order Prices statuses
-                    return [4 /*yield*/, (0, order_prices_status_seed_1.IniOrderPricesStatuses)(prisma)];
-                case 6:
-                    // INIT order Prices statuses
-                    _a.sent();
-                    //INIT Users
-                    return [4 /*yield*/, (0, user_seed_1.InitUsers)(prisma)];
-                case 7:
-                    //INIT Users
-                    _a.sent();
-                    // INIT claim statuses
-                    return [4 /*yield*/, (0, claim_statuses_seed_1.InitClaimStatuses)(prisma)];
-                case 8:
-                    // INIT claim statuses
-                    _a.sent();
-                    return [2 /*return*/];
-            }
-        });
-    });
+const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
+const prisma = new PrismaClient();
+
+async function main() {
+  await prisma.user_role.upsert({
+    where: { id: 1 },
+    update: {},
+    create: { id: 1, roleName: 'ADMIN' },
+  });
+  await prisma.user_role.upsert({
+    where: { id: 2 },
+    update: {},
+    create: { id: 2, roleName: 'TRANSPORTER' },
+  });
+  await prisma.user_role.upsert({
+    where: { id: 3 },
+    update: {},
+    create: { id: 3, roleName: 'CLIENT' },
+  });
+  await prisma.user_role.upsert({
+    where: { id: 4 },
+    update: {},
+    create: { id: 4, roleName: 'SUPERADMIN' },
+  });
+
+  await prisma.company_type.upsert({
+    where: { id: 1 },
+    update: {},
+    create: { id: 1, typeName: 'Mise a la consommation' },
+  });
+  await prisma.company_type.upsert({
+    where: { id: 2 },
+    update: {},
+    create: { id: 2, typeName: 'Totalement exportatrice' },
+  });
+  await prisma.company_type.upsert({
+    where: { id: 3 },
+    update: {},
+    create: { id: 3, typeName: 'Partiellement exportatrice' },
+  });
+  await prisma.company_type.upsert({
+    where: { id: 4 },
+    update: {},
+    create: { id: 4, typeName: 'Autre' },
+  });
+
+  await prisma.company_activity.upsert({
+    where: { id: 1 },
+    update: {},
+    create: { id: 1, typeName: 'Industries agro-alimentaires' },
+  });
+  await prisma.company_activity.upsert({
+    where: { id: 2 },
+    update: {},
+    create: { id: 2, typeName: 'Industries des matériaux de construction céramique et verre' },
+  });
+  await prisma.company_activity.upsert({
+    where: { id: 3 },
+    update: {},
+    create: { id: 3, typeName: 'Industries mécaniques et métallurgiques' },
+  });
+  await prisma.company_activity.upsert({
+    where: { id: 4 },
+    update: {},
+    create: { id: 4, typeName: "Industries électriques, électroniques et de l'électroménager" },
+  });
+  await prisma.company_activity.upsert({
+    where: { id: 5 },
+    update: {},
+    create: { id: 5, typeName: 'Industries chimiques' },
+  });
+  await prisma.company_activity.upsert({
+    where: { id: 6 },
+    update: {},
+    create: { id: 6, typeName: 'Industries textiles et habillement' },
+  });
+  await prisma.company_activity.upsert({
+    where: { id: 7 },
+    update: {},
+    create: { id: 7, typeName: "Industries du bois, du liège et de l'ameublement" },
+  });
+  await prisma.company_activity.upsert({
+    where: { id: 8 },
+    update: {},
+    create: { id: 8, typeName: 'Industries du cuir et de la chaussure' },
+  });
+  await prisma.company_activity.upsert({
+    where: { id: 9 },
+    update: {},
+    create: { id: 9, typeName: 'Industries diverses' },
+  });
+  await prisma.company_activity.upsert({
+    where: { id: 10 },
+    update: {},
+    create: { id: 10, typeName: 'Autre' },
+  });
+
+  await prisma.order_status.upsert({
+    where: { id: 1 },
+    update: {},
+    create: { id: 1, statusName: 'En attente' },
+  });
+  await prisma.order_status.upsert({
+    where: { id: 2 },
+    update: {},
+    create: { id: 2, statusName: 'En cours chargement' },
+  });
+  await prisma.order_status.upsert({
+    where: { id: 3 },
+    update: {},
+    create: { id: 3, statusName: 'En transit' },
+  });
+  await prisma.order_status.upsert({
+    where: { id: 4 },
+    update: {},
+    create: { id: 4, statusName: 'Livré' },
+  });
+  await prisma.order_status.upsert({
+    where: { id: 5 },
+    update: {},
+    create: { id: 5, statusName: 'Annulé' },
+  });
+
+  await prisma.car_type.upsert({
+    where: { id: 1 },
+    update: {},
+    create: { id: 1, typeName: 'Voiture' },
+  });
+  await prisma.car_type.upsert({
+    where: { id: 2 },
+    update: {},
+    create: { id: 2, typeName: 'Camion' },
+  });
+  await prisma.car_type.upsert({
+    where: { id: 3 },
+    update: {},
+    create: { id: 3, typeName: 'Moto' },
+  });
+
+  await prisma.order_prices_status.upsert({
+    where: { id: 1 },
+    update: {},
+    create: { id: 1, statusName: 'En attente' },
+  });
+  await prisma.order_prices_status.upsert({
+    where: { id: 2 },
+    update: {},
+    create: { id: 2, statusName: 'Accepté' },
+  });
+  await prisma.order_prices_status.upsert({
+    where: { id: 3 },
+    update: {},
+    create: { id: 3, statusName: 'Refusé' },
+  });
+
+  await prisma.claim_status.upsert({
+    where: { id: 1 },
+    update: {},
+    create: { id: 1, statusName: 'En attente' },
+  });
+  await prisma.claim_status.upsert({
+    where: { id: 2 },
+    update: {},
+    create: { id: 2, statusName: 'En cours' },
+  });
+  await prisma.claim_status.upsert({
+    where: { id: 3 },
+    update: {},
+    create: { id: 3, statusName: 'Résolu' },
+  });
+  await prisma.claim_status.upsert({
+    where: { id: 4 },
+    update: {},
+    create: { id: 4, statusName: 'Fermé' },
+  });
+
+  const superadminPassword = '$2b$10$oy6AUJUUUA5WPrDDIttb6ux1vzDI.1vNFX7kCz5cbCQgsDdEwq.ru';
+  const adminPassword = '$2b$10$oy6AUJUUUA5WPrDDIttb6ux1vzDI.1vNFX7kCz5cbCQgsDdEwq.ru';
+
+  await prisma.user.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      id: 1,
+      firstName: 'Super',
+      lastName: 'Admin',
+      email: 'superadmin@samlogistic.tn',
+      password: superadminPassword,
+      roleId: 4,
+      verified: true,
+      phone: '',
+      companyName: 'SAM LOGISTIC',
+      city: 'Tunis',
+      country: 'Tunisie',
+      address: 'Tunisie',
+      websiteUrl: 'https://samlogistic.tn/',
+      zipCode: '10000',
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { id: 2 },
+    update: {},
+    create: {
+      id: 2,
+      firstName: 'Admin',
+      lastName: 'User',
+      email: 'arbifadhli@samlogistic.tn',
+      password: adminPassword,
+      roleId: 1,
+      verified: true,
+      phone: '',
+      companyName: 'SAM LOGISTIC',
+      city: 'Tunis',
+      country: 'Tunisie',
+      address: 'Tunisie',
+      websiteUrl: 'https://samlogistic.tn/',
+      zipCode: '10000',
+    },
+  });
+
+  console.log('Seed completed successfully');
 }
-// execute the main function
+
 main()
-    .catch(function (e) {
+  .catch((e) => {
     console.error(e);
     process.exit(1);
-})
-    .finally(function () { return __awaiter(void 0, void 0, void 0, function () {
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: 
-            // close Prisma Client at the end
-            return [4 /*yield*/, prisma.$disconnect()];
-            case 1:
-                // close Prisma Client at the end
-                _a.sent();
-                return [2 /*return*/];
-        }
-    });
-}); });
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
