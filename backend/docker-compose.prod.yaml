@@ -17,3 +17,9 @@ services:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: ${PORT:-6001}
     command: ["sh", "./scripts/run_app_prod.sh"]
+    networks:
+      - app_default
+
+networks:
+  app_default:
+    external: true
