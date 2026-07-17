@@ -24,8 +24,7 @@ npx prisma db seed
 if [ $? -eq 0 ]; then
   echo "===========> Database seeding successful."
 else
-  echo "-----> Database seeding failed. Exiting."
-  exit 1
+  echo "-----> Database seeding failed. Continuing without seed..."
 fi
 
 # Sleep for a few seconds
