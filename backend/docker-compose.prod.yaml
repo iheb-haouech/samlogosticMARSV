@@ -16,4 +16,10 @@ services:
       JWT_REFRESH_EXPIRES: ${JWT_REFRESH_EXPIRES:-7d}
       NODE_ENV: ${NODE_ENV:-production}
       PORT: ${PORT:-6001}
-    command: ["./scripts/run_app_prod.sh"]
+    command: ["sh", "./scripts/run_app_prod.sh"]
+    networks:
+      - app_default
+
+networks:
+  app_default:
+    external: true
