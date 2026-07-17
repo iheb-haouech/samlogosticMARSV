@@ -21,7 +21,7 @@ FROM node:18-alpine
 WORKDIR /app
 
 # Install OpenSSL for Prisma schema engine
-RUN apk add --no-cache openssl libcrypto
+RUN apk add --no-cache openssl
 
 # Copy package files for runtime scripts (migrations, seeding)
 COPY --from=builder /tmp/app/package.json ./package.json
