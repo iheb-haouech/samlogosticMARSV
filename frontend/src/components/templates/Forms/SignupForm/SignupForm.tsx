@@ -1,22 +1,22 @@
 import { useEffect, useState } from "react";
 import SignupFormProps from "./SignupFormProps";
-import { Button, Flex, Form, Input, Radio, Row, Select, Typography } from "antd";
-import "./AuthForm.scss";
-import Title from "antd/es/typography/Title";
+import { Button, Col, Form, Input, Radio, Row, Select, Typography } from "antd";
 import { UserDTO } from "../../../../api/myApi";
 import { useTranslation } from "react-i18next";
 import { apiClient } from "../../../../api";
 import { useForm } from "antd/es/form/Form";
 import { countriesList } from "../../../../staticData/countries";
 import { PhoneCodesList } from "../../../../staticData/phone-codes";
-import { BRAND_LOGO, BRAND_NAME } from "../../../../constants/branding";
+import "./AuthForm.scss";
 
 const SignupForm: React.FC<SignupFormProps> = ({ onSignInClick, onSubmit }) => {
   const { t } = useTranslation();
+  const [form] = useForm();
+
   const initialState: UserDTO | any = {
     phone: "",
     email: "",
-    password: "", //TODO
+    password: "",
     companyName: "",
     city: "Tunis",
     country: "Tunisia",
@@ -26,16 +26,14 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignInClick, onSubmit }) => {
     companyTypeId: 1,
     companyActivityId: null,
     accountType: "B2B",
-    // roleId: 3,
     zipCode: "",
-    firstName: "", // Add firstName
-    lastName: "", // Add lastName
-    phoneCountryCode: "216", // Default country code for Tunisia
+    firstName: "", 
+    lastName: "", 
+    phoneCountryCode: "216", 
   };
 
-  const [form] = useForm();
   const [newUser, setNewUser] = useState(initialState);
-  const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [, setConfirmPassword] = useState<string>("");
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [companyTypeOptions, setCompanyTypeOptions] = useState<any[]>([]);
   const [companyActivitiesOptions, setCompanyActivitiesOptions] = useState<any[]>([]);
@@ -44,19 +42,15 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignInClick, onSubmit }) => {
   const [cityOptions, setCityOptions] = useState<any>(countriesList["Tunisia"]);
   const [countryCodeOptions, setCountryCodeOptions] = useState<{ key: string; value: string; label: string }[]>([]);
 
-  // State to manage the selected role
-
   useEffect(() => {
-    // Populate country options dynamically
     const countryList = Object.keys(countriesList)?.map((country: any) => ({
       value: country,
       label: country,
     }));
     setCountryOptions(countryList);
 
-    // Populate country code options with unique keys
     const codeList = PhoneCodesList?.map((item, index) => ({
-      key: `${item?.country}-${item?.code}-${index}`, // Ensure unique keys by including the index
+      key: `${item?.country}-${item?.code}-${index}`,
       value: item?.code,
       label: `${item?.country} (${item?.code})`,
     }));
@@ -70,20 +64,19 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignInClick, onSubmit }) => {
         const companyTypeOptionsRes = await apiClient.companyTypes.appControllerGetAllCompanyTypes();
         const responseData: any = companyTypeOptionsRes.data;
         const types = responseData?.company_types || [];
-        // trier par ordre alphabétique ou selon ton ordre custom
+        
         const order = [
-              "Mise a la consommation",
-              "Totalement exportatrice",
-              "Partiellement exportatrice",
-              "Autre",
-            ];
+          "Mise a la consommation",
+          "Totalement exportatrice",
+          "Partiellement exportatrice",
+          "Autre",
+        ];
 
-            const sortedTypes = types.sort(
-              (a: { typeName: string; }, b: { typeName: string; }) => order.indexOf(a.typeName) - order.indexOf(b.typeName)
-            );
+        const sortedTypes = types.sort(
+          (a: { typeName: string; }, b: { typeName: string; }) => order.indexOf(a.typeName) - order.indexOf(b.typeName)
+        );
 
-            setCompanyTypeOptions(sortedTypes);
-
+        setCompanyTypeOptions(sortedTypes);
       } catch (error) {
         console.error("Error fetching options:", error);
       } finally {
@@ -108,20 +101,17 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignInClick, onSubmit }) => {
   }, []);
 
   const handleSubmit = () => {
-    const updatedUser = { ...newUser };
-    onSubmit(updatedUser);
+    onSubmit({ ...newUser });
   };
 
   const handleChange = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
     setNewUser({ ...newUser, [field]: event.target.value });
     if (field === "password") {
-      form.validateFields(["confirmPassword"]); // Re-validate confirm password when password changes
+      form.validateFields(["confirmPassword"]);
     }
   };
 
   const handleSelectChange = (field: string) => (value: any) => {
-    setNewUser({ ...newUser, [field]: value });
-
     if (field === "accountType") {
       const b2cDefaults =
         value === "B2C"
@@ -134,123 +124,84 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignInClick, onSubmit }) => {
           : {};
 
       setNewUser((prev: any) => ({ ...prev, accountType: value, ...b2cDefaults }));
-      if (value === "B2C") {
-        form.setFieldsValue(b2cDefaults);
-      }
+      form.setFieldsValue(b2cDefaults);
       return;
     }
 
+    setNewUser({ ...newUser, [field]: value });
+
     if (field === "country") {
       const newCities = countriesList[value] || [];
-      setCityOptions(newCities); // Update the city options based on the selected country
-      form.setFieldsValue({ city: newCities[0] || "" }); // Update the city field with the first city or empty string
-      setNewUser((prev: any) => ({ ...prev, city: newCities[0] || "" })); // Reset the city value to the first city
+      setCityOptions(newCities); 
+      form.setFieldsValue({ city: newCities[0] || "" }); 
+      setNewUser((prev: any) => ({ ...prev, city: newCities[0] || "" }));
     }
-
-    if (field === "phoneCountryCode") {
-      // Update the country code
-      setNewUser((prev: any) => ({ ...prev, phoneCountryCode: value }));
-    }
-  };
-
-  const handleConfirmPasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setConfirmPassword(event.target.value);
   };
 
   const validatePhone = (_: any, value: string) => {
-    if (!value) {
-      return Promise.reject(t("requiredPhone"));
-    }
-    if (!/^[0-9]+$/.test(value)) {
-      return Promise.reject(t("phoneMustNumber"));
-    }
-    if (value.length < 6) {
-      return Promise.reject(t("phoneLength"));
-    }
+    if (!value) return Promise.reject(t("requiredPhone"));
+    if (!/^[0-9]+$/.test(value)) return Promise.reject(t("phoneMustNumber"));
+    if (value.length < 6) return Promise.reject(t("phoneLength"));
     return Promise.resolve();
   };
 
   const validateZipCode = (_: any, value: string) => {
-    if (!value) {
-      return Promise.reject(t("zipCodeRequired"));
-    }
-    if (!/^[0-9]+$/.test(value)) {
-      return Promise.reject(t("zipCodeRequiredNumber"));
-    }
+    if (!value) return Promise.reject(t("zipCodeRequired"));
+    if (!/^[0-9]+$/.test(value)) return Promise.reject(t("zipCodeRequiredNumber"));
     return Promise.resolve();
   };
 
   return (
-    <div className='auth-form'>
-      <div className='auth-form--logo-container'>
-        <img className='auth-form--logo' style={{ width: 250 }} src={BRAND_LOGO} alt={`${BRAND_NAME} logo`} />
-      </div>
-      <Title className='auth-form--title' level={3}>
-        {t("Create an account")}
-      </Title>
+    <div className='auth-form-inner-container'>
       <Form
         form={form}
-        style={{ marginTop: "1rem" }}
         onFinish={handleSubmit}
         layout='vertical'
         size='large'
         initialValues={initialState}
+        requiredMark={false}
       >
-        <Form.Item
-          label={t("firstName")}
-          name='firstName'
-          rules={[
-            {
-              required: true,
-              message: t("firstNameRequired"),
-            },
-          ]}
-          hasFeedback
-        >
-          <Input
-            id='firstName'
-            placeholder={t("firstNamePlaceholder")}
-            onChange={handleChange("firstName")}
-            value={newUser.firstName}
-            type='text'
-          />
-        </Form.Item>
+        {/* Name Fields Row */}
+        <Row gutter={16}>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label={t("firstName")}
+              name='firstName'
+              rules={[{ required: true, message: t("firstNameRequired") }]}
+              hasFeedback
+            >
+              <Input
+                placeholder={t("firstNamePlaceholder")}
+                onChange={handleChange("firstName")}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label={t("lastName")}
+              name='lastName'
+              rules={[{ required: true, message: t("lastNameRequired") }]}
+              hasFeedback
+            >
+              <Input
+                placeholder={t("lastNamePlaceholder")}
+                onChange={handleChange("lastName")}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
 
-        <Form.Item
-          label={t("lastName")}
-          name='lastName'
-          rules={[
-            {
-              required: true,
-              message: t("lastNameRequired"),
-            },
-          ]}
-          hasFeedback
-        >
-          <Input
-            id='lastName'
-            placeholder={t("lastNamePlaceholder")}
-            onChange={handleChange("lastName")}
-            value={newUser.lastName}
-            type='text'
-          />
-        </Form.Item>
-
+        {/* Account Type Selector */}
         <Form.Item
           label={t("accountType")}
           name='accountType'
-          rules={[
-            {
-              required: true,
-              message: t("accountTypeRequired"),
-            },
-          ]}
+          rules={[{ required: true, message: t("accountTypeRequired") }]}
         >
           <Radio.Group
             optionType='button'
             buttonStyle='solid'
+            className="premium-radio-group"
             onChange={(event) => handleSelectChange("accountType")(event.target.value)}
-            value={newUser.accountType}
             options={[
               { label: "B2B", value: "B2B" },
               { label: "B2C", value: "B2C" },
@@ -258,317 +209,246 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignInClick, onSubmit }) => {
           />
         </Form.Item>
 
+        {/* Conditional B2B Company Title */}
         {newUser.accountType === "B2B" && (
           <Form.Item
-          label={t("Company Name")}
-          name='companyName'
-          rules={[
-            {
-              required: true,
-              message: t("companyNameRequired"),
-            },
-          ]}
-          hasFeedback
-        >
-          <Input
-            id='companyName'
-            placeholder={t("Company Name")}
-            onChange={handleChange("companyName")}
-            value={newUser.companyName}
-            type='text'
-          />
+            label={t("companyName")}
+            name='companyName'
+            rules={[{ required: true, message: t("companyNameRequired") }]}
+            hasFeedback
+          >
+            <Input
+              placeholder={t("companyNamePlaceholder")}
+              onChange={handleChange("companyName")}
+            />
           </Form.Item>
         )}
 
+        {/* Email Identification Entry */}
         <Form.Item
-          label='Email'
+          label={t("email")}
           name='email'
           rules={[
-            {
-              required: true,
-              message: t("emailRequired"),
-            },
+            { required: true, message: t("emailRequired") },
             { type: "email", message: t("emailInvalid") },
           ]}
           hasFeedback
         >
           <Input
-            id='signupEmail'
-            placeholder='example@company.com'
+            placeholder='nom@entreprise.com'
             onChange={handleChange("email")}
-            value={newUser.email}
-            type='text'
           />
         </Form.Item>
 
-        <Row>
-          <Form.Item
-            style={{ width: "48%", marginRight: 5 }}
-            className='auth-form--row-item'
-            label={t("Password")}
-            name='password'
-            rules={[
-              {
-                required: true,
-                message: t("passwordRequired"),
-              },
-              { min: 8, message: t("passwordMinLength", { min: 8 }) },
-            ]}
-            hasFeedback
-          >
-            <Input.Password
-              id='password'
-              placeholder={t("enterPassword")}
-              onChange={handleChange("password")}
-              value={newUser.password}
-              type='password'
-              visibilityToggle={{ visible: passwordVisible, onVisibleChange: setPasswordVisible }}
-            />
-          </Form.Item>
-          <Form.Item
-            style={{ width: "48%" }}
-            className='auth-form--row-item'
-            label={t("Confirm password")}
-            name='confirmPassword'
-            rules={[
-              {
-                required: true,
-                message: t("confirmPasswordRequired"),
-              },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue("password") === value) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(t("passwordNotMatch"));
-                },
-              }),
-            ]}
-            hasFeedback
-          >
-            <Input.Password
-              id='confirmPassword'
-              placeholder={t("Confirm password")}
-              onChange={handleConfirmPasswordChange}
-              value={confirmPassword}
-              type='password'
-            />
-          </Form.Item>
-        </Row>
-
-        <div>
-          <Row style={{ display: "flex", flexDirection: "row" }}>
+        {/* Security Password Matrices Row */}
+        <Row gutter={16}>
+          <Col xs={24} sm={12}>
             <Form.Item
-              style={{ width: "33%", marginRight: 5 }}
-              label={t("CountryCode")}
-              name='phoneCountryCode'
+              label={t("password")}
+              name='password'
               rules={[
-                {
-                  required: true,
-                  message: t("Please select a country code."),
-                },
+                { required: true, message: t("passwordRequired") },
+                { min: 8, message: t("passwordMinLength") },
               ]}
               hasFeedback
             >
+              <Input.Password
+                placeholder={t("passwordPlaceholder")}
+                onChange={handleChange("password")}
+                visibilityToggle={{ visible: passwordVisible, onVisibleChange: setPasswordVisible }}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label={t("confirmPassword")}
+              name='confirmPassword'
+              rules={[
+                { required: true, message: t("confirmPasswordRequired") },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || getFieldValue("password") === value) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(t("passwordNotMatch"));
+                  },
+                }),
+              ]}
+              hasFeedback
+            >
+              <Input.Password
+                placeholder={t("confirmPasswordPlaceholder")}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        {/* Responsive Mobile Phone Configurations Group */}
+        <Row gutter={16}>
+          <Col xs={9} sm={8}>
+            <Form.Item
+              label={t("countryCode")}
+              name='phoneCountryCode'
+              rules={[{ required: true, message: t("countryCodeRequired") }]}
+              hasFeedback
+            >
               <Select
-                showSearch // Enable search functionality
-                placeholder={t("Select a country code")}
-                style={{ width: "-webkit-fill-available" }}
+                showSearch
+                placeholder="+216"
                 onChange={handleSelectChange("phoneCountryCode")}
-                value={newUser?.phoneCountryCode}
                 options={countryCodeOptions}
                 filterOption={(input, option) => (option?.label ?? "").toLowerCase().includes(input.toLowerCase())}
               />
             </Form.Item>
-
+          </Col>
+          <Col xs={15} sm={16}>
             <Form.Item
-              style={{ width: "65%" }}
-              label={t("Phone Number")}
+              label={t("phoneNumber")}
               name='phone'
-              rules={[
-                {
-                  validator: validatePhone,
-                },
-              ]}
+              rules={[{ validator: validatePhone }]}
               hasFeedback
             >
               <Input
-                id='phone'
-                placeholder='00 000 000'
+                placeholder='99 999 999'
                 onChange={handleChange("phone")}
-                value={newUser.phone}
-                type='text'
               />
             </Form.Item>
-          </Row>
+          </Col>
+        </Row>
 
-          {newUser.accountType === "B2B" && (
+        {/* Conditional B2B Corporate Parametrizations */}
+        {newUser.accountType === "B2B" && (
+          <>
             <Form.Item
-            label={t("Business Type")}
-            name='companyTypeId'
-            rules={[
-              {
-                required: true,
-                message: t("The Type of your business is required."),
-              },
-            ]}
-            hasFeedback
-          >
-            <Select
-              className='auth-form--row-item'
-              placeholder="Selectioné Régime d'entreprise"
-              style={{ width: "-webkit-fill-available" }}
-              onChange={handleSelectChange("companyTypeId")}
-              options={companyTypeOptions.map((type) => ({
-                value: type.id,
-                label: type.typeName,
-              }))}
-              loading={loading}
-            />
-            </Form.Item>
-          )}
-          {newUser.accountType === "B2B" && (
-            <Form.Item
-            label={t("Activité d’entreprise")}
-            name='companyActivityId'
-            rules={[
-              {
-                required: true,
-                message: t("The Type of your business is required."),
-              },
-            ]}
-            hasFeedback
-          >
-            <Select
-              className='auth-form--row-item'
-              placeholder='Selectioné Activité d’entreprise'
-              style={{ width: "-webkit-fill-available" }}
-              onChange={handleSelectChange("companyActivityId")}
-              options={companyActivitiesOptions?.map((type: any) => ({
-                value: type?.id,
-                label: type?.typeName,
-              }))}
-              loading={loading}
-            />
-            </Form.Item>
-          )}
-
-          {newUser.accountType === "B2B" && (
-            <Flex className='auth-form--row'>
-            <Form.Item
-              className='auth-form--row-item'
-              label={t("Patent")}
-              name='patent'
-              rules={[
-                {
-                  required: true,
-                  message: t("Patent is required."),
-                },
-              ]}
-              hasFeedback
-            >
-              <Input
-                id='patent'
-                placeholder='ex: 123456'
-                onChange={handleChange("patent")}
-                value={newUser.patent}
-                type='text'
-              />
-            </Form.Item>
-            </Flex>
-          )}
-
-          <Flex className='auth-form--row'>
-            <Form.Item
-              className='auth-form--row-item'
-              label={t("Country")}
-              name='country'
-              rules={[
-                {
-                  required: true,
-                  message: t("Please select Country."),
-                },
-              ]}
+              label={t("businessType")}
+              name='companyTypeId'
+              rules={[{ required: true, message: t("businessTypeRequired") }]}
               hasFeedback
             >
               <Select
-                placeholder={t("Select a Country")}
-                style={{ width: "-webkit-fill-available" }}
+                placeholder={t("businessTypePlaceholder")}
+                onChange={handleSelectChange("companyTypeId")}
+                options={companyTypeOptions.map((type) => ({
+                  value: type.id,
+                  label: type.typeName,
+                }))}
+                loading={loading}
+              />
+            </Form.Item>
+
+            <Form.Item
+              label={t("companyActivity")}
+              name='companyActivityId'
+              rules={[{ required: true, message: t("companyActivityRequired") }]}
+              hasFeedback
+            >
+              <Select
+                placeholder={t("companyActivityPlaceholder")}
+                onChange={handleSelectChange("companyActivityId")}
+                options={companyActivitiesOptions?.map((type: any) => ({
+                  value: type?.id,
+                  label: type?.typeName,
+                }))}
+                loading={loading}
+              />
+            </Form.Item>
+
+            <Form.Item
+              label={t("patent")}
+              name='patent'
+              rules={[{ required: true, message: t("patentRequired") }]}
+              hasFeedback
+            >
+              <Input
+                placeholder='ex: 1234567/A/M/000'
+                onChange={handleChange("patent")}
+              />
+            </Form.Item>
+          </>
+        )}
+
+        {/* Geographical Matrices Rows */}
+        <Row gutter={16}>
+          <Col xs={12} sm={12}>
+            <Form.Item
+              label={t("country")}
+              name='country'
+              rules={[{ required: true, message: t("countryRequired") }]}
+              hasFeedback
+            >
+              <Select
+                placeholder={t("countryPlaceholder")}
                 onChange={handleSelectChange("country")}
-                value={newUser.country}
                 options={countryOptions}
               />
             </Form.Item>
+          </Col>
+          <Col xs={12} sm={12}>
             <Form.Item
-              className='auth-form--row-item'
-              label={t("City")}
+              label={t("city")}
               name='city'
-              rules={[{ required: true, message: t("Please select City") }]}
+              rules={[{ required: true, message: t("cityRequired") }]}
               hasFeedback
             >
               <Select
-                placeholder={t("Select a City")}
+                placeholder={t("cityPlaceholder")}
                 options={cityOptions?.map((city: any) => ({ value: city, label: city }))}
                 onChange={handleSelectChange("city")}
-                value={newUser.city}
               />
             </Form.Item>
-          </Flex>
+          </Col>
+        </Row>
 
-          <Form.Item
-            label={t("Adresse")}
-            name='address'
-            rules={[
-              {
-                required: true,
-                message: t("Please type your address."),
-              },
-            ]}
-            hasFeedback
-          >
-            <Input
-              id='address'
-              placeholder={t("Enter your address")}
-              onChange={handleChange("address")}
-              value={newUser.address}
-              type='text'
-              maxLength={40}
-            />
-          </Form.Item>
+        <Form.Item
+          label={t("address")}
+          name='address'
+          rules={[{ required: true, message: t("addressRequired") }]}
+          hasFeedback
+        >
+          <Input
+            placeholder={t("addressPlaceholder")}
+            onChange={handleChange("address")}
+            maxLength={60}
+          />
+        </Form.Item>
 
-          <Form.Item
-            label={t("zipCode")}
-            name='zipCode'
-            rules={[
-              {
-                required: true,
-                validator: validateZipCode,
-              },
-            ]}
-            hasFeedback
-          >
-            <Input
-              id='zipCode'
-              placeholder={t("Enter your zip code")}
-              onChange={handleChange("zipCode")}
-              value={newUser.zipCode}
-              type='text'
-            />
-          </Form.Item>
-        </div>
+        <Form.Item
+          label={t("zipCode")}
+          name='zipCode'
+          rules={[{ required: true, validator: validateZipCode }]}
+          hasFeedback
+        >
+          <Input
+            placeholder='1000'
+            onChange={handleChange("zipCode")}
+          />
+        </Form.Item>
 
-        {/* Role Toggle Button */}
-        
-        <Button className='auth-form--submit-btn' block htmlType='submit' type='primary' shape='round' size={"large"}>
+        {/* Actions Button Footnotes */}
+        <Button 
+          className='auth-form--submit-btn' 
+          block 
+          htmlType='submit' 
+          type='primary' 
+          size='large'
+          style={{ marginTop: '12px', fontWeight: 600, borderRadius: '8px' }}
+        >
           {t("Register")}
         </Button>
       </Form>
-      <Typography.Text className='auth-form--text'>
-        {t("Already have an account?")}{" "}
-        <Typography.Link className='auth-form--textLink' onClick={onSignInClick}>
-          {t("Log in")}
-        </Typography.Link>
-      </Typography.Text>
+
+      <div style={{ textAlign: 'center', marginTop: '20px' }}>
+        <Typography.Text style={{ color: '#475569' }}>
+          {t("Already have an account?")}{" "}
+          <Typography.Link 
+            style={{ color: '#0ea5e9', fontWeight: 600 }} 
+            onClick={onSignInClick}
+          >
+            {t("Log in")}
+          </Typography.Link>
+        </Typography.Text>
+      </div>
     </div>
   );
 };

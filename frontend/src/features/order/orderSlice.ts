@@ -1,5 +1,5 @@
 import { PayloadAction, createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { ApiClientWithHeaders, apiClient } from "../../api";
+import { ApiClientWithHeaders } from "../../api";
 import { OrderDtoResponse, ResponseDto } from "../../api/myApi";
 import { AppThunk, RootState, store as ReduxStore } from "../../store/store";
 
@@ -35,7 +35,9 @@ const initialState: OrderState = {
 };
 export const fetchOrderStatuses = createAsyncThunk<OrderStatus[]>("orderStatuses/fetch", async () => {
   try {
-    const response = await apiClient.orderStatusesList.appControllerGetOrderStatuses();
+    const token = localStorage.getItem("accessToken")!;
+    const myClient = ApiClientWithHeaders(token);
+    const response = await myClient.orderStatusesList.appControllerGetOrderStatuses();
     const responseData: any = response.data;
     return responseData.order_statuses;
   } catch (error: any) {

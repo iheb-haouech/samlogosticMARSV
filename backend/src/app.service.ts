@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from './prisma/prisma.service';
 import { AuthService } from './auth/auth.service';
 import { USERROLES } from './utils/enum';
@@ -12,6 +12,28 @@ export class AppService {
 
   getHello(): string {
     return 'Hello World!';
+  }
+
+  async checkHealth() {
+    const startedAt = Date.now();
+    try {
+      // Lightweight round-trip to verify the database is reachable.
+      await this.prisma.$queryRaw`SELECT 1`;
+      return {
+        status: 'ok',
+        database: 'up',
+        latencyMs: Date.now() - startedAt,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      return {
+        status: 'error',
+        database: 'down',
+        latencyMs: Date.now() - startedAt,
+        timestamp: new Date().toISOString(),
+        message: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
   }
 
   async getAllCompanyTypes() {
@@ -284,5 +306,150 @@ export class AppService {
         totalCanceledOrders,
       };
     }
+  }
+
+  /**
+   * B2B client logistics KPIs, scoped to the authenticated client.
+   * Used by the client dashboard to drive the KPI view.
+   */
+  async getClientKpis(userToken: string) {
+    const { user } = await this.authService.getAuthUser(userToken);
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+    const userId = user.id;
+
+    const now = new Date();
+    const twoDaysInMs = 2 * 24 * 60 * 60 * 1000;
+
+    // All orders created by this client with the fields we need.
+    const clientOrders = await this.prisma.order.findMany({
+      where: { createdByUserId: userId },
+      select: {
+        id: true,
+        orderStatusId: true,
+        startTransitAt: true,
+        deliveredAt: true,
+        transporterPrice: true,
+        createdAt: true,
+        packages: { select: { id: true } },
+      },
+    });
+
+    const totalOrders = clientOrders.length;
+    const deliveredOrders = clientOrders.filter((o) => o.orderStatusId === 4);
+    const returnedOrders = clientOrders.filter((o) => o.orderStatusId === 6);
+    const inTransitOrders = clientOrders.filter((o) => o.orderStatusId === 3);
+    const waitingOrders = clientOrders.filter(
+      (o) => o.orderStatusId === 1 || o.orderStatusId === 2,
+    );
+    const canceledOrders = clientOrders.filter((o) => o.orderStatusId === 5);
+
+    // On-time rate: delivered AND (deliveredAt <= startTransitAt + 2 days).
+    const onTimeDeliveries = deliveredOrders.filter((o) => {
+      if (!o.startTransitAt || !o.deliveredAt) return false;
+      const target = new Date(o.startTransitAt).getTime() + twoDaysInMs;
+      return new Date(o.deliveredAt).getTime() <= target;
+    });
+    const onTimeRate =
+      deliveredOrders.length > 0
+        ? (onTimeDeliveries.length / deliveredOrders.length) * 100
+        : 0;
+
+    // Claims (incidents) for this client.
+    const clientClaims = await this.prisma.claim.findMany({
+      where: { creatorUserId: userId },
+      select: {
+        id: true,
+        statusId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+    const totalClaims = clientClaims.length;
+    const resolvedClaims = clientClaims.filter((c) => c.statusId === 3 || c.statusId === 4);
+    const damageRate =
+      deliveredOrders.length > 0 ? (totalClaims / deliveredOrders.length) * 100 : 0;
+
+    // Average incident resolution time (days) over resolved claims.
+    let avgResolutionDays = 0;
+    if (resolvedClaims.length > 0) {
+      const totalMs = resolvedClaims.reduce((sum, c) => {
+        const created = new Date(c.createdAt).getTime();
+        const resolved = new Date(c.updatedAt).getTime();
+        return sum + Math.max(0, resolved - created);
+      }, 0);
+      avgResolutionDays =
+        totalMs / resolvedClaims.length / (24 * 60 * 60 * 1000);
+    }
+
+    // Average cost per parcel.
+    const totalTransporterPrice = clientOrders.reduce(
+      (sum, o) => sum + (o.transporterPrice || 0),
+      0,
+    );
+    const totalPackages = clientOrders.reduce(
+      (sum, o) => sum + (o.packages?.length || 0),
+      0,
+    );
+    const costPerParcel = totalPackages > 0 ? totalTransporterPrice / totalPackages : 0;
+
+    const returnRate =
+      totalOrders > 0 ? (returnedOrders.length / totalOrders) * 100 : 0;
+
+    // Monthly volume trend over the last 6 months.
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+    sixMonthsAgo.setDate(1);
+    sixMonthsAgo.setHours(0, 0, 0, 0);
+
+    const recentOrders = await this.prisma.order.findMany({
+      where: {
+        createdByUserId: userId,
+        createdAt: { gte: sixMonthsAgo },
+      },
+      select: { createdAt: true },
+    });
+
+    const monthLabels: string[] = [];
+    const monthlyVolumeMap = new Map<string, number>();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      monthLabels.push(key);
+      monthlyVolumeMap.set(key, 0);
+    }
+    recentOrders.forEach((o) => {
+      const d = new Date(o.createdAt);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      if (monthlyVolumeMap.has(key)) {
+        monthlyVolumeMap.set(key, (monthlyVolumeMap.get(key) || 0) + 1);
+      }
+    });
+    const monthlyVolume = monthLabels.map((label) => ({
+      month: label,
+      volume: monthlyVolumeMap.get(label) || 0,
+    }));
+
+    return {
+      summary: {
+        totalOrders,
+        delivered: deliveredOrders.length,
+        inTransit: inTransitOrders.length,
+        waiting: waitingOrders.length,
+        returned: returnedOrders.length,
+        canceled: canceledOrders.length,
+      },
+      kpis: {
+        onTimeRate: Number(onTimeRate.toFixed(1)),
+        damageRate: Number(damageRate.toFixed(1)),
+        avgResolutionDays: Number(avgResolutionDays.toFixed(1)),
+        costPerParcel: Number(costPerParcel.toFixed(2)),
+        returnRate: Number(returnRate.toFixed(1)),
+        totalClaims,
+        openClaims: totalClaims - resolvedClaims.length,
+      },
+      monthlyVolume,
+    };
   }
 }

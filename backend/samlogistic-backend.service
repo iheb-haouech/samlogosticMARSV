@@ -1,0 +1,20 @@
+[Unit]
+Description=Samlogistic Backend
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/var/www/samlogistic/app/backend
+Environment=DATABASE_URL=postgresql://samlogistic:post123@127.0.0.1:5432/samlogistic?schema=public
+Environment=JWT_SECRET=change-me-secret-for-production-use-strong-secret
+Environment=JWT_REFRESH_SECRET=change-me-refresh-for-production-use-strong-secret
+Environment=JWT_EXPIRES_IN=1d
+Environment=JWT_REFRESH_EXPIRES=7d
+Environment=PORT=6001
+ExecStart=/usr/bin/node dist/src/main.js
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

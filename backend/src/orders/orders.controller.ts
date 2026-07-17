@@ -29,6 +29,7 @@ import {
   OrderDtoResponse,
 } from './dto/order-response.dto';
 import { PdfGeneratorService } from "../pdf-generator/pdf-generator.service";
+import * as QRCode from 'qrcode';
 
 
 @Controller('orders')
@@ -122,6 +123,15 @@ export class OrdersController {
     return this.ordersService.findOrder(id);
   }
 
+  @Get('/track/:trackingId')
+  @ApiOkResponse({
+    description: 'Public order tracking',
+    type: OrderDtoResponse,
+  })
+  trackOrder(@Param('trackingId') trackingId: string) {
+    return this.ordersService.findOrder(trackingId);
+  }
+
   @Patch('/update-order/:id')
   @ApiBearerAuth()
   @UseGuards(RoleGuard)
@@ -130,8 +140,12 @@ export class OrdersController {
     description: 'Update order response',
     type: OrderDtoResponse,
   })
-  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
-    return this.ordersService.update(id, updateOrderDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateOrderDto: UpdateOrderDto,
+    @AuthUserJWT() userToken: string | undefined,
+  ) {
+    return this.ordersService.update(id, updateOrderDto, userToken);
   }
 
   @Patch('/update-order-transporter/:id')
@@ -187,5 +201,15 @@ export class OrdersController {
   })
   remove(@Param('id') id: string) {
     return this.ordersService.remove(id);
+  }
+
+  @Get(':id/qr-code')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  async getOrderQRCode(@Param('id') id: string) {
+    const order = await this.ordersService.findOne(id);
+    const trackingId = order?.trackingId || id;
+    const qrDataUrl = await QRCode.toDataURL(trackingId);
+    return { trackingId, qrCode: qrDataUrl };
   }
 }

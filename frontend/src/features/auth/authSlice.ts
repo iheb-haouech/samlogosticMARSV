@@ -59,6 +59,25 @@ export const login = createAsyncThunk<AuthResponseDto, LoginDto, { state: RootSt
   }
 );
 
+// Refresh the access token using the stored refresh token.
+// Resolves with the new access token, or rejects if refresh fails (session expired).
+export const refreshAccessToken = createAsyncThunk<string, void, { state: RootState }>(
+  "auth/refreshAccessToken",
+  async (_, { getState }) => {
+    const refreshToken = getState().auth.refreshToken || localStorage.getItem("refreshToken");
+    if (!refreshToken) {
+      throw new Error("No refresh token available");
+    }
+    const response: any = await apiClient.auth.authControllerRefreshToken({ refreshToken });
+    const newAccessToken = response?.data?.accessToken ?? response?.accessToken;
+    if (!newAccessToken) {
+      throw new Error("No access token returned");
+    }
+    localStorage.setItem("accessToken", newAccessToken);
+    return newAccessToken;
+  },
+);
+
 export const resetPasswordReq = createAsyncThunk<boolean | any, ResetPasswordReqDto, { state: RootState }>(
   "auth/resetPasswordReq",
   async (resetPasswordReqDto: ResetPasswordReqDto) => {

@@ -2,6 +2,7 @@ import {
   Controller,
   FileTypeValidator,
   Get,
+  HttpStatus,
   MaxFileSizeValidator,
   Param,
   ParseFilePipe,
@@ -38,6 +39,18 @@ export class AppController {
   @Get()
   getHello(): string {
     return this.appService.getHello();
+  }
+
+  @Get('health')
+  @ApiOperation({ summary: 'Liveness/readiness probe (checks the database)' })
+  async health(@Res({ passthrough: true }) res) {
+    const result = await this.appService.checkHealth();
+    res.status(
+      result.status === 'ok'
+        ? HttpStatus.OK
+        : HttpStatus.SERVICE_UNAVAILABLE,
+    );
+    return result;
   }
 
   @Post('upload')
@@ -81,8 +94,6 @@ export class AppController {
   }
 
   @Get('/company-types')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @ApiOkResponse({
     description: 'response',
     type: ResponseDto,
@@ -92,8 +103,6 @@ export class AppController {
   }
 
   @Get('/company-activities')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @ApiOkResponse({
     description: 'response',
     type: ResponseDto,
@@ -103,8 +112,6 @@ export class AppController {
   }
 
   @Get('/car-types')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @ApiOkResponse({
     description: 'response',
     type: ResponseDto,
@@ -135,5 +142,17 @@ export class AppController {
     @AuthUserJWT() userToken: string | undefined,
   ): Promise<any> {
     return this.appService.getStatistics(userToken);
+  }
+
+  @Get('/client-kpis')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOkResponse({
+    description: 'B2B client logistics KPIs',
+  })
+  async getClientKpis(
+    @AuthUserJWT() userToken: string | undefined,
+  ): Promise<any> {
+    return this.appService.getClientKpis(userToken);
   }
 }

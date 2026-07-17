@@ -1,0 +1,33 @@
+.contact-chat-button {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  width: 60px;
+  height: 60px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.contact-chat-modal .ant-modal-body {
+  padding: 0;
+}
+
+.contact-chat-history {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+  padding: 16px;
+}
+
+.chat-bubble {
+  padding: 10px 16px;
+  border-radius: 18px;
+  max-width: 80%;
+  word-wrap: break-word;
+}
+
+.chat-bubble.user {
+  background: #1890ff;
+  color: white;
+  margin-left: auto;
+}

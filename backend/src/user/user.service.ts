@@ -9,6 +9,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as QRCode from 'qrcode';
 import generateUniqueInvoiceId from '../utils/generate-facture-id';
+import * as jwt from 'jsonwebtoken';
+import { USERROLES } from '../utils/enum';
 
 @Injectable()
 export class UserService {
@@ -139,7 +141,50 @@ export class UserService {
     };
   }
 
-  async findOne(id: number): Promise<any> {
+  private async assertOwnerOrAdmin(targetId: number, userToken: string | undefined) {
+    if (!userToken) {
+      throw new HttpException('Unauthorized', 401);
+    }
+    let callerId: number | undefined;
+    try {
+      const decoded: any = jwt.verify(userToken, process.env.JWT_SECRET as string);
+      callerId = decoded?.userId ?? decoded?.id;
+    } catch {
+      throw new HttpException('Unauthorized', 401);
+    }
+    if (!callerId) {
+      throw new HttpException('Unauthorized', 401);
+    }
+    const caller = await this.prisma.user.findUnique({ where: { id: callerId } });
+    if (!caller) {
+      throw new HttpException('Unauthorized', 401);
+    }
+    const isAdmin =
+      caller.roleId === USERROLES.admin.id || caller.roleId === USERROLES.superadmin.id;
+    if (!isAdmin && caller.id !== targetId) {
+      throw new HttpException('You can only access your own account', 403);
+    }
+    return caller;
+  }
+
+  // Used internally by the JWT guard (no ownership check).
+  async findRawById(id: number): Promise<any> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        createOrders: true,
+        deliverOrders: true,
+      },
+    });
+    if (!user) {
+      throw new NotFoundException('User Not Found !');
+    }
+    delete user?.password;
+    return user;
+  }
+
+  async findOne(id: number, userToken?: string): Promise<any> {
+    await this.assertOwnerOrAdmin(id, userToken);
     const user = await this.prisma.user.findUnique({
       where: { id },
       include: {
@@ -250,7 +295,19 @@ export class UserService {
     return data;
   }
 
-  async updateUser(id: number, userDto: UserDTO): Promise<any> {
+  async updateUser(id: number, userDto: UserDTO, userToken?: string): Promise<any> {
+    const caller = await this.assertOwnerOrAdmin(id, userToken);
+    const isAdmin =
+      caller.roleId === USERROLES.admin.id || caller.roleId === USERROLES.superadmin.id;
+
+    // Only admins may change a user's role or account type.
+    if (!isAdmin) {
+      delete (userDto as any).roleId;
+      delete (userDto as any).accountType;
+      delete (userDto as any).verified;
+      delete (userDto as any).blocked;
+    }
+
     if (userDto?.password) {
       const hashedPassword = await bcrypt.hash(userDto?.password, 10);
       userDto = {
@@ -296,8 +353,9 @@ export class UserService {
     return updatedUser;
   }
 
-  async removeUser(id: number): Promise<any> {
-    const user: any = await this.findOne(id);
+  async removeUser(id: number, userToken?: string): Promise<any> {
+    await this.assertOwnerOrAdmin(id, userToken);
+    const user: any = await this.prisma.user.findUnique({ where: { id } });
 
     if (!user) throw new HttpException('User not found !', 400);
 

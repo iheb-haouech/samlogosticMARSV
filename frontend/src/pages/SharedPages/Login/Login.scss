@@ -1,0 +1,175 @@
+$slate-dark: #0f172a;
+$slate-light: #1e293b;
+$tech-mint: #0ea5e9;
+$neutral-bg: #f8fafc;
+$neutral-card: #ffffff;
+$text-secondary: #475569;
+$border-clean: rgba(15, 23, 42, 0.08);
+
+.auth-premium-layout {
+  min-height: 100vh;
+  background-color: $neutral-bg;
+  color: $slate-dark;
+  font-family: 'Inter', -apple-system, sans-serif;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-ambient-rotation {
+  position: absolute; width: 700px; height: 700px; left: -150px; bottom: -150px;
+  border: 1px dashed rgba($tech-mint, 0.12); border-radius: 50%;
+  animation: permanentAuthRotate 80s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.auth-split-container {
+  width: 100%;
+  max-width: 1440px;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  position: relative;
+  z-index: 2;
+}
+
+// LEFT PANEL STYLING
+.auth-visual-panel {
+  background: radial-gradient(100% 100% at 0% 0%, #f0f7ff 0%, #ffffff 100%);
+  border-right: 1px solid $border-clean;
+  padding: 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.auth-brand-header {
+  display: inline-flex; align-items: center; gap: 14px; cursor: pointer;
+  
+  .icon-shield-rotating {
+    position: relative; background: $slate-dark; padding: 10px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; width: 44px; height: 44px;
+    img { height: 20px; width: auto; z-index: 2; }
+    .spinning-ring {
+      position: absolute; inset: -2px; border: 2px dashed $tech-mint; border-radius: 50%;
+      animation: permanentAuthRotate 12s linear infinite; z-index: 1;
+    }
+  }
+  .brand-info {
+    display: flex; flex-direction: column; line-height: 1;
+    .title-top { font-weight: 800; font-size: 1.1rem; color: $slate-dark; letter-spacing: 0.02em; }
+    .title-sub { font-size: 0.6rem; letter-spacing: 0.25em; color: $text-secondary; font-weight: 700; margin-top: 1px; }
+  }
+}
+
+// Unified Core Layout Grouping (Moves text cleanly right below image)
+.auth-hero-group {
+  display: flex;
+  flex-direction: column;
+  gap: 28px; // Controls the clean whitespace gap directly under the image
+  width: 100%;
+  max-width: 500px;
+  margin: auto 0;
+}
+
+.auth-image-frame {
+  width: 100%;
+  
+  .auth-main-asset {
+    width: 100%;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.06);
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.auth-marketing-deck {
+  h3 { font-size: 1.5rem; font-weight: 800; margin: 0 0 10px; color: $slate-dark; letter-spacing: -0.01em; }
+  p { margin: 0; color: $text-secondary; font-size: 0.95rem; line-height: 1.6; }
+}
+
+.auth-panel-footer-space {
+  height: 44px; // Symmetry match for the header element height
+}
+
+// RIGHT PANEL STYLING
+.auth-content-panel {
+  background: $neutral-card;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 48px;
+}
+
+.mobile-brand-wrapper { display: none; }
+
+.auth-form-card-wrapper {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  
+  .form-context-header {
+    text-align: center;
+    h2 { font-size: 2.2rem; font-weight: 800; color: $slate-dark; margin: 0 0 8px; letter-spacing: -0.02em; }
+    p { margin: 0; color: $text-secondary; font-size: 0.95rem; line-height: 1.5; }
+  }
+}
+
+.form-component-wrapper {
+  width: 100%;
+  position: relative;
+
+  // New highly contrast corporate logo block
+  .form-centered-logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 32px;
+    margin-bottom: -16px; // Adjusts layout cleanly above the form "Connexion" script
+    width: 100%;
+
+    .clear-logo-badge {
+      background: $slate-dark; // Dark background block makes the logo ultra clear
+      padding: 14px;
+      border-radius: 50%;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 56px;
+      height: 56px;
+      border: 2px solid rgba($tech-mint, 0.2);
+
+      img {
+        height: 24px;
+        width: auto;
+        object-fit: contain;
+      }
+    }
+  }
+}
+
+@keyframes permanentAuthRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 1024px) {
+  .auth-split-container { grid-template-columns: 1fr; }
+  .auth-visual-panel { display: none; }
+  .auth-content-panel { padding: 32px 24px; }
+  
+  .mobile-brand-wrapper {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px; 
+    margin-bottom: 40px; cursor: pointer; width: 100%;
+    img { height: 32px; background: $slate-dark; padding: 6px; border-radius: 50%; }
+    span { font-weight: 800; font-size: 1.1rem; color: $slate-dark; letter-spacing: 0.02em; }
+  }
+}

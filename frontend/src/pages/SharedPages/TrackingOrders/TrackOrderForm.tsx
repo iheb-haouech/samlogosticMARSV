@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { triggerAlert } from "../../../Alert/alertModule";
 import { Order } from "../../../types/Order";
-import { apiClient } from "../../../api";
+import { API_BASE_URL } from "../../../api";
 import { Button, Card, Form, Input, Steps } from "antd";
 import Title from "antd/es/typography/Title";
 import "./TrakingOrders.scss";
@@ -21,8 +21,26 @@ export const TrackOrderForm = ({ displayLogo = true }: TrackOrderFormProps) => {
   const handleSubmit = async (values: { trackingNumber: string }) => {
     setLoading(true);
     try {
-      const response = await apiClient.orders.ordersControllerFindOrderStatus(values.trackingNumber);
-      const data = response.data as Order;
+      // Public tracking endpoint: no authentication required.
+      // We call it directly (not through the generated client) so a missing
+      // token never triggers a 401 that would log the user out.
+      const trackingNumber = encodeURIComponent(values.trackingNumber.trim());
+      const response = await fetch(`${API_BASE_URL}/orders/track/${trackingNumber}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        triggerAlert({
+          type: "deleted",
+          title: "Error",
+          message: "Order not found. Please check your tracking number.",
+        });
+        setTrackedOrder(null);
+        return;
+      }
+
+      const data = (await response.json()) as Order;
 
       if (data) {
         setTrackedOrder(data);

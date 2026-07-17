@@ -296,15 +296,16 @@ const Orders = () => {
                   <div className="order-card--row order-card--price-row">
                     <span className="order-card--label">Prix livraison:</span>
                     <span className="order-card--price">{deliveryPrice} DT</span>
-                    {!isFixedPrice && (
-                      <Button
-                        type="link"
-                        size="small"
-                        onClick={() => openSetPriceModal(order)}
-                      >
-                        {deliveryPrice > 0 ? "Modifier" : "Définir"}
-                      </Button>
-                    )}
+                    {!isFixedPrice &&
+                      [rolesMap.admin, rolesMap.superAdmin].includes(currentUser?.roleId) && (
+                        <Button
+                          type="link"
+                          size="small"
+                          onClick={() => openSetPriceModal(order)}
+                        >
+                          {deliveryPrice > 0 ? "Modifier" : "Définir"}
+                        </Button>
+                      )}
                   </div>
                   {order.deliveredBy && (
                     <div className="order-card--row">

@@ -74,3 +74,27 @@
     font-size: 1rem;
   }
 }
+
+.auth-form-inner-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  margin: 0 user-specified-auto;
+  padding-top: 0px; /* Force it to start immediately at the top */
+
+  // Fix Ant Design default vertical form items spacing to be more compact
+  .ant-form-item {
+    margin-bottom: 16px; 
+  }
+
+  // Smooth out radio group appearance
+  .premium-radio-group {
+    display: flex;
+    width: 100%;
+    
+    .ant-radio-button-wrapper {
+      flex: 1;
+      text-align: center;
+    }
+  }
+}

@@ -2,6 +2,7 @@ import { Layout, Drawer } from "antd";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import NavBar from "../../../components/organisms/NavBar/NavBar";
 import SideMenu from "../../../components/organisms/SideMenu/SideMenu";
+import FloatingChatButton from "../../../components/atoms/FloatingChatButton/FloatingChatButton";
 import colors from "../../../styles/colors/colors";
 import { useSelector } from "react-redux";
 import { selectCurrentUser, setCurrentUser } from "../../../features/user/userSlice";
@@ -255,17 +256,18 @@ const DashboardLayout: React.FC = () => {
             margin: isMobile ? "8px" : "12px",
           }}
         >
-          <div
-            style={{
-              padding: isMobile ? 12 : 22,
-              background: colors.white,
-              borderRadius: "4px",
-              height: "100%",
-              overflow: "hidden",
-            }}
-          >
-            <Outlet />
-          </div>
+<div
+             style={{
+               padding: isMobile ? 12 : 22,
+               background: colors.white,
+               borderRadius: "4px",
+               height: "100%",
+               overflow: "hidden",
+             }}
+           >
+             <Outlet />
+             <FloatingChatButton />
+           </div>
         </Content>
       </Layout>
     </Layout>

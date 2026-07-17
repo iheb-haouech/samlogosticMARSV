@@ -1,0 +1,22 @@
+model contact_message {
+  id        Int      @id @default(autoincrement())
+  message   String
+  subject   String
+  email     String?
+  createdAt DateTime @default(now())
+}
+
+model quotation {
+  id              Int     @id @default(autoincrement())
+  pickupAddress   String
+  deliveryAddress String
+  weight          Float
+  dimensions      String?
+  description     String?
+  transportType   String?
+  price           Float?
+  status          String  @default("pending")
+  userId          Int
+  user          user    @relation(fields: [userId], references: [id])
+  createdAt     DateTime @default(now())
+}

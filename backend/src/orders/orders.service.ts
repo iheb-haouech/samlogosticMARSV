@@ -9,6 +9,7 @@ import { plainToClass } from 'class-transformer';
 import { AuthService } from '../auth/auth.service';
 import { PackagesService } from '../packages/packages.service';
 import generateCustomTrackingID from '../utils/generate-id';
+import { USERROLES } from '../utils/enum';
 import * as QRCode from 'qrcode';
 
 @Injectable()
@@ -118,6 +119,20 @@ export class OrdersService {
           'Compte bloque. Creation de commande non autorisee.',
           HttpStatus.FORBIDDEN,
         );
+      }
+
+      // Only admins/superadmins may set delivery/authoritative prices.
+      // Determine the ACTUAL caller (from the token), not the order owner,
+      // because an admin can create an order on behalf of a client.
+      const caller = (await this.authService.getAuthUser(userToken))?.user;
+      const callerIsAdmin =
+        caller?.roleId === USERROLES.admin.id ||
+        caller?.roleId === USERROLES.superadmin.id;
+      if (!callerIsAdmin) {
+        // Strip prices a client must never control.
+        delete (orderData as any).transporterPrice;
+        delete (orderData as any).clientPrice;
+        delete (orderData as any).shipmentPrice;
       }
 
       if (user?.accountType === 'B2C') {
@@ -496,9 +511,20 @@ const createdOrder = await this.prisma.order.create({
     }
   }
 
-  async update(id: string, updateOrderDto: UpdateOrderDto) {
+  async update(id: string, updateOrderDto: UpdateOrderDto, userToken?: string) {
     try {
       const { source, recipient, packages, ...orderData } = updateOrderDto;
+
+      // Only admins/superadmins may change delivery/authoritative prices.
+      const caller = (await this.authService.getAuthUser(userToken))?.user;
+      const callerIsAdmin =
+        caller?.roleId === USERROLES.admin.id ||
+        caller?.roleId === USERROLES.superadmin.id;
+      if (!callerIsAdmin) {
+        delete (orderData as any).transporterPrice;
+        delete (orderData as any).clientPrice;
+        delete (orderData as any).shipmentPrice;
+      }
 
       // Check if the order exists
       const orderExists = await this.prisma.order.findUnique({

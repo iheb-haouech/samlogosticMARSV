@@ -12,7 +12,7 @@ const SplashScreen = ({ isAuthenticated }: SplashScreenProps) => {
         window.location.href = "/user/dashboard";
       } else {
         localStorage.setItem("hasSeenSplash", "true");
-        window.location.href = "/login";
+        window.location.href = "/";
       }
     }, 2000);
 

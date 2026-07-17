@@ -18,6 +18,8 @@ import { PdfGeneratorModule } from './pdf-generator/pdf-generator.module';
 import { PdfDownloadModule } from './pdf-download/pdf-download.module';
 import { CashflowModule } from './cashflow/cashflow.module';
 import { NotificationModule } from './notifications/notification.module';
+import { ContactModule } from './contact/contact.module';
+import { QuotationsModule } from './quotations/quotations.module';
 
 @Module({
   imports: [
@@ -38,6 +40,8 @@ import { NotificationModule } from './notifications/notification.module';
     PdfDownloadModule,
     CashflowModule,
     NotificationModule,
+    ContactModule,
+    QuotationsModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, AuthService],

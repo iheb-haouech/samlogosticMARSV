@@ -1,38 +1,192 @@
 @use "../../../styles/general/mixins" as mixins;
 
-// This is a shared scss file for the signup login and tarking-order pages.
-.auth-container {
+$slate-dark: #0f172a;
+$slate-light: #1e293b;
+$tech-mint: #0ea5e9;
+$neutral-bg: #f8fafc;
+$neutral-card: #ffffff;
+$text-secondary: #475569;
+$border-clean: rgba(15, 23, 42, 0.08);
+
+.auth-premium-layout {
+  min-height: 100vh;
+  height: 100vh;
+  background-color: $neutral-bg;
+  color: $slate-dark;
+  font-family: 'Inter', -apple-system, sans-serif;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+}
+
+.auth-ambient-rotation {
+  position: absolute; width: 600px; height: 600px; left: -100px; bottom: -100px;
+  border: 1px dashed rgba($tech-mint, 0.12); border-radius: 50%;
+  animation: permanentAuthRotate 80s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.auth-split-container {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  position: relative;
+  z-index: 2;
+
   @include mixins.respond(md) {
     grid-template-columns: 1fr;
   }
 }
 
-.auth-page {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  @include mixins.respond(md) {
-    grid-template-columns: 1fr;
-  }
+// LEFT PANEL STYLING (Stays fixed, never overflows)
+.auth-visual-panel {
+  background: radial-gradient(100% 100% at 0% 0%, #f0f7ff 0%, #ffffff 100%);
+  border-right: 1px solid $border-clean;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100vh;
+  box-sizing: border-box;
 
-  &--image {
-    width: 50vw;
-    height: 100vh;
-    object-fit: cover;
-    border-radius: 5px;
-    flex: 0 0 auto;
   @include mixins.respond(md) {
-      display: none;
-      margin-top: 5rem;
-    }
+    display: none;
+  }
+}
 
-    @include mixins.respond(sm) {
-      display: none;
+.auth-brand-header {
+  display: inline-flex; align-items: center; gap: 14px; cursor: pointer;
+  
+  .icon-shield-rotating {
+    position: relative; background: $slate-dark; padding: 10px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; width: 44px; height: 44px;
+    img { height: 20px; width: auto; z-index: 2; }
+    .spinning-ring {
+      position: absolute; inset: -2px; border: 2px dashed $tech-mint; border-radius: 50%;
+      animation: permanentAuthRotate 12s linear infinite; z-index: 1;
     }
   }
-  &--form {
-    margin: auto;
+  .brand-info {
+    display: flex; flex-direction: column; line-height: 1;
+    .title-top { font-weight: 800; font-size: 1.1rem; color: $slate-dark; letter-spacing: 0.02em; }
+    .title-sub { font-size: 0.6rem; letter-spacing: 0.25em; color: $text-secondary; font-weight: 700; margin-top: 1px; }
+  }
+}
+
+// Center container alignment
+.auth-hero-group {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  max-width: 440px;
+  margin: auto; // Perfectly center vertically inside left viewport
+}
+
+.auth-image-frame {
+  width: 100%;
+  
+  .auth-main-asset {
     width: 100%;
-    overflow-y: auto;
-    height: 100vh;
+    max-height: 280px;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.06);
+    object-fit: cover;
+    display: block;
   }
+}
+
+.auth-marketing-deck {
+  text-align: left;
+  h3 { font-size: 1.4rem; font-weight: 800; margin: 0 0 8px; color: $slate-dark; letter-spacing: -0.01em; }
+  p { margin: 0; color: $text-secondary; font-size: 0.9rem; line-height: 1.5; }
+}
+
+.auth-panel-footer-space {
+  height: 44px;
+}
+
+// RIGHT PANEL STYLING (Allows independent clean scroll tracking)
+.auth-content-panel {
+  background: $neutral-card;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 40px;
+  height: 100vh;
+  overflow-y: auto; // Solves the clipping/hidden inputs error on form overflow
+  box-sizing: border-box;
+
+  @include mixins.respond(md) {
+    padding: 40px 24px;
+  }
+}
+
+.mobile-brand-wrapper {
+  display: none;
+
+  @include mixins.respond(md) {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px; 
+    margin-bottom: 32px; cursor: pointer; width: 100%;
+    img { height: 32px; background: $slate-dark; padding: 6px; border-radius: 50%; }
+    span { font-weight: 800; font-size: 1.1rem; color: $slate-dark; letter-spacing: 0.02em; }
+  }
+}
+
+.auth-form-card-wrapper {
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  
+  .form-context-header {
+    text-align: center;
+    h2 { font-size: 2.2rem; font-weight: 800; color: $slate-dark; margin: 0 0 6px; letter-spacing: -0.02em; }
+    p { margin: 0; color: $text-secondary; font-size: 0.95rem; line-height: 1.5; }
+  }
+}
+
+.form-component-wrapper {
+  width: 100%;
+  
+  // Clean up duplicate image element titles inside the custom SignupForm element
+  // if you want to explicitly scale them or clean input alignments:
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+}
+
+@keyframes permanentAuthRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+// Find this section inside your Signup.scss file and update it:
+.auth-content-panel {
+  background: $neutral-card;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start; // Change from 'center' to 'flex-start' so it starts at the top!
+  padding: 40px 40px;          // Balanced padding
+  height: 100vh;
+  overflow-y: auto;            // Enables clean scrolling tracking
+  box-sizing: border-box;
+
+  @include mixins.respond(md) {
+    padding: 32px 20px;
+  }
+}
+
+.auth-form-card-wrapper {
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;                  // Slightly tighter gap to bring inputs up
+  margin-top: 20px;           // Small breathing room from header
 }

@@ -2,4 +2,19 @@ node_modules/
 dist/
 build/
 .env
+.env.*
+!.env.example
 *.log
+
+# Local deployment / debug scripts (may contain credentials)
+deploy-scripts/
+
+# Build artifacts & secrets
+*.apk
+*.apk.idsig
+*.jks
+*.keystore
+extracted_apk/
+temp_*
+*.ps1
+*.bat

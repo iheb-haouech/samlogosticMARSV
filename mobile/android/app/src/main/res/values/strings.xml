@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">sam-logistic-mobile</string>
+    <string name="title_activity_main">sam-logistic-mobile</string>
+    <string name="package_name">com.samlogistic.mobile</string>
+    <string name="custom_url_scheme">com.samlogistic.mobile</string>
+</resources>

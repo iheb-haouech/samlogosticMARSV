@@ -1,41 +1,19 @@
-.order-form {
+// Dans votre fichier CSS
+.order-form--references-container {
   display: flex;
-  flex-direction: column;
-  &--references {
-    &-container {
-      border: solid 1px #e2e8f0;
-      border-radius: 5px;
-      padding: 8px;
-      &--tag {
-        background-color: var(--gray-100);
-        color: var(--gray-700);
-      }
-      &--input {
-        width: 80px;
-        height: 24px;
-        margin-right: 8px;
-        vertical-align: "top";
-      }
-      &--new-tag {
-        height: 24px;
-        color: var(--primary-500);
-        border-style: dashed;
-      }
-    }
+  flex-wrap: wrap;
+  gap: 8px;
+  background: #fafafa;
+  
+  .ant-tag {
+    margin-right: 0; // Annule la marge par défaut pour mieux utiliser le gap
   }
-  &--partners {
-    border: 1px solid var(--gray-300);
-    border-radius: 10px;
-    margin-bottom: 24px;
-    &-header-divider {
-      margin-top: 0px;
-      border-color: var(--gray-300);
-    }
-    &-content {
-      padding: 0rem 1rem;
-    }
-  }
-  &--submit-btn {
-    text-align: end;
+}
+
+// Pour améliorer les inputs globalement
+.ant-input {
+  border-radius: 6px;
+  &:hover, &:focus {
+    border-color: #1890ff;
   }
 }

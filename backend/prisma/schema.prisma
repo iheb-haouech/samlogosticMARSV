@@ -3,7 +3,7 @@
 
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl"]
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -320,7 +320,7 @@ model oder_packages_reference {
 
 model order_status {
   id         Int     @id @default(autoincrement())
-  statusName String? @db.VarChar(20)
+  statusName String? @db.VarChar(30)
   order      order[]
 }
 
@@ -393,4 +393,12 @@ model notification {
   user user @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model contact_message {
+  id        Int      @id @default(autoincrement())
+  message   String
+  subject   String
+  email     String?
+  createdAt DateTime @default(now())
 }

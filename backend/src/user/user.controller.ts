@@ -28,6 +28,7 @@ import {
 import { RoleGuard } from '../auth/role.guard';
 import { USERROLES } from '../utils/enum';
 import { Roles } from '../auth/roles.decorator';
+import { AuthUserJWT } from '../utils/auth-user-jwt.decorator';
 import { PaginationDTO } from './dto/pagination.dto';
 
 @Controller('user')
@@ -37,7 +38,8 @@ export class UserController {
 
   @Post()
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(RoleGuard)
+  @Roles(USERROLES.admin.id, USERROLES.superadmin.id)
   @ApiOkResponse({
     description: 'users response',
     type: ResponseDto,
@@ -46,15 +48,16 @@ export class UserController {
     return this.userService.create(createUserDto);
   }
   @Get('/invoices')
+    @ApiBearerAuth()
+    @UseGuards(RoleGuard)
+    @Roles(USERROLES.admin.id, USERROLES.superadmin.id)
+    getAllInvoices(@Query() query: any) {
+      return this.userService.getAllInvoices(query);
+    }
+  @Get()
   @ApiBearerAuth()
   @UseGuards(RoleGuard)
   @Roles(USERROLES.admin.id, USERROLES.superadmin.id)
-  getAllInvoices(@Query() query: any) {
-    return this.userService.getAllInvoices(query);
-  }
-  @Get()
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @ApiOkResponse({
     description: 'users response',
     type: ResponseDto,
@@ -124,8 +127,8 @@ export class UserController {
     description: 'users response',
     type: ResponseDto,
   })
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
+  findOne(@Param('id') id: string, @AuthUserJWT() userToken: string | undefined) {
+    return this.userService.findOne(+id, userToken);
   }
 
   @Get('provider-orders/:id')
@@ -164,13 +167,18 @@ export class UserController {
     description: 'users response',
     type: ResponseDto,
   })
-  update(@Param('id') id: string, @Body() userDto: UserDTO) {
-    return this.userService.updateUser(+id, userDto);
+  update(
+    @Param('id') id: string,
+    @Body() userDto: UserDTO,
+    @AuthUserJWT() userToken: string | undefined,
+  ) {
+    return this.userService.updateUser(+id, userDto, userToken);
   }
 
   @Patch('verfieUser/:id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(RoleGuard)
+  @Roles(USERROLES.admin.id, USERROLES.superadmin.id)
   @ApiOkResponse({
     description: 'users response',
     type: ResponseDto,
@@ -197,8 +205,8 @@ export class UserController {
     description: 'users response',
     type: ResponseDto,
   })
-  remove(@Param('id') id: string) {
-    return this.userService.removeUser(+id);
+  remove(@Param('id') id: string, @AuthUserJWT() userToken: string | undefined) {
+    return this.userService.removeUser(+id, userToken);
   }
 
   @Post('/generate-provider-invoice')

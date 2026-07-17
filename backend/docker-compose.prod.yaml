@@ -9,10 +9,11 @@ services:
     ports:
       - "127.0.0.1:${PORT:-6001}:${PORT:-6001}"
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql://samlogistic:post123@postgres:5432/samlogistic?schema=public}
-      JWT_SECRET: ${JWT_SECRET:-change-me-access-secret}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change-me-refresh-secret}
-      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1d}
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET is required}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1h}
       JWT_REFRESH_EXPIRES: ${JWT_REFRESH_EXPIRES:-7d}
+      NODE_ENV: ${NODE_ENV:-production}
       PORT: ${PORT:-6001}
     command: ["./scripts/run_app_prod.sh"]
