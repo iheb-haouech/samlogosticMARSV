@@ -6,9 +6,11 @@ import { store } from "../../../store/store";
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../../features/user/userSlice";
+import { useTranslation } from "react-i18next";
 import "./Auth.scss";
 
 const Signup = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const currentUser: any = useSelector(selectCurrentUser);
 
@@ -24,7 +26,7 @@ const Signup = () => {
       return res;
     } catch (err: any) {
       if (err?.message?.includes("already exists")) {
-        alert("Cet email est déjà utilisé, choisis une autre adresse.");
+        alert(t("emailAlreadyUsed"));
       }
       throw err;
     }
@@ -69,8 +71,8 @@ const Signup = () => {
             </div>
 
             <div className="auth-marketing-deck">
-              <h3>Espace Logistique Intégré</h3>
-              <p>Inscrivez vos identifiants pour configurer votre profil d'accès, suivre vos flux de distribution et interagir avec la matrice de transport.</p>
+              <h3>{t("integratedLogisticsSpace")}</h3>
+              <p>{t("signupMarketingText")}</p>
             </div>
           </div>
           
@@ -86,8 +88,8 @@ const Signup = () => {
 
           <div className="auth-form-card-wrapper">
             <div className="form-context-header">
-              <h2>Créer un compte</h2>
-              <p>Configurez vos paramètres réseau d'entreprise ci-dessous.</p>
+              <h2>{t("Create an account")}</h2>
+              <p>{t("signupSettingsText")}</p>
             </div>
             
             <div className="form-component-wrapper">

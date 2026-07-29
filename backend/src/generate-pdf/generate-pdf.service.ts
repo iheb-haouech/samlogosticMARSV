@@ -121,7 +121,6 @@ export class GeneratePdfService {
         saved_file_name,
         save,
       );
-      console.log(order);
 
       // Set response headers
       res.setHeader('Content-Type', 'application/pdf');
@@ -129,7 +128,7 @@ export class GeneratePdfService {
       // Send the PDF buffer as response
       return res.send(pdfBuffer);
     } catch (error) {
-      console.log(error);
+      // SECURITY: Do not expose error details to the client.
     }
   }
 }

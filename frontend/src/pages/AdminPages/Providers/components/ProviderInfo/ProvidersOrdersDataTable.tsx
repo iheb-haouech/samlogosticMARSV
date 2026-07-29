@@ -45,12 +45,12 @@ const ProvidersOrdersDataTable = ({ orders }: IOProps) => {
       ),
     },
     {
-      title: "Date de création",
+      title: t("creationDate"),
       dataIndex: "createdAt",
       key: "creationDate",
     },
     {
-      title: "Statut",
+      title: t("status"),
       dataIndex: "orderStatusId",
       key: "status",
       render: (status: any) => <Tag color={getStatusColor(status)}>{getOrderStatusName(status)}</Tag>,

@@ -3,23 +3,26 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Card, Descriptions, Tag, Button } from "antd";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { getOrderById, selectFetchedOrder, setFetchedOrderToNull } from "../../../features/order/orderSlice";
-
-const statusTag = (orderStatusId?: number) => {
-  switch (orderStatusId) {
-    case 1:
-    case 2:
-      return <Tag color="orange">En attente</Tag>;
-    case 3:
-      return <Tag color="blue">En cours</Tag>;
-    case 4:
-      return <Tag color="green">Livrée</Tag>;
-    case 5:
-    default:
-      return <Tag color="red">Annulée</Tag>;
-  }
-};
+import { useTranslation } from "react-i18next";
 
 const TransporterOrderDetails: React.FC = () => {
+  const { t } = useTranslation();
+
+  const statusTag = (orderStatusId?: number) => {
+    switch (orderStatusId) {
+      case 1:
+      case 2:
+        return <Tag color="orange">{t("waitingStatus")}</Tag>;
+      case 3:
+        return <Tag color="blue">{t("inProgressStatus")}</Tag>;
+      case 4:
+        return <Tag color="green">{t("deliveredStatus")}</Tag>;
+      case 5:
+      default:
+        return <Tag color="red">{t("canceledStatus")}</Tag>;
+    }
+  };
+
   const { id } = useParams<{ id: string }>();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -34,17 +37,17 @@ const TransporterOrderDetails: React.FC = () => {
     };
   }, [id, dispatch]);
 
-  if (!id) return <div>Aucune commande sélectionnée</div>;
-  if (!order) return <div>Chargement...</div>;
+  if (!id) return <div>{t("noOrderSelected")}</div>;
+  if (!order) return <div>{t("loadingLabel")}</div>;
 
   return (
     <div style={{ padding: 24 }}>
       <div style={{ marginBottom: 16, display: "flex", justifyContent: "space-between" }}>
         <h2>Détails de la commande {order.trackingId}</h2>
-        <Button onClick={() => navigate("/transporter/orders")}>← Retour à la liste</Button>
+        <Button onClick={() => navigate("/transporter/orders")}>{t("retourListe")}</Button>
       </div>
 
-      <Card title="Informations générales" style={{ marginBottom: 16 }}>
+      <Card title={t("informationsGenerales")} style={{ marginBottom: 16 }}>
         <Descriptions column={2}>
           <Descriptions.Item label="Tracking ID">
             {order.trackingId}
@@ -61,7 +64,7 @@ const TransporterOrderDetails: React.FC = () => {
         </Descriptions>
       </Card>
 
-      <Card title="Expéditeur" style={{ marginBottom: 16 }}>
+      <Card title={t("expediteur")} style={{ marginBottom: 16 }}>
         <Descriptions column={1}>
           <Descriptions.Item label="Nom / Société">
             {order.recipient?.companyName ?? "-"}
@@ -78,7 +81,7 @@ const TransporterOrderDetails: React.FC = () => {
         </Descriptions>
       </Card>
 
-      <Card title="Destinataire">
+      <Card title={t("destinataire")}>
         <Descriptions column={1}>
           <Descriptions.Item label="Nom / Société">
             {order.recipient?.companyName ?? "-"}

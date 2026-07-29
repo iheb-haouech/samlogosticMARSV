@@ -1,8 +1,10 @@
 import { Layout, Table, Button, Modal, Form, Input, message } from "antd";
 import { useGetAdminTransportersQuery, useCreateTransporterMutation } from '../../../features/transporter/transportersApi';
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 const ListeLivreurs: React.FC = () => {
+  const { t } = useTranslation();
   const { data: transporters = [], isLoading: tableLoading } = useGetAdminTransportersQuery();
   const [createTransporter, { isLoading: createLoading }] = useCreateTransporterMutation();
   const [openModal, setOpenModal] = useState(false);
@@ -10,15 +12,15 @@ const ListeLivreurs: React.FC = () => {
 
   const columns: any[] = [
     { title: 'ID', dataIndex: 'id', key: 'id' },
-    { title: 'Prénom', dataIndex: 'firstName', key: 'firstName' },
-    { title: 'Nom', dataIndex: 'lastName', key: 'lastName' },
-    { title: 'Email', dataIndex: 'email', key: 'email' },
-    { title: 'Véhicule', dataIndex: 'vehicleNumber', key: 'vehicleNumber' },
-    { title: 'Série du véhicule', dataIndex: 'vehicleSize', key: 'vehicleSize' },
+    { title: t("prenomColumn"), dataIndex: 'firstName', key: 'firstName' },
+    { title: t("nomColumn"), dataIndex: 'lastName', key: 'lastName' },
+    { title: t("email"), dataIndex: 'email', key: 'email' },
+    { title: t("vehicleType"), dataIndex: 'vehicleNumber', key: 'vehicleNumber' },
+    { title: t("vehicleSize"), dataIndex: 'vehicleSize', key: 'vehicleSize' },
   ];
 
   const handleCreate = async (values: any) => {
-    console.log('Form values:', values);  // 🔍 Debug frontend
+
     try {
       await createTransporter(values).unwrap();
       message.success(`Transporteur créé : ${values.firstName} ${values.lastName}`);
@@ -47,10 +49,10 @@ const ListeLivreurs: React.FC = () => {
       />
 
       <Modal
-  title="Nouveau transporteur"
+  title={t("transportersList")}
   open={openModal}
   onCancel={() => { form.resetFields(); setOpenModal(false); }}
-  okText="Créer"
+  okText={t("createBtn")}
   onOk={form.submit}  // ✅ form.submit()
   confirmLoading={createLoading}
   >
@@ -75,7 +77,7 @@ const ListeLivreurs: React.FC = () => {
       <Input />
     </Form.Item>
     <Form.Item name="vehicleSize" label="Série du véhicule" rules={[{required:true}]}>
-      <Input placeholder="Ex: 1234 TU 01" />
+      <Input placeholder={t("vehicleEx")} />
     </Form.Item>
   </Form>
 </Modal>

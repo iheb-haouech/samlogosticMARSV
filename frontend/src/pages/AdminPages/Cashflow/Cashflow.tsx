@@ -15,6 +15,7 @@ import {
 import type { TableProps } from "antd";
 import axios from "axios";
 import { Fragment, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import "./Cashflow.scss";
 
 type CashflowUser = {
@@ -42,6 +43,7 @@ type Summary = {
 const apiBaseUrl = import.meta.env.VITE_BASE_URL;
 
 const Cashflow = () => {
+  const { t } = useTranslation();
   const [clients, setClients] = useState<CashflowUser[]>([]);
   const [transporters, setTransporters] = useState<CashflowUser[]>([]);
   const [summary, setSummary] = useState<Summary>({
@@ -77,7 +79,7 @@ const Cashflow = () => {
       setClients(clientsRes.data);
       setTransporters(transportersRes.data);
     } catch (error: any) {
-      message.error(error?.response?.data?.message || "Erreur lors du chargement cashflow.");
+      message.error(error?.response?.data?.message || t("cashflowLoadError"));
     } finally {
       setLoading(false);
     }
@@ -93,31 +95,31 @@ const Cashflow = () => {
   const handleCashout = async (user: CashflowUser) => {
     const amount = cashoutValues[user.id] || 0;
     if (amount <= 0) {
-      message.warning("Veuillez saisir un montant valide.");
+      message.warning(t("validAmountMsg"));
       return;
     }
     if (amount > user.walletBalance) {
-      message.error("Le cashout ne peut pas depasser le panier disponible.");
+      message.error(t("cashoutExceedMsg"));
       return;
     }
 
     try {
       await axios.post(`${apiBaseUrl}/cashflow/users/${user.id}/cashout`, { amount }, { headers });
-      message.success("Cashout enregistre.");
+      message.success(t("cashoutRegistered"));
       setCashoutValues((prev) => ({ ...prev, [user.id]: 0 }));
       fetchCashflow();
     } catch (error: any) {
-      message.error(error?.response?.data?.message || "Erreur cashout.");
+      message.error(error?.response?.data?.message || t("cashoutError"));
     }
   };
 
   const handleBlock = async (user: CashflowUser) => {
     try {
       await axios.patch(`${apiBaseUrl}/cashflow/users/${user.id}/block`, { blocked: !user.blocked }, { headers });
-      message.success(user.blocked ? "Compte reactive." : "Compte bloque.");
+      message.success(user.blocked ? t("accountReactivated") : t("accountBlocked"));
       fetchCashflow();
     } catch (error: any) {
-      message.error(error?.response?.data?.message || "Erreur blocage.");
+      message.error(error?.response?.data?.message || t("blockError"));
     }
   };
 
@@ -125,11 +127,11 @@ const Cashflow = () => {
     setSettlementLoading(true);
     try {
       await axios.post(`${apiBaseUrl}/cashflow/settlement/receive-transporter`, values, { headers });
-      message.success("Montant transporteur recu.");
+      message.success(t("transporterAmountReceived"));
       receiveForm.resetFields();
       fetchCashflow();
     } catch (error: any) {
-      message.error(error?.response?.data?.message || "Erreur reception transporteur.");
+      message.error(error?.response?.data?.message || t("transporterReceiveError"));
     } finally {
       setSettlementLoading(false);
     }
@@ -139,11 +141,11 @@ const Cashflow = () => {
     setSettlementLoading(true);
     try {
       await axios.post(`${apiBaseUrl}/cashflow/settlement/pay-client`, values, { headers });
-      message.success("Versement client enregistre.");
+      message.success(t("clientDepositRegistered"));
       payClientForm.resetFields();
       fetchCashflow();
     } catch (error: any) {
-      message.error(error?.response?.data?.message || "Erreur versement client.");
+      message.error(error?.response?.data?.message || t("clientDepositError"));
     } finally {
       setSettlementLoading(false);
     }
@@ -151,7 +153,7 @@ const Cashflow = () => {
 
   const clientColumns: TableProps<CashflowUser>["columns"] = [
     {
-      title: "Nom",
+      title: t("name"),
       key: "name",
       render: (_, user) => (
         <Fragment>
@@ -163,30 +165,30 @@ const Cashflow = () => {
       ),
     },
     {
-      title: "Type",
+      title: t("accountType"),
       dataIndex: "accountType",
       key: "accountType",
       render: (value: string) => <Tag color={value === "B2C" ? "blue" : "purple"}>{value || "B2B"}</Tag>,
     },
     {
-      title: "Statut",
+      title: t("status"),
       key: "status",
-      render: (_, user) => <Tag color={user.blocked ? "red" : "green"}>{user.blocked ? "Bloque" : "Actif"}</Tag>,
+      render: (_, user) => <Tag color={user.blocked ? "red" : "green"}>{user.blocked ? t("blocked") : t("active")}</Tag>,
     },
     {
-      title: "Telephone",
+      title: t("telephone"),
       key: "phone",
       render: (_, user) => `${user.phoneCountryCode ? `+${user.phoneCountryCode} ` : ""}${user.phone || "-"}`,
     },
     {
-      title: "Panier disponible",
+      title: t("walletBalance"),
       dataIndex: "walletBalance",
       key: "walletBalance",
       align: "right",
       render: (value) => `${Number(value || 0).toFixed(3)} DT`,
     },
     {
-      title: "Cashout",
+      title: t("cashoutLabel"),
       key: "cashout",
       render: (_, user) => (
         <Space.Compact>
@@ -197,17 +199,17 @@ const Cashflow = () => {
             onChange={(value) => setCashoutValues((prev) => ({ ...prev, [user.id]: Number(value || 0) }))}
           />
           <Button type="primary" onClick={() => handleCashout(user)} disabled={user.walletBalance <= 0}>
-            Valider
+            {t("validate")}
           </Button>
         </Space.Compact>
       ),
     },
     {
-      title: "Blocage",
+      title: t("blocking"),
       key: "block",
       render: (_, user) => (
         <Button danger={!user.blocked} onClick={() => handleBlock(user)}>
-          {user.blocked ? "Debloquer" : "Bloquer"}
+          {user.blocked ? t("unblock") : t("block")}
         </Button>
       ),
     },
@@ -220,31 +222,31 @@ const Cashflow = () => {
       <Row gutter={12} className="cashflow-page--summary">
         <Col xs={24} sm={12} md={8} lg={4}>
           <span className="cashflow-page--metric">
-            <span>Panier clients (a verser)</span>
+            <span>{t("clientWalletLabel")}</span>
             <strong>{summary.clientsWallet.toFixed(3)} DT</strong>
           </span>
         </Col>
         <Col xs={24} sm={12} md={8} lg={4}>
           <span className="cashflow-page--metric">
-            <span>Panier transporteurs (a recevoir)</span>
+            <span>{t("transporterWalletLabel")}</span>
             <strong>{summary.transportersWallet.toFixed(3)} DT</strong>
           </span>
         </Col>
         <Col xs={24} sm={12} md={8} lg={4}>
           <span className="cashflow-page--metric">
-            <span>Panier B2B (frais livraison)</span>
+            <span>{t("panierB2b")}</span>
             <strong>{summary.b2bDeliveredFees.toFixed(3)} DT</strong>
           </span>
         </Col>
         <Col xs={24} sm={12} md={8} lg={4}>
           <span className="cashflow-page--metric">
-            <span>Panier B2C (colis + transport)</span>
+            <span>{t("panierB2c")}</span>
             <strong>{(summary.b2cDeliveredRevenue || 0).toFixed(3)} DT</strong>
           </span>
         </Col>
         <Col xs={24} sm={12} md={8} lg={4}>
           <span className="cashflow-page--metric cashflow-page--metric-highlight">
-            <span>Gain net estime</span>
+            <span>{t("gainNet")}</span>
             <strong>{(summary.netServiceEstimate || 0).toFixed(3)} DT</strong>
           </span>
         </Col>
@@ -252,29 +254,29 @@ const Cashflow = () => {
 
       <Row gutter={16}>
         <Col xs={24} lg={12}>
-          <Card title="Reglement transporteur" className="cashflow-page--settlement">
+          <Card title={t("reglementTransporteur")} className="cashflow-page--settlement">
             <Form form={receiveForm} layout="vertical" onFinish={handleReceiveTransporter}>
               <Row gutter={16}>
                 <Col xs={24} md={12}>
-              <Form.Item name="transporterId" label="Transporteur" rules={[{ required: true }]}>
+              <Form.Item name="transporterId" label={t("transporterFilter")} rules={[{ required: true }]}>
                 <Select
                   showSearch
                   optionFilterProp="label"
-                  options={transporters.map((t) => ({
-                    value: t.id,
-                    label: `${getName(t)} (${t.walletBalance.toFixed(3)} DT)`,
+                  options={transporters.map((tr) => ({
+                    value: tr.id,
+                    label: `${getName(tr)} (${tr.walletBalance.toFixed(3)} DT)`,
                   }))}
                 />
               </Form.Item>
                 </Col>
                 <Col xs={24} md={12}>
-              <Form.Item name="amountReceived" label="Montant recu du transporteur" rules={[{ required: true }]}>
+              <Form.Item name="amountReceived" label={t("receivedAmountLabel")} rules={[{ required: true }]}>
                 <InputNumber min={0} style={{ width: "100%" }} addonAfter="DT" />
               </Form.Item>
                 </Col>
                 <Col xs={24}>
                   <Button type="primary" htmlType="submit" loading={settlementLoading} block>
-                    Valider reception
+                    {t("validateReception")}
                   </Button>
                 </Col>
               </Row>
@@ -283,11 +285,11 @@ const Cashflow = () => {
         </Col>
 
         <Col xs={24} lg={12}>
-          <Card title="Versement client" className="cashflow-page--settlement">
+          <Card title={t("versementClient")} className="cashflow-page--settlement">
             <Form form={payClientForm} layout="vertical" onFinish={handlePayClient}>
               <Row gutter={16}>
                 <Col xs={24} md={12}>
-              <Form.Item name="clientId" label="Client" rules={[{ required: true }]}>
+              <Form.Item name="clientId" label={t("clientFilter")} rules={[{ required: true }]}>
                 <Select
                   showSearch
                   optionFilterProp="label"
@@ -301,7 +303,7 @@ const Cashflow = () => {
                 <Col xs={24} md={12}>
               <Form.Item
                 name="amountToGiveClient"
-                label="Montant a donner au client (colis)"
+                label={t("amountToClientLabel")}
                 rules={[{ required: true }]}
               >
                 <InputNumber min={0} style={{ width: "100%" }} addonAfter="DT" />
@@ -309,7 +311,7 @@ const Cashflow = () => {
                 </Col>
                 <Col xs={24}>
                   <Button type="primary" htmlType="submit" loading={settlementLoading} block>
-                    Valider versement
+                    {t("validateDeposit")}
                   </Button>
                 </Col>
               </Row>
@@ -319,7 +321,7 @@ const Cashflow = () => {
       </Row>
 
       <section className="cashflow-page--section">
-        <Typography.Title level={5}>Liste transporteurs</Typography.Title>
+        <Typography.Title level={5}>{t("transportersListLabel")}</Typography.Title>
         <Table
           rowKey="id"
           loading={loading}
@@ -330,7 +332,7 @@ const Cashflow = () => {
       </section>
 
       <section className="cashflow-page--section">
-        <Typography.Title level={5}>Liste clients</Typography.Title>
+        <Typography.Title level={5}>{t("clientsListLabel")}</Typography.Title>
         <Table rowKey="id" loading={loading} columns={clientColumns} dataSource={clients} pagination={{ pageSize: 6 }} />
       </section>
     </section>

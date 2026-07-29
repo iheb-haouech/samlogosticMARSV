@@ -64,7 +64,7 @@ const DashboardLayout: React.FC = () => {
     { key: "/user/dashboard", label: t("dashboard"), icon: <MdOutlineSpaceDashboard /> },
     { key: "/user/orders", label: t("ordersList"), icon: <FiShoppingCart /> },
     ...(isB2C
-      ? [{ key: "/user/create-order", label: "Créer une commande", icon: <MdOutlineAddCircle /> }]
+      ? [{ key: "/user/create-order", label: t("createOrder"), icon: <MdOutlineAddCircle /> }]
       : []),
     {
       key: "/user/complaints",

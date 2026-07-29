@@ -14,5 +14,17 @@ export default defineConfig({
   },
   plugins: [
     react(),
-  ]
+  ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          antd: ['antd'],
+          redux: ['@reduxjs/toolkit', 'react-redux'],
+          charts: ['recharts'],
+        }
+      }
+    }
+  }
 })

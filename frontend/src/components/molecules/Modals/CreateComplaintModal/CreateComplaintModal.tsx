@@ -19,8 +19,6 @@ const CreateComplaintModal = ({
   const [form] = Form.useForm();
 
 const onFinish = (values: any) => {
-  console.log("FORM VALUES:", values);
-
   createComplaint({
     subject: values.subject,
     messageContent: values.messageContent,
@@ -50,30 +48,30 @@ const onFinish = (values: any) => {
         <Title level={5}>{t("complaintMsg")}</Title>
         <Form form={form} style={{ marginTop: "1rem" }} layout='vertical' size='large' onFinish={onFinish}>
           <Form.Item
-            label={"Subject"}
+            label={t("subjectLabel")}
             name='subject'
             rules={[
               {
                 required: true,
-                message: "Required field",
+                message: t("requiredFieldLabel"),
               },
             ]}
             hasFeedback
           >
-            <Input id='subject' placeholder={"Subject"} type='text' />
+            <Input id='subject' placeholder={t("subjectLabel")} type='text' />
           </Form.Item>
           <Form.Item
-            label={"Description"}
+            label={t("descriptionLabel")}
             name='messageContent'
             rules={[
               {
                 required: true,
-                message: "Required field",
+                message: t("requiredFieldLabel"),
               },
             ]}
             hasFeedback
           >
-            <TextArea placeholder='Description' />
+            <TextArea placeholder={t("descriptionLabel")} />
           </Form.Item>
         </Form>
       </div>

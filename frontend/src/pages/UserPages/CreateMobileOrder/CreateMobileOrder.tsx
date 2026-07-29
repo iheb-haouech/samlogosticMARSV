@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button, Input, message, Card, Space, Steps } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
+import { useTranslation } from "react-i18next";
 import { Order, PackagesData } from "../../../types/Order";
 import PackageTable from "../../../components/organisms/Tables/PackageTable/PackageTable";
 import type { InputRef } from "antd";
@@ -16,6 +17,7 @@ interface CreateMobileOrderProps {
 }
 
 const CreateMobileOrder: React.FC<CreateMobileOrderProps> = ({ onClose }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const currentUser: any = useSelector(selectCurrentUser);
   const isB2C = currentUser?.accountType === "B2C";
@@ -60,7 +62,7 @@ const CreateMobileOrder: React.FC<CreateMobileOrderProps> = ({ onClose }) => {
 
   const handleSubmit = async () => {
     if (isB2C && packagesData?.packages.some((pkg: any) => !pkg.price || pkg.price <= 0)) {
-      message.error("Veuillez saisir le prix de chaque colis.");
+      message.error(t("priceRequiredMsg"));
       return;
     }
 
@@ -98,10 +100,10 @@ const CreateMobileOrder: React.FC<CreateMobileOrderProps> = ({ onClose }) => {
     setLoading(true);
     try {
       await store.dispatch(addOrder(newOrderToSend)).unwrap();
-      message.success("Commande créée avec succès");
+      message.success(t("orderCreatedSuccess"));
       navigate("/user/orders");
     } catch {
-      message.error("Erreur lors de la création de la commande");
+      message.error(t("orderCreateError"));
     } finally {
       setLoading(false);
     }
@@ -118,9 +120,9 @@ const CreateMobileOrder: React.FC<CreateMobileOrderProps> = ({ onClose }) => {
   };
 
   const steps = [
-    { title: "Destinataire" },
-    { title: "Colis" },
-    { title: "Récapitulatif" },
+    { title: t("stepRecipient") },
+    { title: t("stepPackages") },
+    { title: t("stepSummary") },
   ];
 
   if (isB2C && currentStep === 2) {
@@ -128,22 +130,22 @@ const CreateMobileOrder: React.FC<CreateMobileOrderProps> = ({ onClose }) => {
       <div className="create-mobile-order">
         <Card>
           <Space direction="vertical" style={{ width: "100%" }}>
-            <h3>Récapitulatif</h3>
+            <h3>{t("stepSummary")}</h3>
             <div className="summary-section">
-              <h4>Destinataire:</h4>
+              <h4>{t("recipientTitle")}</h4>
               <p>{formValues.recipient.companyName}</p>
               <p>{formValues.recipient.city}</p>
             </div>
             <div className="summary-section">
-              <h4>Colis ({packagesData.totalQuantity}):</h4>
-              <p>Total: {(packagesData.totalPrice || 0)} DT</p>
-              {fixedShipmentPrice > 0 && <p>Frais de transport: {fixedShipmentPrice} DT</p>}
-              <p className="total-amount">Total TTC: {(packagesData.totalPrice || 0) + fixedShipmentPrice} DT</p>
+              <h4>{t("packagesSummary", { count: packagesData.totalQuantity })}</h4>
+              <p>{t("totalLabel")} {(packagesData.totalPrice || 0)} DT</p>
+              {fixedShipmentPrice > 0 && <p>{t("transportFeesLabel")} {fixedShipmentPrice} DT</p>}
+              <p className="total-amount">{t("totalTTC")} {(packagesData.totalPrice || 0) + fixedShipmentPrice} DT</p>
             </div>
             <Space>
-              <Button onClick={() => setCurrentStep(1)}>Retour</Button>
+              <Button onClick={() => setCurrentStep(1)}>{t("retour")}</Button>
               <Button type="primary" loading={loading} onClick={handleSubmit}>
-                Valider la commande
+                {t("validateOrder")}
               </Button>
             </Space>
           </Space>
@@ -171,28 +173,28 @@ const CreateMobileOrder: React.FC<CreateMobileOrderProps> = ({ onClose }) => {
 
       <div className="mobile-step-content">
         {currentStep === 0 && (
-          <Card title="Destinataire">
+          <Card title={t("destinataire")}>
             <Space direction="vertical" style={{ width: "100%" }}>
               <Input
-                placeholder="Société"
+                placeholder={t("companyLabel")}
                 value={formValues.recipient.companyName}
                 onChange={handleNestedFieldsChange("recipient", "companyName")}
                 size="large"
               />
               <Input
-                placeholder="Ville"
+                placeholder={t("cityLabel")}
                 value={formValues.recipient.city}
                 onChange={handleNestedFieldsChange("recipient", "city")}
                 size="large"
               />
               <Input
-                placeholder="Téléphone"
+                placeholder={t("phoneLabel")}
                 value={formValues.recipient.phone}
                 onChange={handleNestedFieldsChange("recipient", "phone")}
                 size="large"
               />
               <Input
-                placeholder="Adresse"
+                placeholder={t("addressLabel")}
                 value={formValues.recipient.streetAddress}
                 onChange={handleNestedFieldsChange("recipient", "streetAddress")}
                 size="large"
@@ -202,7 +204,7 @@ const CreateMobileOrder: React.FC<CreateMobileOrderProps> = ({ onClose }) => {
         )}
 
         {currentStep === 1 && (
-          <Card title="Colis">
+          <Card title={t("packages")}>
             <PackageTable
               packages={packagesData.packages}
               showPrice={isB2C}
@@ -212,12 +214,12 @@ const CreateMobileOrder: React.FC<CreateMobileOrderProps> = ({ onClose }) => {
             {isB2C && packagesData.packages.length > 0 && (
               <div className="mobile-total">
                 <Space>
-                  <span>Total colis:</span>
+                  <span>{t("totalPackages")}</span>
                   <strong>{packagesData.totalPrice} DT</strong>
                 </Space>
                 {fixedShipmentPrice > 0 && (
                   <Space>
-                    <span>Frais transport:</span>
+                    <span>{t("transportFees")}</span>
                     <strong>{fixedShipmentPrice} DT</strong>
                   </Space>
                 )}
@@ -235,7 +237,7 @@ const CreateMobileOrder: React.FC<CreateMobileOrderProps> = ({ onClose }) => {
           disabled={!canProceed()}
           onClick={() => currentStep < 2 && setCurrentStep(currentStep + 1)}
         >
-          {currentStep < 2 ? "Suivant" : "Créer la commande"}
+          {currentStep < 2 ? t("nextStep") : t("createOrder")}
         </Button>
       </div>
     </div>

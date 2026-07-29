@@ -55,27 +55,27 @@ const ResetPassword = () => {
             alt='SAM LOGISTIC logo'
           />
           <Title className='auth-form--title' level={3}>
-            Changez votre mot de passe
+            {t("changePasswordTitle")}
           </Title>
           <div className='auth-form--title-sub'>
-            Veuillez saisir votre nouveau mot de passe et le confirmer ci-dessous.
+            {t("enterNewPasswordMsg")}
           </div>
 
           <Form onFinish={handleSubmit} style={{ marginTop: "1rem" }} layout='vertical' size='large'>
             <Form.Item
-              label='Mot de passe'
+              label={t("Password")}
               name='password'
               rules={[
                 {
                   required: true,
-                  message: "Veuillez tapez votre mot de passe",
+                  message: t("passwordRequired"),
                 },
               ]}
               hasFeedback
             >
               <Input.Password
                 id='newPassword'
-                placeholder='Tapez votre mot de passe'
+                placeholder={t("passwordPlaceholder")}
                 onChange={handleChange("newPassword")}
                 value={resetPsw.newPassword}
                 type='password'
@@ -83,7 +83,7 @@ const ResetPassword = () => {
               />
             </Form.Item>
             <Form.Item
-              label='Confirmer le mot de passe'
+              label={t("confirmPassword")}
               name='confirmPassword'
               rules={[
                 {
@@ -102,7 +102,7 @@ const ResetPassword = () => {
             >
               <Input.Password
                 id='confirmNewPassword'
-                placeholder='Confirmer le mot de passe'
+                placeholder={t("confirmPasswordPlaceholder")}
                 onChange={handleChange("confirmNewPassword")}
                 value={resetPsw.confirmNewPassword}
                 type='password'
@@ -117,18 +117,18 @@ const ResetPassword = () => {
               shape='round'
               size={"large"}
             >
-              Confirmer le mot de passe
+              {t("confirmButton")}
             </Button>
           </Form>
           <Typography.Text className='auth-form--text'>
-            Vous vous souvenez de votre mot de passe ?{" "}
+            {t("rememberPassword")}{" "}
             <Typography.Link
               className='auth-form--textLink'
               onClick={() => {
                 navigate("/login");
               }}
             >
-              Se connecter
+              {t("Log in")}
             </Typography.Link>
           </Typography.Text>
         </div>

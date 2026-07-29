@@ -1,10 +1,12 @@
 import { Table, Button, DatePicker, Select, Row, Col } from "antd";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { useTranslation } from "react-i18next";
 
 const apiBaseUrl = import.meta.env.VITE_BASE_URL;
 
 const InvoicesList = () => {
+  const { t } = useTranslation();
   const [data, setData] = useState([]);
 
   const fetchInvoices = async (filters = {}) => {
@@ -50,19 +52,19 @@ const InvoicesList = () => {
   };
 
   const columns = [
-    { title: "Invoice", dataIndex: "matricule" },
-    { title: "HT", dataIndex: "totalHt" },
-    { title: "TVA", dataIndex: "tva" },
-    { title: "TTC", dataIndex: "ttc" },
-    { title: "Net", dataIndex: "net" },
-    { title: "Date", dataIndex: "createdAt" },
-    { title: "From", dataIndex: "from" },
-    { title: "To", dataIndex: "to" },
+    { title: t("invoiceNumber"), dataIndex: "matricule" },
+    { title: t("ht"), dataIndex: "totalHt" },
+    { title: t("tva"), dataIndex: "tva" },
+    { title: t("ttc"), dataIndex: "ttc" },
+    { title: t("net"), dataIndex: "net" },
+    { title: t("date"), dataIndex: "createdAt" },
+    { title: t("from"), dataIndex: "from" },
+    { title: t("to"), dataIndex: "to" },
     {
       title: "PDF",
       render: (record: any) => (
         <Button onClick={() => downloadInvoice(record)}>
-          Download
+          {t("download")}
         </Button>
       ),
     },
@@ -74,10 +76,10 @@ const InvoicesList = () => {
 
       <Row gutter={16} style={{ marginBottom: 20 }}>
         <Col span={6}>
-          <Select placeholder="Client" style={{ width: "100%" }} />
+          <Select placeholder={t("clientFilter")} style={{ width: "100%" }} />
         </Col>
         <Col span={6}>
-          <Select placeholder="Transporter" style={{ width: "100%" }} />
+          <Select placeholder={t("transporterFilter")} style={{ width: "100%" }} />
         </Col>
       </Row>
 

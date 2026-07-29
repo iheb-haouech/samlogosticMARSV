@@ -110,7 +110,7 @@ export class AppService {
   const totalWaitingProviders = await this.prisma.user.count({
     where: {
       roleId: USERROLES.user.id,
-      verified: true,
+      verified: false,
     },
   });
 

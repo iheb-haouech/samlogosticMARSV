@@ -21,6 +21,9 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AllCLaimsRespDTO, ClaimRespDTO } from './dto/claim.dto';
 import { ResponseDto } from '../utils/response.dto';
 import { AuthUserJWT } from '../utils/auth-user-jwt.decorator';
+import { RoleGuard } from '../auth/role.guard';
+import { Roles } from '../auth/roles.decorator';
+import { USERROLES } from '../utils/enum';
 
 @Controller('claims')
 @ApiTags('claims')
@@ -40,13 +43,15 @@ export class ClaimsController {
   ) {
     return this.claimsService.create(userToken, createClaimDto);
   }
+
   @Post('/add-message')
   @ApiOkResponse({
     description: 'add claim message response',
     type: ResponseDto,
   })
-  addMessage(@Body() addClaimDto: AddClaimMsgDto) {
-    return this.claimsService.createMessage(addClaimDto);
+  addMessage(@AuthUserJWT() userToken: string | undefined, @Body() addClaimDto: AddClaimMsgDto) {
+    // SECURITY: Pass user token so the service can verify the user owns the claim or is admin.
+    return this.claimsService.createMessage(userToken, addClaimDto);
   }
 
   @Get()
@@ -69,8 +74,9 @@ export class ClaimsController {
     description: 'get claim response',
     type: ClaimRespDTO,
   })
-  findOne(@Param('id') id: string) {
-    return this.claimsService.findOne(+id);
+  findOne(@Param('id') id: string, @AuthUserJWT() userToken: string | undefined) {
+    // SECURITY: Pass user token for ownership check.
+    return this.claimsService.findOne(+id, userToken);
   }
 
   @Patch(':id')
@@ -78,16 +84,20 @@ export class ClaimsController {
     description: 'update claim response',
     type: UpdateRespDTO,
   })
-  update(@Param('id') id: string, @Body() updateClaimDto: UpdateClaimDto) {
-    return this.claimsService.update(+id, updateClaimDto);
+  update(@Param('id') id: string, @Body() updateClaimDto: UpdateClaimDto, @AuthUserJWT() userToken: string | undefined) {
+    // SECURITY: Pass user token for ownership check.
+    return this.claimsService.update(+id, updateClaimDto, userToken);
   }
 
   @Delete(':id')
+  @UseGuards(RoleGuard)
+  @Roles(USERROLES.admin.id, USERROLES.superadmin.id)
   @ApiOkResponse({
     description: 'delete claim response',
     type: ResponseDto,
   })
   remove(@Param('id') id: string) {
+    // SECURITY: Only admins/superadmins can delete claims.
     return this.claimsService.remove(+id);
   }
 }

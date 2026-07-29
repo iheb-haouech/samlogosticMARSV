@@ -39,9 +39,6 @@ const ComplaintsList: React.FC<ComplaintsListProps> = ({
   const { t } = useTranslation();
   const [selectedComplaint, setSelectedComplaint] = useState(defaultSelectedComplaintId);
   const statistics: any = useSelector(selectedStatistic);
-  console.log("ADMIN CLAIMS:", complaints);
-
-
   useEffect(() => {
     setSelectedComplaint(defaultSelectedComplaintId);
   }, [defaultSelectedComplaintId]);

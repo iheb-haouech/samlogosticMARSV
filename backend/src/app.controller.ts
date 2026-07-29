@@ -81,7 +81,6 @@ export class AppController {
     )
     file: Express.Multer.File,
   ) {
-    console.log(file);
     return { filename: file?.filename, type: file?.mimetype };
   }
 

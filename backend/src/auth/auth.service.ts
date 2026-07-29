@@ -56,14 +56,15 @@ export class AuthService {
   async login(email: string, password: string): Promise<any> {
     const user = await this.prisma.user.findUnique({ where: { email } });
 
+    // Use a generic error message to prevent email enumeration attacks.
     if (!user) {
-      throw new NotFoundException(`No user found for email: ${email}`);
+      throw new UnauthorizedException('Identifiants invalides');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user?.password);
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid password !');
+      throw new UnauthorizedException('Identifiants invalides');
     }
 
     const { accessToken, refreshToken } = await this.generateTokens({
@@ -86,7 +87,7 @@ export class AuthService {
 
     if (existingUser) {
       throw new HttpException(
-        `User with email ${userData?.email} already exists !`,
+        'Un compte avec cet email existe déjà.',
         400,
       );
     }
@@ -94,16 +95,14 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(userData?.password, 10);
     const accountType = userData.accountType === 'B2C' ? 'B2C' : 'B2B';
 
+    // SECURITY: Only allow role 3 (CLIENT) for public registration.
+    // Prevents privilege escalation — transporter/admin creation is restricted to admin endpoints.
     const newUser = await this.prisma.user.create({
       data: {
         ...userData,
         password: hashedPassword,
         accountType,
-        roleId: [USERROLES?.user?.id, USERROLES?.transporter?.id].includes(
-          userData?.roleId,
-        )
-          ? userData.roleId
-          : 3,
+        roleId: 3,
         verified: true,
         disponibility: {
           create: userData?.disponibility,
@@ -184,71 +183,70 @@ export class AuthService {
   }
 
   async requestPasswordReset(email: string): Promise<any> {
+    // SECURITY: Always return success to prevent email enumeration.
+    // Do not reveal whether the email exists or not.
     try {
       const user = await this.prisma.user.findUnique({ where: { email } });
 
-      if (!user) {
-        throw new NotFoundException('User not found !');
+      if (user) {
+        const resetPasswordToken = await this.jwtService.sign(
+          { userId: user?.id },
+          {
+            secret: process.env.JWT_REFRESH_SECRET,
+            expiresIn: process.env.JWT_RESET_PASSWORD_EXP_IN || '1h',
+          },
+        );
+
+        await this.prisma.user.update({
+          where: { id: user.id },
+          data: { resetPasswordToken } as any,
+        });
+
+        // SECURITY: Never expose the reset token in the API response.
+        // It should only be sent via email in production.
       }
-
-      const resetPasswordToken = await this.jwtService.sign(
-        { userId: user?.id },
-        {
-          secret: process.env.JWT_REFRESH_SECRET,
-          expiresIn: process.env.JWT_RESET_PASSWORD_EXP_IN || '1d',
-        },
-      );
-
-      await this.prisma.user.update({
-        where: { id: user.id },
-        data: { resetPasswordToken } as any,
-      });
 
       return {
         success: true,
-        resetPasswordToken,
-        message: 'Reset password token generated successfully.',
+        message: 'Si cet email existe, un lien de réinitialisation a été envoyé.',
       };
     } catch (error) {
-      return false;
+      // Still return success to prevent information leakage.
+      return {
+        success: true,
+        message: 'Si cet email existe, un lien de réinitialisation a été envoyé.',
+      };
     }
   }
 
   async resetPassword(dto: ResetPasswordDto): Promise<boolean> {
-    try {
-      const { newPassword, resetPasswordToken } = dto;
+    const { newPassword, resetPasswordToken } = dto;
 
-      try {
-        const decoded = this.jwtService.verify(resetPasswordToken, {
-          secret: process.env.JWT_REFRESH_SECRET,
-        });
-
-        const user = await this.prisma.user.findUnique({
-          where: { id: decoded?.userId, resetPasswordToken },
-        });
-
-        if (!user) {
-          throw new NotFoundException('User not found or invalid token !');
-        }
-
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-        await this.prisma.user.update({
-          where: { id: user.id },
-          data: { password: hashedPassword, resetPasswordToken: null } as any,
-        });
-
-        return true;
-      } catch (verifyError) {
-        if ((verifyError as Error).name === 'TokenExpiredError') {
-          throw new UnauthorizedException('Reset password token has expired !');
-        } else {
-          throw verifyError;
-        }
-      }
-    } catch (error) {
-      return false;
+    // SECURITY: Validate password strength before proceeding.
+    if (!newPassword || newPassword.length < 8) {
+      throw new HttpException('Le mot de passe doit contenir au moins 8 caractères.', 400);
     }
+
+    const decoded = await this.jwtService.verifyAsync(resetPasswordToken, {
+      secret: process.env.JWT_REFRESH_SECRET,
+    });
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: decoded?.userId, resetPasswordToken },
+    });
+
+    if (!user) {
+      throw new HttpException('Utilisateur introuvable ou token invalide.', 400);
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword, resetPasswordToken: null } as any,
+    });
+
+    return true;
   }
 
   async createTransporterByAdmin(dto: CreateTransporterDto): Promise<any> {

@@ -41,12 +41,10 @@ export const UserProfile = () => {
 
   useEffect(() => {
     store.dispatch(fetchCompanyTypes());
-    console.log("not working");
   }, []);
 
   useEffect(() => {
     store.dispatch(fetchCompanyActivities());
-    console.log("not working");
   }, []);
 
   useEffect(() => {

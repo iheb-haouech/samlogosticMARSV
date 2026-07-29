@@ -358,7 +358,7 @@ const complaintSlice = createSlice({
   },
 });
 export const setComplaintStatus =
-  (status: "1" | "3"): AppThunk =>
+  (status: "1" | "2"): AppThunk =>
   (dispatch, _getState) => {
     dispatch(complaintSlice.actions.setComplaintStatus(status));
     store.dispatch(setLoading(true));

@@ -4,10 +4,11 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cors from 'cors';
 import * as express from 'express';
+import * as fs from 'fs';
+import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './utils/all-exceptions.filter';
-const fs = require('fs');
 
 function validateEnv() {
   const required = ['DATABASE_URL', 'JWT_SECRET', 'JWT_REFRESH_SECRET'];
@@ -87,6 +88,21 @@ async function bootstrap() {
       message: 'Too many requests, please try again later.',
       standardHeaders: true,
       legacyHeaders: false,
+    }),
+  );
+
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: ["'self'", 'data:', 'https:'],
+          connectSrc: ["'self'", process.env.FRONTEND_URL || 'https://samlogistic.tn'],
+        },
+      },
+      crossOriginEmbedderPolicy: false,
     }),
   );
 

@@ -30,9 +30,19 @@ export class UserService {
     let userData = plainToClass(UserDTO, createUserDto);
     const hashedPassword = await bcrypt.hash(userData.password, 10);
 
+    // If customCompanyActivity is provided (Autre selected), create a new activity record
+    let finalActivityId = userData.companyActivityId;
+    if (userData.customCompanyActivity && userData.companyActivityId === -1) {
+      const newActivity = await this.prisma.company_activity.create({
+        data: { typeName: userData.customCompanyActivity },
+      });
+      finalActivityId = newActivity.id;
+    }
+
     userData = {
       ...userData,
       password: hashedPassword,
+      companyActivityId: finalActivityId !== -1 ? finalActivityId : null,
     };
 
     const createdUser = await this.prisma.user.create({
@@ -128,11 +138,6 @@ export class UserService {
       delete provider?.password;
       delete provider?.resetPasswordToken;
       return provider;
-    });
-
-    console.log({
-      totalCount,
-      providers,
     });
 
     return {
@@ -511,8 +516,6 @@ export class UserService {
       const user = await this.prisma.user.findUnique({
         where: { id: providerId },
       });
-
-      console.log('providerId', { providerId, from, to });
 
       let userType: any = null;
       const conditions: any = {};

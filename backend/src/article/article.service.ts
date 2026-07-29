@@ -6,8 +6,6 @@ export class ArticlesService {
   constructor(private prisma: PrismaService) {}
 
   findAll() {
-    console.log('cccccccccccccc');
-
     return this.prisma.article.findMany();
   }
 }

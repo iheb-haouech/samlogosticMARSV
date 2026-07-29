@@ -4,6 +4,7 @@ import OrderTypeModal from "./OrderTypeModal";
 import OrderFlowModal from "./OrderFlowModal";
 import CreateOrderForm from "../../../templates/Forms/CreateOrderForm/CreateOrderForm";
 import CreateAdminOrderForm from "../../../templates/Forms/CreateOrderForm/CreateAdminOrderForm";
+import { useTranslation } from "react-i18next";
 
 type MainOrderType = "international" | "national" | "quote";
 type TradeType = "import" | "export";
@@ -38,6 +39,7 @@ interface Props {
 }
 
 const CreateOrderFlow = ({ isOpen, onClose, currentUser, onCreateOrder }: Props) => {
+  const { t } = useTranslation();
   const [isTypeModalOpen, setIsTypeModalOpen] = useState(false);
   const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -109,7 +111,7 @@ const CreateOrderFlow = ({ isOpen, onClose, currentUser, onCreateOrder }: Props)
       <DrawerComponent
         isOpen={isDrawerOpen}
         handleClose={handleCloseAll}
-        title="Créer une commande"
+        title={t("createOrderDrawer")}
         content={
           orderMeta ? (
             currentUser?.roleId === 1 || currentUser?.roleId === 4 ? (

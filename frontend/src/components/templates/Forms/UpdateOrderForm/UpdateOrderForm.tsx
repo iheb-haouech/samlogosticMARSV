@@ -41,7 +41,7 @@ const UpdateOrderForm = ({ order, onUpdateOrder }: UpdateOrderFormProps) => {
     });
   }, [packagesData, inputValue, tags]);
 
-  console.log("eeeeeeeeeeee", formValues?.eta, formValues?.etd);
+
   const handleSubmit = () => {
     const updatedOrder: Order = {
       id: order?.id,
@@ -157,7 +157,7 @@ const UpdateOrderForm = ({ order, onUpdateOrder }: UpdateOrderFormProps) => {
                       rules={[
                         {
                           required: true,
-                          message: "Required field",
+                          message: t("requiredFieldLabel"),
                         },
                       ]}
                     >
@@ -177,7 +177,7 @@ const UpdateOrderForm = ({ order, onUpdateOrder }: UpdateOrderFormProps) => {
                       rules={[
                         {
                           required: true,
-                          message: "Required field",
+                          message: t("requiredFieldLabel"),
                         },
                       ]}
                     >
@@ -197,7 +197,7 @@ const UpdateOrderForm = ({ order, onUpdateOrder }: UpdateOrderFormProps) => {
                       rules={[
                         {
                           required: true,
-                          message: "Required field",
+                          message: t("requiredFieldLabel"),
                         },
                       ]}
                     >
@@ -219,7 +219,7 @@ const UpdateOrderForm = ({ order, onUpdateOrder }: UpdateOrderFormProps) => {
                       rules={[
                         {
                           required: true,
-                          message: "Required field",
+                          message: t("requiredFieldLabel"),
                         },
                       ]}
                     >
@@ -238,7 +238,7 @@ const UpdateOrderForm = ({ order, onUpdateOrder }: UpdateOrderFormProps) => {
                       rules={[
                         {
                           required: true,
-                          message: "Required field",
+                          message: t("requiredFieldLabel"),
                         },
                       ]}
                     >
@@ -270,7 +270,7 @@ const UpdateOrderForm = ({ order, onUpdateOrder }: UpdateOrderFormProps) => {
                       rules={[
                         {
                           required: true,
-                          message: "Required field",
+                          message: t("requiredFieldLabel"),
                         },
                       ]}
                     >
@@ -289,7 +289,7 @@ const UpdateOrderForm = ({ order, onUpdateOrder }: UpdateOrderFormProps) => {
                       rules={[
                         {
                           required: true,
-                          message: "Required field",
+                          message: t("requiredFieldLabel"),
                         },
                       ]}
                     >
@@ -309,7 +309,7 @@ const UpdateOrderForm = ({ order, onUpdateOrder }: UpdateOrderFormProps) => {
                       rules={[
                         {
                           required: true,
-                          message: "Required field",
+                          message: t("requiredFieldLabel"),
                         },
                       ]}
                     >
@@ -331,7 +331,7 @@ const UpdateOrderForm = ({ order, onUpdateOrder }: UpdateOrderFormProps) => {
                       rules={[
                         {
                           required: true,
-                          message: "Required field",
+                          message: t("requiredFieldLabel"),
                         },
                       ]}
                     >
@@ -351,7 +351,7 @@ const UpdateOrderForm = ({ order, onUpdateOrder }: UpdateOrderFormProps) => {
                       rules={[
                         {
                           required: true,
-                          message: "Required field",
+                          message: t("requiredFieldLabel"),
                         },
                       ]}
                     >

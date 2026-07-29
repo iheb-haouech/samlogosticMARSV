@@ -1,7 +1,7 @@
-// frontend/src/pages/TransporterPages/Invoices/TransporterInvoices.tsx
 import React, { useEffect, useState } from "react";
 import { Table, App  } from "antd";
 import type { ColumnsType } from "antd/es/table";
+import { useTranslation } from "react-i18next";
 import "./TransporterInvoices.scss";
 
 interface TransporterInvoiceRow {
@@ -13,20 +13,21 @@ interface TransporterInvoiceRow {
 }
 
 const TransporterInvoices: React.FC = () => {
+  const { t } = useTranslation();
   const { message } = App.useApp();
   const [data, setData] = useState<TransporterInvoiceRow[]>([]);
   const [loading, setLoading] = useState(false);
 
   const columns: ColumnsType<TransporterInvoiceRow> = [
-    { title: "Facture", dataIndex: "invoiceNumber", key: "invoiceNumber" },
-    { title: "Période", dataIndex: "period", key: "period" },
+    { title: t("invoiceNumber"), dataIndex: "invoiceNumber", key: "invoiceNumber" },
+    { title: t("period"), dataIndex: "period", key: "period" },
     {
-      title: "Montant total",
+      title: t("totalAmount"),
       dataIndex: "totalAmount",
       key: "totalAmount",
-      render: (v: number) => `${v.toFixed(3)} TND`,
+      render: (v: number) => `${v.toFixed(3)} ${t("currencyTND")}`,
     },
-    { title: "Créée le", dataIndex: "createdAt", key: "createdAt" },
+    { title: t("createdAt"), dataIndex: "createdAt", key: "createdAt" },
   ];
 
   useEffect(() => {
@@ -47,7 +48,7 @@ const TransporterInvoices: React.FC = () => {
 
         setData(rows);
       } catch {
-        message.error("Impossible de charger les factures");
+        message.error(t("echecChargementFactures"));
       } finally {
         setLoading(false);
       }

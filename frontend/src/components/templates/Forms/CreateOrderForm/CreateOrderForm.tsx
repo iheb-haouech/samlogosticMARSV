@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Button, Input, Tag, message, Card, Space, Row, Col, Typography, Divider } from "antd";
-import { PlusOutlined, UserOutlined, EnvironmentOutlined, InboxOutlined, TagOutlined } from "@ant-design/icons";
+import { Button, Input, Tag, message, Row, Col, Steps, Descriptions, Tooltip } from "antd";
+import { PlusOutlined, UserOutlined, EnvironmentOutlined, InboxOutlined, CheckCircleOutlined, ArrowLeftOutlined, ArrowRightOutlined, SendOutlined } from "@ant-design/icons";
 import { Order, PackagesData } from "../../../../types/Order";
 import PackageTable from "../../../organisms/Tables/PackageTable/PackageTable";
 import type { InputRef } from "antd";
+import { useTranslation } from "react-i18next";
+import "./CreateOrderForm.scss";
+
+const BRAND_LOGO = "/png/logosam.png";
 
 interface OrderMeta {
   mainType: "international" | "national" | "quote";
@@ -32,6 +36,7 @@ interface CreateOrderFormProps {
 }
 
 const CreateOrderForm = ({ onCreateOrder, currentUser, orderMeta }: CreateOrderFormProps) => {
+  const { t } = useTranslation();
   const isB2C = currentUser?.accountType === "B2C";
   const isLightShipment = orderMeta.subType === "envoieLegere";
 
@@ -123,7 +128,7 @@ const CreateOrderForm = ({ onCreateOrder, currentUser, orderMeta }: CreateOrderF
 
   const handleSubmit = () => {
     if (isB2C && packagesData?.packages.some((pkg) => !pkg.price || pkg.price <= 0)) {
-      message.error("Veuillez saisir le prix de chaque colis.");
+      message.error(t("priceRequiredMsg"));
       return;
     }
 
@@ -153,99 +158,349 @@ const CreateOrderForm = ({ onCreateOrder, currentUser, orderMeta }: CreateOrderF
     onCreateOrder(newOrderToSend);
   };
 
-  return (
-    <Card bordered={false} style={{ borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
-      <Typography.Title level={4} style={{ marginBottom: 24 }}>Créer une nouvelle commande</Typography.Title>
-      
-      <Space direction="vertical" style={{ width: "100%" }} size="large">
-        
-        {/* SECTION EXPÉDITEUR */}
-        <div style={{ background: "#fcfcfc", padding: "20px", borderRadius: "8px", border: "1px solid #f0f0f0" }}>
-          <Typography.Title level={5} style={{ marginTop: 0 }}><UserOutlined /> Expéditeur</Typography.Title>
-          <Row gutter={[16, 16]}>
-            <Col span={12}>
-              <label style={{ fontWeight: 600, marginBottom: 4, display: "block" }}>Société</label>
-              <Input value={formValues.source.companyName} onChange={handleNestedFieldsChange("source", "companyName")} placeholder="Société" />
-            </Col>
-            <Col span={12}>
-              <label style={{ fontWeight: 600, marginBottom: 4, display: "block" }}>Ville</label>
-              <Input value={formValues.source.city} onChange={handleNestedFieldsChange("source", "city")} placeholder="Ville" />
-            </Col>
-            <Col span={12}>
-              <label style={{ fontWeight: 600, marginBottom: 4, display: "block" }}>Téléphone</label>
-              <Input value={formValues.source.phone} onChange={handleNestedFieldsChange("source", "phone")} placeholder="+216 XX XXX XXX" />
-            </Col>
-            <Col span={12}>
-              <label style={{ fontWeight: 600, marginBottom: 4, display: "block" }}>Code postal</label>
-              <Input value={formValues.source.zipCode} onChange={handleNestedFieldsChange("source", "zipCode")} placeholder="XXXX" />
-            </Col>
-            <Col span={24}>
-              <label style={{ fontWeight: 600, marginBottom: 4, display: "block" }}>Adresse</label>
-              <Input value={formValues.source.streetAddress} onChange={handleNestedFieldsChange("source", "streetAddress")} placeholder="Adresse" />
-            </Col>
-          </Row>
-        </div>
+  const [currentStep, setCurrentStep] = useState(0);
 
-        {/* SECTION DESTINATAIRE */}
-        <div style={{ background: "#f6fbff", padding: "20px", borderRadius: "8px", border: "1px solid #d1e9ff" }}>
-          <Typography.Title level={5} style={{ marginTop: 0, color: "#0050b3" }}><EnvironmentOutlined /> Destinataire</Typography.Title>
-          <Row gutter={[16, 16]}>
-            <Col span={12}>
-              <label style={{ fontWeight: 600, marginBottom: 4, display: "block" }}>Société *</label>
-              <Input value={formValues.recipient.companyName} onChange={handleNestedFieldsChange("recipient", "companyName")} placeholder="Société destinataire" />
-            </Col>
-            <Col span={12}>
-              <label style={{ fontWeight: 600, marginBottom: 4, display: "block" }}>Ville *</label>
-              <Input value={formValues.recipient.city} onChange={handleNestedFieldsChange("recipient", "city")} placeholder="Ville" />
-            </Col>
-            <Col span={12}>
-              <label style={{ fontWeight: 600, marginBottom: 4, display: "block" }}>Téléphone</label>
-              <Input value={formValues.recipient.phone} onChange={handleNestedFieldsChange("recipient", "phone")} placeholder="+216 XX XXX XXX" />
-            </Col>
-            <Col span={12}>
-              <label style={{ fontWeight: 600, marginBottom: 4, display: "block" }}>Code postal</label>
-              <Input value={formValues.recipient.zipCode} onChange={handleNestedFieldsChange("recipient", "zipCode")} placeholder="XXXX" />
-            </Col>
-            <Col span={24}>
-              <label style={{ fontWeight: 600, marginBottom: 4, display: "block" }}>Adresse</label>
-              <Input value={formValues.recipient.streetAddress} onChange={handleNestedFieldsChange("recipient", "streetAddress")} placeholder="Adresse" />
-            </Col>
-          </Row>
-        </div>
+  const steps = [
+    {
+      title: t("senderSection"),
+      icon: <UserOutlined />,
+      content: "sender",
+    },
+    {
+      title: t("recipientSection"),
+      icon: <EnvironmentOutlined />,
+      content: "recipient",
+    },
+    {
+      title: t("packagesLabel"),
+      icon: <InboxOutlined />,
+      content: "packages",
+    },
+    {
+      title: t("reviewOrder"),
+      icon: <CheckCircleOutlined />,
+      content: "review",
+    },
+  ];
 
-        {/* SECTION DÉTAILS */}
+  const canGoNext = () => {
+    if (currentStep === 0) {
+      return formValues.source.companyName && formValues.source.city;
+    }
+    if (currentStep === 1) {
+      return formValues.recipient.companyName && formValues.recipient.city;
+    }
+    return true;
+  };
+
+  const renderSenderStep = () => (
+    <div className="order-wizard__section">
+      <div className="order-wizard__section-header">
+        <div className="order-wizard__section-icon sender">
+          <UserOutlined />
+        </div>
         <div>
-          <Typography.Title level={5}><InboxOutlined /> Détails & Références</Typography.Title>
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ fontWeight: 600, marginBottom: 8, display: "block" }}>Description</label>
-            <Input.TextArea rows={2} value={formValues.description} onChange={(e) => setFormValues({ ...formValues, description: e.target.value })} placeholder="Description optionnelle..." />
-          </div>
-          
-          <label style={{ fontWeight: 600, marginBottom: 8, display: "block" }}><TagOutlined /> Références</label>
-          <div style={{ border: "1px dashed #d9d9d9", padding: "12px", borderRadius: "6px", display: "flex", flexWrap: "wrap", gap: 8, background: "#fafafa" }}>
-            {tags.map((tag, i) => (
-              <Tag key={i} closable onClose={() => handleTagClose(tag)} style={{ marginRight: 0 }}>{tag}</Tag>
-            ))}
-            {inputVisible ? (
-              <Input ref={inputRef} size="small" style={{ width: 80 }} value={inputValue} onChange={handleReferenceChange} onBlur={handleReferenceInputConfirm} onPressEnter={handleReferenceInputConfirm} />
-            ) : (
-              <Tag onClick={() => setInputVisible(true)} style={{ borderStyle: "dashed", cursor: "pointer" }}><PlusOutlined /> Ajouter référence</Tag>
-            )}
-          </div>
+          <h3>{t("senderSection")}</h3>
+          <p className="order-wizard__section-hint">{t("senderHint")}</p>
         </div>
+      </div>
+      <Row gutter={[20, 16]}>
+        <Col xs={24} sm={12}>
+          <label className="order-wizard__label">{t("companyLabel")} *</label>
+          <Input
+            size="large"
+            value={formValues.source.companyName}
+            onChange={handleNestedFieldsChange("source", "companyName")}
+            placeholder={t("companyLabel")}
+            className="order-wizard__input"
+          />
+        </Col>
+        <Col xs={24} sm={12}>
+          <label className="order-wizard__label">{t("cityLabel")} *</label>
+          <Input
+            size="large"
+            value={formValues.source.city}
+            onChange={handleNestedFieldsChange("source", "city")}
+            placeholder={t("cityLabel")}
+            className="order-wizard__input"
+          />
+        </Col>
+        <Col xs={24} sm={12}>
+          <label className="order-wizard__label">{t("phoneLabel")}</label>
+          <Input
+            size="large"
+            value={formValues.source.phone}
+            onChange={handleNestedFieldsChange("source", "phone")}
+            placeholder="+216 XX XXX XXX"
+            className="order-wizard__input"
+          />
+        </Col>
+        <Col xs={24} sm={12}>
+          <label className="order-wizard__label">{t("postalCodeLabel")}</label>
+          <Input
+            size="large"
+            value={formValues.source.zipCode}
+            onChange={handleNestedFieldsChange("source", "zipCode")}
+            placeholder="XXXX"
+            className="order-wizard__input"
+          />
+        </Col>
+        <Col xs={24}>
+          <label className="order-wizard__label">{t("addressLabel")}</label>
+          <Input
+            size="large"
+            value={formValues.source.streetAddress}
+            onChange={handleNestedFieldsChange("source", "streetAddress")}
+            placeholder={t("addressLabel")}
+            className="order-wizard__input"
+          />
+        </Col>
+      </Row>
+    </div>
+  );
 
-        <Divider />
+  const renderRecipientStep = () => (
+    <div className="order-wizard__section">
+      <div className="order-wizard__section-header">
+        <div className="order-wizard__section-icon recipient">
+          <EnvironmentOutlined />
+        </div>
+        <div>
+          <h3>{t("recipientSection")}</h3>
+          <p className="order-wizard__section-hint">{t("recipientHint")}</p>
+        </div>
+      </div>
+      <Row gutter={[20, 16]}>
+        <Col xs={24} sm={12}>
+          <label className="order-wizard__label">{t("companyLabel")} *</label>
+          <Input
+            size="large"
+            value={formValues.recipient.companyName}
+            onChange={handleNestedFieldsChange("recipient", "companyName")}
+            placeholder={t("societeDestinataire")}
+            className="order-wizard__input"
+          />
+        </Col>
+        <Col xs={24} sm={12}>
+          <label className="order-wizard__label">{t("cityLabel")} *</label>
+          <Input
+            size="large"
+            value={formValues.recipient.city}
+            onChange={handleNestedFieldsChange("recipient", "city")}
+            placeholder={t("cityLabel")}
+            className="order-wizard__input"
+          />
+        </Col>
+        <Col xs={24} sm={12}>
+          <label className="order-wizard__label">{t("phoneLabel")}</label>
+          <Input
+            size="large"
+            value={formValues.recipient.phone}
+            onChange={handleNestedFieldsChange("recipient", "phone")}
+            placeholder="+216 XX XXX XXX"
+            className="order-wizard__input"
+          />
+        </Col>
+        <Col xs={24} sm={12}>
+          <label className="order-wizard__label">{t("postalCodeLabel")}</label>
+          <Input
+            size="large"
+            value={formValues.recipient.zipCode}
+            onChange={handleNestedFieldsChange("recipient", "zipCode")}
+            placeholder="XXXX"
+            className="order-wizard__input"
+          />
+        </Col>
+        <Col xs={24}>
+          <label className="order-wizard__label">{t("addressLabel")}</label>
+          <Input
+            size="large"
+            value={formValues.recipient.streetAddress}
+            onChange={handleNestedFieldsChange("recipient", "streetAddress")}
+            placeholder={t("addressLabel")}
+            className="order-wizard__input"
+          />
+        </Col>
+      </Row>
+    </div>
+  );
 
-        <Typography.Title level={5}>Colis</Typography.Title>
-        <PackageTable packages={packagesData.packages} showPrice={isB2C} fixedShipmentPrice={isB2C && isLightShipment ? 7 : undefined} onPackagesChanges={handlePackagesChange} />
+  const renderPackagesStep = () => (
+    <div className="order-wizard__section">
+      <div className="order-wizard__section-header">
+        <div className="order-wizard__section-icon packages">
+          <InboxOutlined />
+        </div>
+        <div>
+          <h3>{t("packagesAndDetails")}</h3>
+          <p className="order-wizard__section-hint">{t("packagesHint")}</p>
+        </div>
+      </div>
 
-        <div style={{ textAlign: "right", marginTop: 20 }}>
-          <Button loading={loading} icon={<PlusOutlined />} size="large" type="primary" onClick={handleSubmit} style={{ height: 45, padding: "0 30px" }}>
-            Créer la commande
+      {/* Description */}
+      <div className="order-wizard__field-group">
+        <label className="order-wizard__label">{t("Description")}</label>
+        <Input.TextArea
+          rows={2}
+          value={formValues.description}
+          onChange={(e) => setFormValues({ ...formValues, description: e.target.value })}
+          placeholder={t("optionnalDescription")}
+          className="order-wizard__input"
+        />
+      </div>
+
+      {/* References */}
+      <div className="order-wizard__field-group">
+        <label className="order-wizard__label">{t("referencesLabel")}</label>
+        <div className="order-wizard__references">
+          {tags.map((tag, i) => (
+            <Tag key={i} closable onClose={() => handleTagClose(tag)} color="blue" className="order-wizard__tag">
+              {tag}
+            </Tag>
+          ))}
+          {inputVisible ? (
+            <Input
+              ref={inputRef}
+              size="small"
+              style={{ width: 120 }}
+              value={inputValue}
+              onChange={handleReferenceChange}
+              onBlur={handleReferenceInputConfirm}
+              onPressEnter={handleReferenceInputConfirm}
+              className="order-wizard__input"
+            />
+          ) : (
+            <Tag onClick={() => setInputVisible(true)} className="order-wizard__tag order-wizard__tag--add">
+              <PlusOutlined /> {t("addReference")}
+            </Tag>
+          )}
+        </div>
+      </div>
+
+      {/* Packages */}
+      <div className="order-wizard__field-group">
+        <label className="order-wizard__label">{t("packagesLabel")} *</label>
+        <PackageTable
+          packages={packagesData.packages}
+          showPrice={isB2C}
+          fixedShipmentPrice={isB2C && isLightShipment ? 7 : undefined}
+          onPackagesChanges={handlePackagesChange}
+        />
+      </div>
+    </div>
+  );
+
+  const renderReviewStep = () => (
+    <div className="order-wizard__section">
+      <div className="order-wizard__section-header">
+        <div className="order-wizard__section-icon review">
+          <CheckCircleOutlined />
+        </div>
+        <div>
+          <h3>{t("reviewOrder")}</h3>
+          <p className="order-wizard__section-hint">{t("reviewHint")}</p>
+        </div>
+      </div>
+
+      <Descriptions bordered column={1} size="middle" className="order-wizard__review">
+        <Descriptions.Item label={t("senderSection")}>
+          <strong>{formValues.source.companyName}</strong> — {formValues.source.city}, {formValues.source.country}
+          <br />{formValues.source.streetAddress} {formValues.source.zipCode ? `(${formValues.source.zipCode})` : ""}
+          <br />{formValues.source.phone}
+        </Descriptions.Item>
+        <Descriptions.Item label={t("recipientSection")}>
+          <strong>{formValues.recipient.companyName}</strong> — {formValues.recipient.city}, {formValues.recipient.country}
+          <br />{formValues.recipient.streetAddress} {formValues.recipient.zipCode ? `(${formValues.recipient.zipCode})` : ""}
+          <br />{formValues.recipient.phone}
+        </Descriptions.Item>
+        {formValues.description && (
+          <Descriptions.Item label={t("Description")}>{formValues.description}</Descriptions.Item>
+        )}
+        {tags.length > 0 && (
+          <Descriptions.Item label={t("referencesLabel")}>
+            {tags.map((tag, i) => <Tag key={i} color="blue">{tag}</Tag>)}
+          </Descriptions.Item>
+        )}
+        <Descriptions.Item label={t("packagesLabel")}>
+          {packagesData.packages.length > 0 ? (
+            <span>{packagesData.packages.length} colis — {packagesData.totalWeight || 0} kg</span>
+          ) : (
+            <Tag color="red">{t("noPackages")}</Tag>
+          )}
+        </Descriptions.Item>
+      </Descriptions>
+    </div>
+  );
+
+  return (
+    <div className="order-wizard">
+      <div className="order-wizard__header">
+        <img src={BRAND_LOGO} alt="SAM LOGISTIC" className="order-wizard__logo" />
+        <div>
+          <h2 className="order-wizard__title">{t("createNewOrder")}</h2>
+          <p className="order-wizard__subtitle">{t("orderWizardSubtitle")}</p>
+        </div>
+      </div>
+
+      <Steps
+        current={currentStep}
+        items={steps.map((step) => ({
+          title: step.title,
+          icon: step.icon,
+        }))}
+        className="order-wizard__steps"
+      />
+
+      <div className="order-wizard__content">
+        {currentStep === 0 && renderSenderStep()}
+        {currentStep === 1 && renderRecipientStep()}
+        {currentStep === 2 && renderPackagesStep()}
+        {currentStep === 3 && renderReviewStep()}
+      </div>
+
+      <div className="order-wizard__actions">
+        {currentStep > 0 && (
+          <Button
+            size="large"
+            icon={<ArrowLeftOutlined />}
+            onClick={() => setCurrentStep(currentStep - 1)}
+          >
+            {t("previous")}
           </Button>
+        )}
+        <div className="order-wizard__actions-right">
+          {currentStep < steps.length - 1 ? (
+            <Tooltip title={!canGoNext() ? t("fillRequiredFields") : ""}>
+              <Button
+                size="large"
+                type="primary"
+                icon={<ArrowRightOutlined />}
+                onClick={() => {
+                  if (!canGoNext()) {
+                    message.warning(t("fillRequiredFields"));
+                    return;
+                  }
+                  setCurrentStep(currentStep + 1);
+                }}
+              >
+                {t("next")}
+              </Button>
+            </Tooltip>
+          ) : (
+            <Button
+              size="large"
+              type="primary"
+              icon={<SendOutlined />}
+              loading={loading}
+              onClick={handleSubmit}
+              className="order-wizard__submit"
+            >
+              {t("createOrder")}
+            </Button>
+          )}
         </div>
-      </Space>
-    </Card>
+      </div>
+    </div>
   );
 };
 

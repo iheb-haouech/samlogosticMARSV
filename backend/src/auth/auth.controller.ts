@@ -16,6 +16,17 @@ import { AuthUserJWT } from '../utils/auth-user-jwt.decorator';
 import { AuthResponseDto } from './dto/auth-resp.dto';
 import { CreateTransporterDto } from '../transporters/dto/create-transporter.dto';
 import { USERROLES } from '../utils/enum';
+import * as rateLimit from 'express-rate-limit';
+
+// Strict rate limiter for auth endpoints: 10 attempts per minute per IP
+const authLimiter = rateLimit({
+  windowMs: 60000,
+  max: 10,
+  message: 'Trop de tentatives de connexion. Veuillez réessayer dans 1 minute.',
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
+});
 
 
 @Controller('auth')
@@ -84,13 +95,18 @@ register(@Body() user: UserDTO): Promise<ResponseDto> {
     const frontendUrl = process.env.FRONTEND_URL || 'https://samlogistic.tn';
     const result = await this.authService.loginWithGoogle(query.code, callbackUrl);
     const returnUrl = `${frontendUrl}/login`;
-    const params = new URLSearchParams({
+
+    // SECURITY: Do NOT pass tokens/user data in URL query params.
+    // Use URL fragment (#) which is not sent to the server, or use a secure cookie/POST approach.
+    const fragmentParams = new URLSearchParams({
       google_access_token: result.accessToken,
       google_refresh_token: result.refreshToken,
       google_user: JSON.stringify(result.user),
     });
 
-    res.redirect(`${returnUrl}?${params.toString()}`);
+    // Use fragment (#) instead of query (?) — fragments are not sent in referrer headers
+    // and are not logged by servers/proxies, though they are still visible in browser history.
+    res.redirect(`${returnUrl}#google_auth=${encodeURIComponent(fragmentParams.toString())}`);
   }
 
   @Post('refresh-token')

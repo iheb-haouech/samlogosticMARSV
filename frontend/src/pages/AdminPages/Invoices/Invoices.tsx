@@ -113,7 +113,9 @@ const Invoices: React.FC = () => {
             onSelectUser={handleSelectUserToGenerateInvoice}
             loadMoreUsers={onLoadMoreProviders}
             isLoadMore={totalCountProviders <= loadMoreProvidersLimit}
-            onSearchUserChange={(value: any) => console.log(value)}
+            onSearchUserChange={(_value: any) => {
+              // Search handler
+            }}
           />
         </>
       ),
@@ -157,7 +159,9 @@ const Invoices: React.FC = () => {
             onSelectUser={handleSelectUserToGenerateInvoice}
             loadMoreUsers={onLoadMoreTransporter}
             isLoadMore={totalCountTransporters <= loadMoreTransportersLimit}
-            onSearchUserChange={(value: any) => console.log(value)}
+            onSearchUserChange={(_value: any) => {
+              // Search handler
+            }}
             userType="livreur"
           />
         </>
@@ -189,7 +193,9 @@ const Invoices: React.FC = () => {
               ? totalCountProviders <= loadMoreProvidersLimit
               : totalCountTransporters <= loadMoreTransportersLimit
           }
-          onSearchUserChange={(value) => console.log("search", value)}
+          onSearchUserChange={(_value) => {
+            // Search handler
+          }}
           fetchUsers={
             currentUserType === "l'entreprise"
               ? () => store.dispatch(fetchProvidersLoadMore())

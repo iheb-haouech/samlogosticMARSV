@@ -75,7 +75,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
       const [startDate] = value;
       const now = new Date();
       if (startDate.isAfter(now)) {
-        return Promise.reject(new Error("La période ne peut pas être dans le futur."));
+        return Promise.reject(new Error(t("periodInFutureError")));
       }
     }
     return Promise.resolve();
@@ -97,7 +97,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
           <Form.Item
             label={t("select_period")}
             name='period'
-            rules={[{ required: true, message: "Champs requis" }, { validator: validatePeriod }]}
+            rules={[{ required: true, message: t("champsRequis") }, { validator: validatePeriod }]}
             hasFeedback
           >
             <RangePicker
@@ -113,7 +113,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
             <Form.Item
               label={`Sélectionnez ${userType}`}
               name='selectedUser'
-              rules={[{ required: true, message: "Champs requis" }]}
+              rules={[{ required: true, message: t("champsRequis")}]}
               hasFeedback
             >
               <>

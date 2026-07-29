@@ -86,6 +86,7 @@ const CreateAdminOrderForm = ({ onCreateOrder, currentUser, orderMeta }: CreateA
   const [inputVisible, setInputVisible] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const inputRef = useRef<InputRef>(null);
+  const [currency, setCurrency] = useState<string>("TND");
 
   useEffect(() => {
     if (inputVisible && inputRef.current) inputRef.current.focus();
@@ -139,14 +140,14 @@ const CreateAdminOrderForm = ({ onCreateOrder, currentUser, orderMeta }: CreateA
 
   const handleSubmit = () => {
     if (!formValues.createdByUserId) {
-      message.error("Veuillez choisir le client.");
+      message.error(t("clientChoiceRequired"));
       return;
     }
     if (
       selectedClient?.accountType === "B2C" &&
       packagesData?.packages.some((pkg) => !pkg.price || pkg.price <= 0)
     ) {
-      message.error("Veuillez saisir le prix de chaque colis.");
+      message.error(t("priceRequiredMsg"));
       return;
     }
 
@@ -164,6 +165,7 @@ const CreateAdminOrderForm = ({ onCreateOrder, currentUser, orderMeta }: CreateA
             )
           : formValues.totalPrice,
       shipmentPrice: selectedClient?.accountType === "B2C" && orderMeta.subType === "envoieLegere" ? 7 : formValues.shipmentPrice,
+      currency: selectedClient?.accountType === "B2B" ? currency : "TND",
     };
 
     onCreateOrder(newOrderToSend);
@@ -228,7 +230,7 @@ const CreateAdminOrderForm = ({ onCreateOrder, currentUser, orderMeta }: CreateA
         </Title>
         <Select
           showSearch
-          placeholder="Sélectionner un client..."
+          placeholder={t("selectClientPlaceholder")}
           optionFilterProp="children"
           onChange={handleClientSelect}
           value={selectedClient?.id}
@@ -366,6 +368,7 @@ const CreateAdminOrderForm = ({ onCreateOrder, currentUser, orderMeta }: CreateA
       </Card>
 
       <Card size="small" style={{ marginBottom: 16 }}>
+        <Title level={5} style={{ marginBottom: 12 }}>{t("packagesLabel")}</Title>
         <Form.Item
           label="Colis"
           rules={[() => ({
@@ -383,6 +386,51 @@ const CreateAdminOrderForm = ({ onCreateOrder, currentUser, orderMeta }: CreateA
           />
         </Form.Item>
       </Card>
+
+      {/* Pricing Section for B2B */}
+      {selectedClient?.accountType === "B2B" && (
+        <Card size="small" style={{ marginBottom: 16 }}>
+          <Title level={5} style={{ marginBottom: 12 }}>{t("Delivery Cost")}</Title>
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item label={t("totalPrice")}>
+                <Input
+                  type="number"
+                  value={formValues.totalPrice || ""}
+                  onChange={(e) => setFormValues({ ...formValues, totalPrice: Number(e.target.value) })}
+                  placeholder="0.00"
+                />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item label={t("shipmentPriceLabel")}>
+                <Input
+                  type="number"
+                  value={formValues.shipmentPrice || ""}
+                  onChange={(e) => setFormValues({ ...formValues, shipmentPrice: Number(e.target.value) })}
+                  placeholder="0.00"
+                />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item label={t("currency")}>
+                <Select
+                  value={currency}
+                  onChange={setCurrency}
+                  options={[{ value: "TND", label: "TND" }, { value: "USD", label: "USD" }, { value: "EUR", label: "EUR" }]}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Card>
+      )}
+
+      {/* Fixed 7 DT for B2C light shipments */}
+      {selectedClient?.accountType === "B2C" && orderMeta.subType === "envoieLegere" && (
+        <Card size="small" style={{ marginBottom: 16, background: '#f6ffed', borderColor: '#b7eb8f' }}>
+          <Typography.Text strong>{t("Delivery Cost")}: 7 DT ({t("fixedPriceLightShipment")})</Typography.Text>
+        </Card>
+      )}
 
       <div style={{ textAlign: "right", marginTop: 8 }}>
         <Button icon={<PlusOutlined />} size="large" type="primary" htmlType="submit" shape="round">

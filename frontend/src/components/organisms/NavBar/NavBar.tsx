@@ -7,6 +7,7 @@ import { FaUser } from "react-icons/fa";
 import { WalletOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import LanguageSwitcher from "../../molecules/LanguageSwitcher/LanguageSwitcher";
 import ThemeToggle from "../../atoms/ThemeToggle/ThemeToggle";
+import { useTranslation } from "react-i18next";
 
 interface NavBarProps {
   userImg?: string;
@@ -29,6 +30,7 @@ const NavBar: React.FC<NavBarProps> = ({
   onMenuToggle,
   isMobile = false,
 }: NavBarProps) => {
+  const { t } = useTranslation();
 
   return (
     <Header className='header-container'>
@@ -62,7 +64,7 @@ const NavBar: React.FC<NavBarProps> = ({
 
         <Link to={profileRoute}>
           <div className='header--user'>
-            <h3 className='header--user-name'>{userName ? userName : "Mon profil"}</h3>
+            <h3 className='header--user-name'>{userName ? userName : t("myProfile")}</h3>
             {userImg ? (
               <Avatar src={userImg} size={isMobile ? 30 : 34} style={{ backgroundColor: "#fde3cf", color: "#f56a00" }} />
             ) : (

@@ -115,7 +115,7 @@ const OrdersTable = ({
       render: (r: any) => r?.companyName || r?.city || "-",
     },
     {
-      title: "Client",
+      title: t("clientFilter"),
       key: "client",
       width: 170,
       render: (_: any, rec: any) => {
@@ -135,7 +135,7 @@ const OrdersTable = ({
         <Dropdown menu={{ items, selectable: true, defaultSelectedKeys: ["all"], onClick: onOrderStatusFilterChange }}>
           <Typography.Link>
             <Space>
-              Statut <DownOutlined />
+              {t("statut")} <DownOutlined />
             </Space>
           </Typography.Link>
         </Dropdown>
@@ -164,7 +164,7 @@ const OrdersTable = ({
       },
     },
     {
-      title: "Transporteur",
+      title: t("transporter"),
       key: "transporter",
       width: 140,
       render: (_: any, rec: any) => {
@@ -175,7 +175,7 @@ const OrdersTable = ({
         if (!name) {
           return (
             <Button type="link" size="small" onClick={() => onAssignDeliveryPerson(order)} icon={<CustomerServiceOutlined />}>
-              Assigner
+              {t("assignButton")}
             </Button>
           );
         }
@@ -189,12 +189,12 @@ const OrdersTable = ({
       fixed: "right" as const,
       render: (_: any, rec: any) => (
         <Space size="small">
-          <Tooltip title="Voir">
+          <Tooltip title={t("view")}>
             <Button size="small" icon={<HiOutlineEye />} onClick={() => onViewOrder(rec)} />
           </Tooltip>
           {isAdmin && (
             <>
-              <Tooltip title="Modifier">
+              <Tooltip title={t("editTooltip")}>
                 <Button size="small" icon={<HiOutlinePencilAlt />} onClick={() => onUpdateOrder(rec)} />
               </Tooltip>
               <Popconfirm title={t("deleteOrder")} onConfirm={() => onDeleteOrder(rec.id)}>
@@ -220,17 +220,17 @@ const OrdersTable = ({
             onChange={setClientFilter}
             style={{ width: 120 }}
             options={[
-              { value: "all", label: "Tous" },
+              { value: "all", label: t("allFilter") },
               { value: "B2B", label: "B2B" },
               { value: "B2C", label: "B2C" },
             ]}
           />
           <Search
             size="small"
-            placeholder="Rechercher..."
+            placeholder={t("searchPlaceholder")}
             style={{ width: 200 }}
-            onSearch={(v) => {
-              console.log("Search:", v);
+            onSearch={(_v) => {
+            // Search handler
             }}
           />
         </Space>

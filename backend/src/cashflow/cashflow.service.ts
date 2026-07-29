@@ -51,7 +51,7 @@ export class CashflowService {
       transportersWallet,
       b2bDeliveredFees: b2bPanier,
       b2cDeliveredRevenue,
-      netServiceEstimate: b2cDeliveredRevenue + b2bPanier - clientsWallet,
+      netServiceEstimate: b2cDeliveredRevenue + b2bPanier - clientsWallet - transportersWallet,
     };
   }
 

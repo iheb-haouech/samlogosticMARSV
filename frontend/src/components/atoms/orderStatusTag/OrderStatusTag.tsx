@@ -12,7 +12,7 @@ const OrderStatusTag: React.FC<OrderStatusTagProps> = ({ orderStatuses, orderSta
   let statusText;
 
   const orderStatus = orderStatuses.find((status) => status.id === orderStatusId)?.statusName || "Error";
-  console.log("OrderStatusTag:", { orderStatusId, orderStatus, orderStatuses });
+
   switch (orderStatus.toLowerCase()) {
     case "created":
       color = "cyan";

@@ -71,6 +71,9 @@ export class UserDTO {
   @ApiProperty({ type: () => Number, required: false })
   companyActivityId?: number | null;
 
+  @ApiProperty({ type: () => String, required: false })
+  customCompanyActivity?: string | null;
+
   @ApiProperty({ enum: ['B2B', 'B2C'], required: false })
   accountType?: 'B2B' | 'B2C';
 

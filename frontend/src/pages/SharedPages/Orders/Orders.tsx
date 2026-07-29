@@ -32,29 +32,32 @@ import { addComplaint } from "../../../features/complaint/complaintSlice";
 import { rolesMap } from "../../../types/Roles";
 import { generateEtiquette } from "../../../services/generate_pdf";
 import { message, Select, Button, Input, Tag, Modal, Form, InputNumber } from "antd";
+import { useTranslation } from "react-i18next";
 import { HiOutlineEye, HiOutlinePencilAlt, HiOutlineTrash, HiOutlineClock } from "react-icons/hi";
 import { MdOutlineLocationOn } from "react-icons/md";
 import { IoAddCircleSharp } from "react-icons/io5";
+import { QRCodeSVG } from 'qrcode.react';
 import CreateOrderFlow from "../../../components/molecules/Modals/OrderTypeModal/CreateOrderFlow";
 
-const STATUS_MAP: Record<number, { label: string; color: string }> = {
-  1: { label: "Non suivi", color: "default" },
-  2: { label: "En attente", color: "orange" },
-  3: { label: "En cours", color: "blue" },
-  4: { label: "Livrée", color: "green" },
-  5: { label: "Annulée", color: "red" },
-  6: { label: "Retour colis", color: "orange" },
-};
+const getStatusMap = (t: any): Record<number, { label: string; color: string }> => ({
+  1: { label: t("notTracked"), color: "default" },
+  2: { label: t("pending"), color: "orange" },
+  3: { label: t("inTransit"), color: "blue" },
+  4: { label: t("delivered"), color: "green" },
+  5: { label: t("canceled"), color: "red" },
+  6: { label: t("returned"), color: "orange" },
+});
 
-const STATUS_OPTIONS = [
-  { value: 2, label: "En attente" },
-  { value: 3, label: "En cours" },
-  { value: 4, label: "Expédiée" },
-  { value: 5, label: "Annulée" },
-  { value: 6, label: "Retour colis" },
+const getStatusOptions = (t: any) => [
+  { value: 2, label: t("pending") },
+  { value: 3, label: t("inTransit") },
+  { value: 4, label: t("delivered") },
+  { value: 5, label: t("canceled") },
+  { value: 6, label: t("returned") },
 ];
 
 const Orders = () => {
+  const { t } = useTranslation();
   const currentUser: any = useSelector(selectCurrentUser);
   const orders = useSelector(selectOrders);
   const orderStatuses = useSelector(selectOrderStatus);
@@ -125,14 +128,14 @@ const Orders = () => {
 
   const handleDeleteOrder = (id: string) => {
     Modal.confirm({
-      title: "Supprimer la commande",
-      content: "Etes-vous sûr de vouloir supprimer cette commande ?",
-      okText: "Oui, supprimer",
-      cancelText: "Non",
+      title: t("confirmDeleteOrder"),
+      content: t("confirmDeleteOrder"),
+      okText: t("yesDelete"),
+      cancelText: t("no"),
       okButtonProps: { danger: true },
       onOk: () => {
         store.dispatch(deleteOrder(id));
-        message.success("Commande supprimée");
+        message.success(t("orderDeleted"));
       },
     });
   };
@@ -155,7 +158,7 @@ const Orders = () => {
           transporterPrice: values.deliveryPrice,
         }),
       ).unwrap();
-      message.success("Prix de livraison mis à jour");
+      message.success(t("deliveryPriceUpdated"));
       setPriceModalOpen(false);
       setSelectedOrderForPrice(null);
       priceForm.resetFields();
@@ -167,12 +170,12 @@ const Orders = () => {
   const handleTogglePayment = async (order: any) => {
     const amount = order.transporterPrice || order.deliveryPrice || 0;
     if (!amount || amount <= 0) {
-      message.warning("Veuillez d'abord définir le prix de livraison");
+      message.warning(t("setDeliveryPriceFirst"));
       return;
     }
     try {
       await store.dispatch(togglePayment({ orderId: order.id, amount })).unwrap();
-      message.success("Paiement activé");
+      message.success(t("paymentActivated"));
       store.dispatch(fetchOrders());
     } catch (err) {
       message.error("Erreur");
@@ -182,7 +185,7 @@ const Orders = () => {
   const handleMarkPaid = async (orderId: string) => {
     try {
       await store.dispatch(markPaid(orderId)).unwrap();
-      message.success("Marqué payé");
+      message.success(t("markPaid"));
       store.dispatch(fetchOrders());
     } catch (err) {
       message.error("Erreur");
@@ -190,15 +193,16 @@ const Orders = () => {
   };
 
   const getStatusTag = (statusId: number) => {
-    const status = STATUS_MAP[statusId];
-    if (!status) return <Tag>Inconnu</Tag>;
+    const statusMap = getStatusMap(t);
+    const status = statusMap[statusId];
+    if (!status) return <Tag>{t("unknownStatus")}</Tag>;
     return <Tag color={status.color}>{status.label}</Tag>;
   };
 
   const handleChangeOrderStatus = async (orderId: string, newStatusId: number) => {
     try {
       await store.dispatch(updateOrderStatus({ id: orderId, orderStatusId: newStatusId })).unwrap();
-      message.success("Statut mis à jour");
+      message.success(t("statusUpdated"));
       store.dispatch(fetchOrders());
     } catch (err) {
       message.error("Erreur lors de la mise à jour du statut");
@@ -209,12 +213,12 @@ const Orders = () => {
     <div className="admin-orders-page">
       <div className="admin-orders-page--header">
         <div className="admin-orders-page--title">
-          <h2>Commandes</h2>
+          <h2>{t("ordersPageTitle")}</h2>
           <span className="admin-orders-page--count">{totalOrders}</span>
         </div>
         <div className="admin-orders-page--actions">
           <Button type="primary" icon={<IoAddCircleSharp />} onClick={() => setIsCreateOrderFlowOpen(true)}>
-            Nouvelle commande
+            {t("newOrder")}
           </Button>
         </div>
       </div>
@@ -226,14 +230,14 @@ const Orders = () => {
           onChange={setClientFilter}
           style={{ width: 130 }}
           options={[
-            { value: "all", label: "Tous" },
+            { value: "all", label: t("allFilterOption") },
             { value: "B2B", label: "B2B" },
             { value: "B2C", label: "B2C" },
           ]}
         />
         <Input
           size="small"
-          placeholder="Rechercher client / tracking..."
+          placeholder={t("searchClientTracking")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           style={{ width: 220 }}
@@ -243,7 +247,7 @@ const Orders = () => {
 
       <div className="admin-orders-page--list">
         {filteredOrders.length === 0 ? (
-          <div className="admin-orders-page--empty">Aucune commande trouvée</div>
+          <div className="admin-orders-page--empty">{t("noOrdersFound")}</div>
         ) : (
           filteredOrders.map((order: any) => {
             const client = order.createdBy || {};
@@ -265,7 +269,7 @@ const Orders = () => {
                       value={order.orderStatusId}
                       onChange={(newStatusId) => handleChangeOrderStatus(order.id, newStatusId)}
                       style={{ minWidth: 120 }}
-                      options={STATUS_OPTIONS.filter((opt) => {
+                      options={getStatusOptions(t).filter((opt) => {
                         if (opt.value === 6) return isB2C;
                         return true;
                       })}
@@ -277,7 +281,7 @@ const Orders = () => {
 
                 <div className="order-card--body">
                   <div className="order-card--row">
-                    <span className="order-card--label">Client:</span>
+                    <span className="order-card--label">{t("clientLabel")}</span>
                     <span className="order-card--value">{clientName}</span>
                     <Tag color={clientType === "B2B" ? "blue" : "green"}>{clientType}</Tag>
                   </div>
@@ -294,7 +298,7 @@ const Orders = () => {
                     </span>
                   </div>
                   <div className="order-card--row order-card--price-row">
-                    <span className="order-card--label">Prix livraison:</span>
+                    <span className="order-card--label">{t("deliveryPriceLabel")}</span>
                     <span className="order-card--price">{deliveryPrice} DT</span>
                     {!isFixedPrice &&
                       [rolesMap.admin, rolesMap.superAdmin].includes(currentUser?.roleId) && (
@@ -303,13 +307,13 @@ const Orders = () => {
                           size="small"
                           onClick={() => openSetPriceModal(order)}
                         >
-                          {deliveryPrice > 0 ? "Modifier" : "Définir"}
+                          {deliveryPrice > 0 ? t("editTooltip") : t("setPrice")}
                         </Button>
                       )}
                   </div>
                   {order.deliveredBy && (
                     <div className="order-card--row">
-                      <span className="order-card--label">Transporteur:</span>
+                      <span className="order-card--label">{t("transporterLabel")}</span>
                       <span className="order-card--value">
                         {order.deliveredBy.firstName || ""} {order.deliveredBy.lastName || ""}
                       </span>
@@ -319,11 +323,36 @@ const Orders = () => {
 
                 <div className="order-card--actions">
                   <Button size="small" icon={<HiOutlineEye />} onClick={() => handleOrderInfo(order)}>
-                    Détails
+                    {t("details")}
                   </Button>
                   <Button size="small" icon={<HiOutlinePencilAlt />} onClick={() => handleUpdateOrder(order)}>
-                    Modifier
+                    {t("editTooltip")}
                   </Button>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      Modal.info({
+                        title: t("qrcode") + ' - #' + (order.trackingId || order.id?.slice(0, 8)),
+                        width: 300,
+                        content: (
+                          <div style={{ textAlign: 'center', padding: '16px 0' }}>
+                            <QRCodeSVG value={order.trackingId || order.id || ''} size={200} /><br/>
+                            <p style={{ marginTop: 12, fontSize: 12, color: '#666' }}>{order.trackingId || order.id?.slice(0, 8)}</p>
+                          </div>
+                        ),
+                      });
+                    }}
+                  >
+                    {t("showQR")}
+                  </Button>
+                  {[rolesMap.admin, rolesMap.superAdmin].includes(currentUser?.roleId) && (
+                    <Button
+                      size="small"
+                      onClick={() => generateEtiquette(order.id)}
+                    >
+                      {t("orderLabel")}
+                    </Button>
+                  )}
                   <Button
                     size="small"
                     icon={<IoAddCircleSharp />}
@@ -333,7 +362,7 @@ const Orders = () => {
                       setIsAssignDeliveryPersonModalOpen(true);
                     }}
                   >
-                    {order.deliveredBy ? "Changer transporteur" : "Assigner"}
+                    {order.deliveredBy ? t("changeTransporter") : t("assignButton")}
                   </Button>
                   {isB2C && order.orderStatusId === 4 && (
                     <Button
@@ -343,11 +372,11 @@ const Orders = () => {
                         store.dispatch(
                           updateOrderStatus({ id: order.id, orderStatusId: 6 }),
                         );
-                        message.success("Commande marquée en retour");
+                        message.success(t("orderMarkedReturn"));
                         store.dispatch(fetchOrders());
                       }}
                     >
-                      Retour
+                      {t("markReturn")}
                     </Button>
                   )}
                   {(order.orderStatusId === 1 || order.orderStatusId === 2) && (
@@ -359,25 +388,25 @@ const Orders = () => {
                         store.dispatch(
                           updateOrderStatus({ id: order.id, orderStatusId: 5 }),
                         );
-                        message.success("Commande annulée");
+                        message.success(t("orderCanceled"));
                         store.dispatch(fetchOrders());
                       }}
                     >
-                      Annuler
+                      {t("cancelOrder")}
                     </Button>
                   )}
                   {!order.paymentConfirmed && deliveryPrice > 0 && (
                     <Button size="small" type="primary" onClick={() => handleTogglePayment(order)}>
-                      Payer
+                      {t("pay")}
                     </Button>
                   )}
                   {order.paymentConfirmed && (
                     <Button size="small" onClick={() => handleMarkPaid(order.id)}>
-                      Marqué payé
+                      {t("markPaid")}
                     </Button>
                   )}
                   <Button size="small" danger icon={<HiOutlineTrash />} onClick={() => handleDeleteOrder(order.id)}>
-                    Supprimer
+                    {t("delete")}
                   </Button>
                 </div>
               </div>
@@ -444,7 +473,7 @@ const Orders = () => {
           setUpdateDrawerOpen(false);
           setClickedOrder(null);
         }}
-        title="Modifier la commande"
+        title={t("modifyOrder")}
       />
 
       <DrawerComponent
@@ -469,11 +498,11 @@ const Orders = () => {
           setOrderInfoDrawerOpen(false);
           setClickedOrder(null);
         }}
-        title="Détails de la commande"
+        title={t("orderDetails")}
       />
 
       <Modal
-        title="Définir le prix de livraison"
+        title={t("setDeliveryPriceTitle")}
         open={priceModalOpen}
         onOk={handleSavePrice}
         onCancel={() => {

@@ -13,7 +13,7 @@ const Waiting: React.FC = () => {
 const navigate = useNavigate();
 
   const currentUser: any = useSelector(selectCurrentUser);
-  console.log(currentUser, "currentUser");
+
 
   const handelLogOut = () => {
     localStorage.removeItem("accessToken");
@@ -35,7 +35,7 @@ const navigate = useNavigate();
           />
           <h1 className='waiting-title'>{t("approval")}</h1>
           <p>
-            Hello <span className='user-name'>{currentUser?.email}</span>, {t("approvalMsg")}
+            {t("enterPassword")} <span className='user-name'>{currentUser?.email}</span>, {t("approvalMsg")}
           </p>
           <Button type='primary' style={{ padding: 10 }} onClick={handelLogOut}>
             {t("approvalBtn")}

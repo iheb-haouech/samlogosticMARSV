@@ -88,8 +88,6 @@ export class UploadPodController {
     file: Express.Multer.File,
     @Res() res,
   ) {
-    console.log('Received order_id:', order_id);
-
     try {
       // Check if the order exists
       const orderExists = await this.prisma.order.findUnique({

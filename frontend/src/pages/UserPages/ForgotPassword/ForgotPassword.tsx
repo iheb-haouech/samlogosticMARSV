@@ -37,7 +37,7 @@ const ForgotPassword = () => {
             {t("Forgot your password ?")}
           </Title>
           <div className='auth-form--title-sub'>
-            Veuillez entrer votre adresse e-mail. Vous recevrez un lien vers créez un nouveau mot de passe par e-mail.
+            {t("forgotPasswordMsg")}
           </div>
           <Form onFinish={handleResetPasswordReq} style={{ marginTop: "1rem" }} layout='vertical' size='large'>
             <Form.Item

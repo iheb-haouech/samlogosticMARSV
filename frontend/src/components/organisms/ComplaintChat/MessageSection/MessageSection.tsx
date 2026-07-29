@@ -17,7 +17,7 @@ interface MessageSectionProps {
   onDelete: () => void;
   onResolve: () => void;
   handelViewOrderDetails: () => void;
-  status: "1" | "3"; // 1 for open and 2 for closed
+  status: "1" | "2"; // 1 for open and 2 for closed
 }
 const MessageSection: React.FC<MessageSectionProps> = ({
   messages,

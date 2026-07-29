@@ -285,6 +285,171 @@ $fluid-curve: cubic-bezier(0.2, 0.8, 0.2, 1);
   100% { transform: rotate(360deg); }
 }
 
+// ENLARGED LOGO IN NAVBAR
+.icon-shield-rotating.brand-logo-large {
+  width: 52px;
+  height: 52px;
+  padding: 12px;
+  img { height: 28px; width: auto; }
+}
+
+// LOGO SHOWCASE IN HERO
+.logo-showcase {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba($tech-mint, 0.05) 0%, rgba($neutral-card, 1) 100%);
+  min-height: 380px;
+  .hero-logo {
+    width: 65%;
+    max-width: 280px;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 8px 24px rgba($tech-mint, 0.15));
+    animation: logoFloat 6s ease-in-out infinite;
+  }
+}
+
+@keyframes logoFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+// LOGO SHOWCASE IN ABOUT SECTION
+.logo-showcase-large {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, $neutral-bg 0%, rgba($tech-mint, 0.04) 100%);
+  border-radius: 24px;
+  padding: 60px;
+  box-shadow: 0 20px 45px rgba(15,23,42,0.04);
+  .about-logo {
+    width: 70%;
+    max-width: 320px;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 16px rgba($tech-mint, 0.1));
+  }
+}
+
+// B2B / B2C SOLUTIONS SPLIT
+.solutions-split {
+  padding: 120px 0;
+  background: $neutral-bg;
+}
+
+.solutions-grid {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 32px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+.solution-card {
+  background: $neutral-card;
+  border: 1px solid $border-clean;
+  border-radius: 24px;
+  overflow: hidden;
+  transition: transform 0.3s $fluid-curve, box-shadow 0.3s $fluid-curve;
+  &:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 50px rgba(15,23,42,0.08);
+  }
+}
+
+.solution-logo-area {
+  background: linear-gradient(135deg, rgba($tech-mint, 0.06) 0%, rgba($slate-dark, 0.03) 100%);
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 180px;
+  .solution-logo {
+    width: 140px;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.06));
+  }
+}
+
+.solution-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 6px 16px;
+  border-radius: 30px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.b2b-badge {
+  background: rgba($tech-mint, 0.12);
+  color: $tech-mint;
+}
+
+.b2c-badge {
+  background: rgba(#10b981, 0.12);
+  color: #10b981;
+}
+
+.solution-body {
+  padding: 36px;
+  h3 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: $slate-dark;
+    margin: 0 0 12px;
+  }
+  p {
+    color: $text-secondary;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin: 0 0 20px;
+  }
+}
+
+.solution-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 28px;
+  li {
+    padding: 6px 0;
+    color: $slate-dark;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+}
+
+.solution-cta {
+  background: $slate-dark;
+  color: #ffffff;
+  border: none;
+  padding: 12px 28px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  &:hover {
+    background: $tech-mint;
+    transform: translateY(-2px);
+  }
+}
+
+// FOOTER LOGO
+.footer-logo {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  margin-bottom: 8px;
+}
+
 // COMPREHENSIVE RESPONSIVENESS AND MOBILE DRAWER OVERHAUL
 @media (max-width: 1024px) {
   .hero-split-grid { grid-template-columns: 1fr; gap: 48px; text-align: center; }
@@ -292,6 +457,7 @@ $fluid-curve: cubic-bezier(0.2, 0.8, 0.2, 1);
   .hero-interactive-buttons { justify-content: center; }
   .intersect-grid { grid-template-columns: 1fr; gap: 48px; }
   .features-inner-container, .nodes-container, .modular-grid { grid-template-columns: 1fr; gap: 20px; }
+  .solutions-grid { grid-template-columns: 1fr; gap: 24px; }
   .gateway-grid { flex-direction: column; align-items: flex-start; padding: 40px; gap: 32px; }
   .footer-layout { flex-direction: column; align-items: flex-start; gap: 32px; }
 

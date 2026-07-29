@@ -40,7 +40,7 @@ export const fetchProviders = createAsyncThunk<any, void, { state: RootState }>(
         verified: state.provider.filter.verified.toString(),
         email: state.provider.filter.filtredEmail,
       } as any);
-      console.log(response.data);
+      // Provider data loaded
       return response.data;
     } catch (error: any) {
       throw error;
@@ -75,7 +75,7 @@ export const generateProviderInvoice = createAsyncThunk<
     const token: any = localStorage.getItem("accessToken");
     const myClient = ApiClientWithHeaders(token);
     const response = await myClient.user.userControllerGetProvidersInvoice(data);
-    console.log("generateProviderInvoice", response.data);
+    // Provider invoice generated
     return response.data;
   } catch (error: any) {
     throw error;

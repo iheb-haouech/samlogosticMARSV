@@ -1,6 +1,7 @@
 import { Button, Flex, Modal } from "antd";
 import Title from "antd/es/typography/Title";
 import colors from "../../../../styles/colors/colors";
+import { useTranslation } from "react-i18next";
 
 export type MainOrderType = "international" | "national" | "quote";
 
@@ -11,10 +12,11 @@ export interface OrderTypeModalProps {
 }
 
 const OrderTypeModal = ({ isModalOpen, handleOrderType, handleClose }: OrderTypeModalProps) => {
+  const { t } = useTranslation();
   return (
-    <Modal title="Selection du type de commande" open={isModalOpen} footer={null} onCancel={handleClose} destroyOnClose>
+    <Modal title={t("selectOrderType")} open={isModalOpen} footer={null} onCancel={handleClose} destroyOnClose>
       <Title style={{ paddingTop: "12px", color: colors.gray[600] }} level={5}>
-        Vous voulez creer une commande nationale, internationale ou une demande de devis ?
+        {t("createOrderQuestion")}
       </Title>
 
       <div style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
@@ -26,7 +28,7 @@ const OrderTypeModal = ({ isModalOpen, handleOrderType, handleClose }: OrderType
             National
           </Button>
           <Button block size="large" shape="round" onClick={() => handleOrderType("quote")}>
-            Demande devis
+            {t("quoteRequest")}
           </Button>
         </Flex>
       </div>

@@ -162,7 +162,7 @@ const AdminDashboard: React.FC = () => {
           <Row gutter={[12, 12]}>
             <Col xs={24} sm={12} md={8}>
               <OrderStatCard
-                title="Panier B2B (frais livraison)"
+                title={t("panierB2b")}
                 value={cashflowSummary.b2bDeliveredFees}
                 icon={<FiUsers color="#1a3a6b" className="order-stat-card-icon" />}
                 backgroundColor="#eef3fb"
@@ -170,7 +170,7 @@ const AdminDashboard: React.FC = () => {
             </Col>
             <Col xs={24} sm={12} md={8}>
               <OrderStatCard
-                title="Panier B2C (colis + transport)"
+                title={t("panierB2c")}
                 value={cashflowSummary.b2cDeliveredRevenue}
                 icon={<FiUsers color="#2563eb" className="order-stat-card-icon" />}
                 backgroundColor="#e8f1ff"
@@ -178,7 +178,7 @@ const AdminDashboard: React.FC = () => {
             </Col>
             <Col xs={24} sm={12} md={8}>
               <OrderStatCard
-                title="Gain net estime"
+                title={t("gainNet")}
                 value={cashflowSummary.netServiceEstimate}
                 icon={<IoCheckmarkCircleOutline color="green" className="order-stat-card-icon" />}
                 backgroundColor="#daffda"

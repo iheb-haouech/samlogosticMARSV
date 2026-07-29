@@ -43,7 +43,7 @@ export const fetchTransporters = createAsyncThunk<any, void, { state: RootState 
         verified: state.transporter.filter.verified.toString(),
         firstName: state.transporter.filter.filtredFirstName,
       } as any);
-      console.log(response.data);
+      // Transporter data loaded
       return response.data;
     } catch (error: any) {
       throw error;

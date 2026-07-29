@@ -7,10 +7,12 @@ import OrdersStats from "../../../components/organisms/OrdersStats/OrdersStats";
 import { fetchStatistics, selectedStatistic } from "../../../features/statistics/statisticsSlice";
 import { useAppSelector } from "../../../store/hooks";
 import { store } from "../../../store/store";
+import { useTranslation } from "react-i18next";
 import "./TransporterDashboard.scss";
 
 const TransporterDashboard: React.FC = () => {
   const statistic = useAppSelector(selectedStatistic);
+  const { t } = useTranslation();
 
   useEffect(() => {
     store.dispatch(fetchStatistics());
@@ -19,31 +21,31 @@ const TransporterDashboard: React.FC = () => {
   return (
     <div className="transporter-dashboard-stats">
       <div className="dashboard-hero">
-        <span>Transporter dashboard</span>
-        <h2>Delivery activity</h2>
-        <p>Orders assigned to your SAM LOGISTIC transporter account.</p>
+        <span>{t("transporterDashboard")}</span>
+        <h2>{t("deliveryActivity")}</h2>
+        <p>{t("transporterOrdersDesc")}</p>
       </div>
 
       <section className="transporter-dashboard-stats--orders-section">
-        <Card className="orders-section--card" title="Statistiques des commandes">
+        <Card className="orders-section--card" title={t("Orders Statistics")}>
           <div className="transporter-dashboard-stats--orders-cards-summary">
             <OrderStatCard
-              title="Nombre de colis en attente"
+              title={t("pendingPackages")}
               value={statistic?.totalWaitingOrders ?? 0}
               icon={<MdOutlinePending color="#20e3b2" className="order-stat-card-icon" />}
             />
             <OrderStatCard
-              title="Nombre de colis en cours de livraison"
+              title={t("packagesInDelivery")}
               value={statistic?.totalTransitOrders ?? 0}
               icon={<IoTimerOutline color="#00d4ff" className="order-stat-card-icon" />}
             />
             <OrderStatCard
-              title="Nombre de colis livres"
+              title={t("deliveredPackages")}
               value={statistic?.totalLivredOrders ?? 0}
               icon={<IoCheckmarkCircleOutline color="#45ff8f" className="order-stat-card-icon" />}
             />
             <OrderStatCard
-              title="Nombre de colis rejetes"
+              title={t("rejectedPackages")}
               value={statistic?.totalCanceledOrders ?? 0}
               icon={<IoCloseCircleOutline color="#ff6b6b" className="order-stat-card-icon" />}
             />
@@ -53,7 +55,7 @@ const TransporterDashboard: React.FC = () => {
             <OrdersStats
               data={[
                 {
-                  month: "This week",
+                  month: t("thisWeek"),
                   delivered: statistic?.totalLivredOrders ?? 0,
                   rejected: statistic?.totalCanceledOrders ?? 0,
                 },

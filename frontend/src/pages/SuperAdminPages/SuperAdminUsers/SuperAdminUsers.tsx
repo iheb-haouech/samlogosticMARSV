@@ -4,6 +4,7 @@ import { Button, Input, Select, Space, Switch, Table, Tag } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { API_BASE_URL } from "../../../api";
 import { rolesMap } from "../../../types/Roles";
+import { useTranslation } from "react-i18next";
 import "./SuperAdminUsers.scss";
 
 type UserRow = {
@@ -29,6 +30,7 @@ const roleOptions = [
 ];
 
 const SuperAdminUsers = () => {
+  const { t } = useTranslation();
   const [users, setUsers] = useState<UserRow[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [savingUserId, setSavingUserId] = useState<number | null>(null);
@@ -81,23 +83,23 @@ const SuperAdminUsers = () => {
 
   const columns: ColumnsType<UserRow> = [
     {
-      title: "User",
+      title: t("user"),
       key: "user",
       render: (_, row) => (
         <div className="superadmin-users__identity">
-          <strong>{row.companyName || `${row.firstName || ""} ${row.lastName || ""}`.trim() || "Unnamed user"}</strong>
+          <strong>{row.companyName || `${row.firstName || ""} ${row.lastName || ""}`.trim() || t("unnamedUser")}</strong>
           <span>{row.email}</span>
         </div>
       ),
     },
     {
-      title: "City",
+      title: t("city"),
       dataIndex: "city",
       width: 130,
       render: (city) => city || "-",
     },
     {
-      title: "Role",
+      title: t("role"),
       dataIndex: "roleId",
       width: 170,
       render: (_, row) => (
@@ -110,7 +112,7 @@ const SuperAdminUsers = () => {
       ),
     },
     {
-      title: "Admin scope",
+      title: t("adminScope"),
       dataIndex: "adminManagedCities",
       render: (_, row) => (
         <Input
@@ -129,7 +131,7 @@ const SuperAdminUsers = () => {
       ),
     },
     {
-      title: "Main admin",
+      title: t("mainAdmin"),
       dataIndex: "isMainAdmin",
       width: 120,
       render: (_, row) => (
@@ -141,23 +143,23 @@ const SuperAdminUsers = () => {
       ),
     },
     {
-      title: "Status",
+      title: t("status"),
       key: "status",
       width: 150,
       render: (_, row) => (
         <Space direction="vertical" size={4}>
-          <Tag color={row.verified ? "green" : "orange"}>{row.verified ? "Verified" : "Waiting"}</Tag>
-          {row.blocked && <Tag color="red">Blocked</Tag>}
+          <Tag color={row.verified ? "green" : "orange"}>{row.verified ? t("accept") : t("pending")}</Tag>
+          {row.blocked && <Tag color="red">{t("blocked")}</Tag>}
         </Space>
       ),
     },
     {
-      title: "Save",
+      title: t("saveChanges"),
       key: "save",
       width: 110,
       render: (_, row) => (
         <Button type="primary" loading={savingUserId === row.id} onClick={() => saveUser(row)}>
-          Save
+          {t("saveChanges")}
         </Button>
       ),
     },

@@ -13,11 +13,11 @@ import {
   IoCashOutline,
   IoCheckmarkDoneOutline,
   IoReturnDownBackOutline,
-  IoTimeOutline,
   IoWarningOutline,
 } from "react-icons/io5";
 import "./B2BKpiDashboard.scss";
 import { ClientKpis } from "../../../features/statistics/statisticsSlice";
+import { useTranslation } from "react-i18next";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -78,16 +78,18 @@ interface B2BKpiDashboardProps {
 }
 
 export const B2BKpiDashboard = ({ data, loading, accountName }: B2BKpiDashboardProps) => {
+  const { t } = useTranslation();
+
   if (loading) {
     return (
       <div className="kpi-loading">
-        <Spin size="large" tip="Chargement de vos indicateurs logistiques..." />
+        <Spin size="large" tip={t("loadingKpis")} />
       </div>
     );
   }
 
   if (!data) {
-    return <Empty description="Aucune donnée disponible pour le moment." />;
+    return <Empty description={t("noKpiData")} />;
   }
 
   const { summary, kpis, monthlyVolume } = data;
@@ -95,91 +97,90 @@ export const B2BKpiDashboard = ({ data, loading, accountName }: B2BKpiDashboardP
   const onTimeStatus = rateStatus(kpis.onTimeRate, false, SLA.onTimeRateMin);
   const damageStatus = rateStatus(kpis.damageRate, true, SLA.damageRateMax);
   const returnStatus = rateStatus(kpis.returnRate, true, SLA.returnRateMax);
-  const resolutionStatus = rateStatus(kpis.avgResolutionDays, true, SLA.resolutionDaysMax);
+  const complaintRate = summary.totalOrders > 0 ? ((kpis.totalClaims / summary.totalOrders) * 100) : 0;
+  const complaintStatus = rateStatus(complaintRate, true, 5); // 5% threshold
 
   const anomalies: string[] = [];
   if (onTimeStatus !== "good")
     anomalies.push(
-      `Taux de livraison à temps en baisse (${kpis.onTimeRate}% < objectif ${SLA.onTimeRateMin}%)`,
+      `${t("onTimeRateAnomaly")} (${kpis.onTimeRate}% < ${t("slaTarget")} ${SLA.onTimeRateMin}%)`,
     );
   if (damageStatus !== "good")
-    anomalies.push(`Taux de dommages élevé (${kpis.damageRate}% > seuil ${SLA.damageRateMax}%)`);
+    anomalies.push(`${t("damageRateAnomaly")} (${kpis.damageRate}% > ${t("slaThreshold")} ${SLA.damageRateMax}%)`);
   if (returnStatus !== "good")
-    anomalies.push(`Taux de retour élevé (${kpis.returnRate}% > seuil ${SLA.returnRateMax}%)`);
-  if (resolutionStatus !== "good")
-    anomalies.push(
-      `Résolution d'incidents ralentie (${kpis.avgResolutionDays} j > objectif ${SLA.resolutionDaysMax} j)`,
-    );
+    anomalies.push(`${t("returnRateAnomaly")} (${kpis.returnRate}% > ${t("slaThreshold")} ${SLA.returnRateMax}%)`);
+  if (complaintStatus !== "good")
+    anomalies.push(`${t("complaintRateAnomaly")} (${complaintRate.toFixed(1)}% > 5%)`);
 
   return (
     <div className="b2b-kpi-dashboard">
       <div className="dashboard-hero">
-        <span>Tableau de bord B2B</span>
-        <h2>Performance logistique</h2>
+        <span>{t("b2bDashboard")}</span>
+        <h2>{t("logisticsPerformance")}</h2>
         <p>
-          Indicateurs clés de votre activité{accountName ? ` — ${accountName}` : ""}.
-          Analyse quotidienne de votre chaîne de livraison.
+          {t("kpiDescription")}{accountName ? ` \u2014 ${accountName}` : ""}.
+          {t("dailyAnalysis")}
         </p>
       </div>
 
       <Row gutter={[16, 16]} className="kpi-grid">
         <Col xs={24} sm={12} md={8} lg={8}>
           <KpiTile
-            title="Taux de livraison à temps"
+            title={t("onTimeRate")}
             value={kpis.onTimeRate.toFixed(1)}
             suffix="%"
             icon={<IoCheckmarkDoneOutline />}
             status={onTimeStatus}
-            hint={`Objectif SLA : ${SLA.onTimeRateMin}%`}
+            hint={`${t("slaTarget")} ${SLA.onTimeRateMin}%`}
           />
         </Col>
         <Col xs={24} sm={12} md={8} lg={8}>
           <KpiTile
-            title="Taux de dommages"
+            title={t("damageRateLabel")}
             value={kpis.damageRate.toFixed(1)}
             suffix="%"
             icon={<IoWarningOutline />}
             status={damageStatus}
-            hint={`Seuil SLA : ${SLA.damageRateMax}%`}
+            hint={`${t("slaThreshold")} ${SLA.damageRateMax}%`}
           />
         </Col>
         <Col xs={24} sm={12} md={8} lg={8}>
           <KpiTile
-            title="Temps moyen de résolution"
-            value={kpis.avgResolutionDays.toFixed(1)}
-            suffix="j"
-            icon={<IoTimeOutline />}
-            status={resolutionStatus}
-            hint={`Objectif SLA : ${SLA.resolutionDaysMax} j`}
+            title={t("complaintRate")}
+            value={complaintRate.toFixed(1)}
+            suffix="%"
+            icon={<IoWarningOutline />}
+            status={complaintStatus}
+            hint={`${kpis.totalClaims} ${t("totalClaims")}`}
           />
         </Col>
         <Col xs={24} sm={12} md={8} lg={8}>
           <KpiTile
-            title="Coût moyen par colis"
+            title={t("costPerParcel")}
             value={kpis.costPerParcel.toFixed(2)}
             suffix="DT"
             icon={<IoCashOutline />}
             status="good"
-            hint={`${summary.delivered} livraisons`}
+            hint={`${summary.delivered} ${t("deliveries")}`}
           />
         </Col>
         <Col xs={24} sm={12} md={8} lg={8}>
           <KpiTile
-            title="Taux de retour"
+            title={t("returnRateLabel")}
             value={kpis.returnRate.toFixed(1)}
             suffix="%"
             icon={<IoReturnDownBackOutline />}
             status={returnStatus}
-            hint={`Seuil SLA : ${SLA.returnRateMax}%`}
+            hint={`${t("slaThreshold")} ${SLA.returnRateMax}%`}
           />
         </Col>
         <Col xs={24} sm={12} md={8} lg={8}>
           <KpiTile
-            title="Volume total"
+            title={t("totalVolume")}
             value={String(summary.totalOrders)}
             icon={<IoCalendarOutline />}
             status="good"
-            hint={`${summary.inTransit} en transit · ${summary.returned} retours`}
+            hint={`${summary.delivered} ${t("deliveries")}`}
           />
         </Col>
       </Row>
@@ -205,7 +206,7 @@ export const B2BKpiDashboard = ({ data, loading, accountName }: B2BKpiDashboardP
                 <Area
                   type="monotone"
                   dataKey="volume"
-                  name="Commandes"
+                  name={t("ordersLabel")}
                   stroke="#20e3b2"
                   fill="url(#vol)"
                   strokeWidth={2}
@@ -215,20 +216,15 @@ export const B2BKpiDashboard = ({ data, loading, accountName }: B2BKpiDashboardP
           </Card>
         </Col>
         <Col xs={24} lg={10}>
-          <Card
-            title="Détection d'anomalies & recommandations"
-            variant="outlined"
-            className="kpi-anomaly-card"
-          >
+          <Card title={t("anomalyDetection")} variant="outlined" className="kpi-anomaly-card">
             {anomalies.length === 0 ? (
               <Paragraph type="success">
-                <Text strong>Aucun écart significatif.</Text> Vos indicateurs respectent les objectifs
-                de service (SLA) de vos clients B2B. Continuez sur cette lancée.
+                <Text strong>{t("noSignificantDeviation")}</Text> {t("slaCompliant")}
               </Paragraph>
             ) : (
               <>
                 <Paragraph>
-                  <Text strong>Écarts détectés :</Text>
+                  <Text strong>{t("detectedDeviations")}</Text>
                 </Paragraph>
                 <ul className="kpi-anomaly-list">
                   {anomalies.map((a) => (
@@ -239,7 +235,7 @@ export const B2BKpiDashboard = ({ data, loading, accountName }: B2BKpiDashboardP
                   ))}
                 </ul>
                 <Paragraph className="kpi-reco">
-                  <Text strong>Actions correctives proposées :</Text>
+                  <Text strong>{t("correctiveActions")}</Text>
                 </Paragraph>
                 <ol className="kpi-reco-list">
                   <li>

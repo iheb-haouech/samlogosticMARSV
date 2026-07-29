@@ -35,11 +35,14 @@ const ComplaintsChat: React.FC = () => {
   const loading = useSelector(selectLoadingState);
   const limit = useSelector(selectedLimit);
   const totalCountComplaints = useSelector(selectedTotalCountComplaints);
-  const [status, setStatus] = useState<"1" | "3">("1"); // 1 for open and 2 for closed
+  const [status, setStatus] = useState<"1" | "2">("1"); // 1 for open and 2 for resolved
+  const [searchKey, setSearchKey] = useState(0);
+
+  // Re-fetch complaints whenever status, limit, or search filter changes.
   useEffect(() => {
     store.dispatch(setLoading(true));
     store.dispatch(fetchAllComplaints());
-  }, []);
+  }, [status, limit, searchKey]);
   useEffect(() => {
     if (complaints.length > 0 && !selectedComplaintId) {
       setSelectedComplaintId(complaints[0].id);
@@ -79,12 +82,14 @@ const ComplaintsChat: React.FC = () => {
         totalCountComplaints={totalCountComplaints}
         onSearchChange={(value) => {
           store.dispatch(setComplaintSearch(value));
+          // Small delay to let Redux state update before re-fetching.
+          setTimeout(() => setSearchKey((k) => k + 1), 50);
         }}
         handleSelectComplaint={handleSelectComplaint}
         defaultSelectedComplaintId={selectedComplaintId}
         isAdmin={[rolesMap.admin, rolesMap.superAdmin].includes(currentUser?.roleId)}
         onTabChange={(key: string) => {
-          const status = key === "1" ? "1" : "3";
+          const status = key === "1" ? "1" : "2";
           setStatus(status);
           setSelectedComplaintId(null);
           store.dispatch(setComplaintStatus(status));
@@ -110,7 +115,7 @@ const ComplaintsChat: React.FC = () => {
             store.dispatch(
               updateComplaint({
                 id: selectedComplaint?.id,
-                statusId: 3, // Resolved
+                statusId: 2, // Resolved
               }),
             );
           }}

@@ -4,8 +4,7 @@ import { Order } from "../../../types/Order";
 import { API_BASE_URL } from "../../../api";
 import { Button, Card, Form, Input, Steps } from "antd";
 import Title from "antd/es/typography/Title";
-import "./TrakingOrders.scss";
-import { _orderStatuses } from "../../../components/templates/OrderDetails/OrderDetails";
+import { getOrderStatuses } from "../../../components/templates/OrderDetails/OrderDetails";
 import { useTranslation } from "react-i18next";
 
 interface TrackOrderFormProps {
@@ -33,8 +32,8 @@ export const TrackOrderForm = ({ displayLogo = true }: TrackOrderFormProps) => {
       if (!response.ok) {
         triggerAlert({
           type: "deleted",
-          title: "Error",
-          message: "Order not found. Please check your tracking number.",
+          title: t("error"),
+          message: t("orderNotFoundMsg"),
         });
         setTrackedOrder(null);
         return;
@@ -48,16 +47,16 @@ export const TrackOrderForm = ({ displayLogo = true }: TrackOrderFormProps) => {
       } else {
         triggerAlert({
           type: "deleted",
-          title: "Error",
-          message: "Order not found. Please check your tracking number.",
+          title: t("error"),
+          message: t("orderNotFoundMsg"),
         });
         setTrackedOrder(null);
       }
     } catch (error) {
       triggerAlert({
         type: "deleted",
-        title: "Error",
-        message: "An error occurred while fetching the order.",
+        title: t("error"),
+        message: t("fetchOrderErrorMsg"),
       });
       setTrackedOrder(null);
     } finally {
@@ -199,7 +198,7 @@ export const TrackOrderForm = ({ displayLogo = true }: TrackOrderFormProps) => {
                   current={trackedOrder?.orderStatusId - 1}
                   labelPlacement='vertical'
                   direction='vertical'
-                  items={_orderStatuses}
+                  items={getOrderStatuses(t)}
                 />
               </Card>
             </div>

@@ -79,7 +79,7 @@ const PackageTable: React.FC<PackageTableProps> = ({
       render: (_, _record, index) => index + 1,
     },
     {
-      title: "Poids (Kg)",
+      title: t("weight") + " (Kg)",
       dataIndex: "weight",
       key: "weight",
       render: (weight, record) => (
@@ -90,7 +90,7 @@ const PackageTable: React.FC<PackageTableProps> = ({
           rules={[
             {
               required: true,
-              message: "Required field",
+              message: t("requiredFieldLabel"),
             },
           ]}
         >
@@ -107,7 +107,7 @@ const PackageTable: React.FC<PackageTableProps> = ({
       ),
     },
     {
-      title: "Longeur (CM)",
+      title: t("length") + " (CM)",
       dataIndex: "length",
       key: "length",
       render: (width, record) => (
@@ -118,7 +118,7 @@ const PackageTable: React.FC<PackageTableProps> = ({
           rules={[
             {
               required: true,
-              message: "Required field",
+              message: t("requiredFieldLabel"),
             },
           ]}
         >
@@ -135,7 +135,7 @@ const PackageTable: React.FC<PackageTableProps> = ({
       ),
     },
     {
-      title: "Largeur (CM)",
+      title: t("total_width").replace("total_", "") + " (CM)",
       dataIndex: "width",
       key: "width",
       render: (width, record) => (
@@ -146,7 +146,7 @@ const PackageTable: React.FC<PackageTableProps> = ({
           rules={[
             {
               required: true,
-              message: "Required field",
+              message: t("requiredFieldLabel"),
             },
           ]}
         >
@@ -163,7 +163,7 @@ const PackageTable: React.FC<PackageTableProps> = ({
       ),
     },
     {
-      title: "Hauteur (CM)",
+      title: t("height") + " (CM)",
       dataIndex: "height",
       key: "height",
       render: (height, record) => (
@@ -174,7 +174,7 @@ const PackageTable: React.FC<PackageTableProps> = ({
           rules={[
             {
               required: true,
-              message: "Required field",
+              message: t("requiredFieldLabel"),
             },
           ]}
         >
@@ -202,7 +202,7 @@ const PackageTable: React.FC<PackageTableProps> = ({
           rules={[
             {
               required: true,
-              message: "Required field",
+              message: t("requiredFieldLabel"),
             },
           ]}
         >
@@ -221,7 +221,7 @@ const PackageTable: React.FC<PackageTableProps> = ({
     ...(showPrice
       ? [
           {
-            title: "Prix colis (DT)",
+            title: t("price") + " (DT)",
             dataIndex: "price",
             key: "price",
             render: (price: number, record: Package) => (
@@ -232,7 +232,7 @@ const PackageTable: React.FC<PackageTableProps> = ({
                 rules={[
                   {
                     required: true,
-                    message: "Required field",
+                    message: t("requiredFieldLabel"),
                   },
                 ]}
               >

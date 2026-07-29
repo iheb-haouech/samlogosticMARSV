@@ -37,6 +37,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignInClick, onSubmit }) => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [companyTypeOptions, setCompanyTypeOptions] = useState<any[]>([]);
   const [companyActivitiesOptions, setCompanyActivitiesOptions] = useState<any[]>([]);
+  const [customActivity, setCustomActivity] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [countryOptions, setCountryOptions] = useState<{ value: string; label: string }[]>([]);
   const [cityOptions, setCityOptions] = useState<any>(countriesList["Tunisia"]);
@@ -90,7 +91,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignInClick, onSubmit }) => {
         setLoading(true);
         const companyActOptionsRes = await apiClient.companyActivities.appControllerGetAllCompanyActivities();
         const responseData: any = companyActOptionsRes.data;
-        setCompanyActivitiesOptions(responseData?.company_activities);
+        const activities = responseData?.company_activities || [];
+        // Add 'Autre' option at the end
+        setCompanyActivitiesOptions([...activities, { id: -1, typeName: t("other") }]);
       } catch (error) {
         console.error("Error fetching options:", error);
       } finally {
@@ -101,7 +104,12 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignInClick, onSubmit }) => {
   }, []);
 
   const handleSubmit = () => {
-    onSubmit({ ...newUser });
+    // If "Autre" is selected for company activity, use the custom activity text
+    const userData = { ...newUser };
+    if (userData.companyActivityId === -1 && customActivity) {
+      userData.companyActivityName = customActivity;
+    }
+    onSubmit(userData);
   };
 
   const handleChange = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -345,7 +353,12 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignInClick, onSubmit }) => {
             >
               <Select
                 placeholder={t("companyActivityPlaceholder")}
-                onChange={handleSelectChange("companyActivityId")}
+                onChange={(value) => {
+                  handleSelectChange("companyActivityId")(value);
+                  if (value === -1) {
+                    setCustomActivity("");
+                  }
+                }}
                 options={companyActivitiesOptions?.map((type: any) => ({
                   value: type?.id,
                   label: type?.typeName,
@@ -353,6 +366,19 @@ const SignupForm: React.FC<SignupFormProps> = ({ onSignInClick, onSubmit }) => {
                 loading={loading}
               />
             </Form.Item>
+
+            {newUser.companyActivityId === -1 && (
+              <Form.Item
+                label={t("other") + " - " + t("companyActivity")}
+                name='customActivity'
+                rules={[{ required: true, message: t("activityRequired") }]}
+              >
+                <Input
+                  placeholder={t("specifyActivity")}
+                  onChange={(e) => setCustomActivity(e.target.value)}
+                />
+              </Form.Item>
+            )}
 
             <Form.Item
               label={t("patent")}

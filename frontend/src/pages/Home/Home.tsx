@@ -3,11 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import "./Home.scss";
 
-import warehouse from "../../assets/warehouse.png";
-import plane from "../../assets/plane.png";
-import client from "../../assets/client.png";
-import map from "../../assets/map.png";
-import tracking from "../../assets/tracking.png";
+const BRAND_LOGO = "/png/logosam.png";
 
 const CountingNumber = ({ target, suffix = "" }: { target: number; suffix?: string }) => {
   const [value, setValue] = useState(0);
@@ -21,7 +17,7 @@ const CountingNumber = ({ target, suffix = "" }: { target: number; suffix?: stri
           const end = target;
           const totalMiliseconds = 1200;
           const increment = end / (totalMiliseconds / 16);
-          
+
           const timer = setInterval(() => {
             start += increment;
             if (start >= end) {
@@ -80,12 +76,12 @@ const Home = () => {
 
   return (
     <div className="premium-layout">
-      {/* Innovative Floating Island Navbar */}
+      {/* Floating Island Navbar */}
       <div className={`nav-container-holder ${isScrolled ? "is-scrolled" : ""}`}>
         <header className="innovative-floating-bar">
           <div className="brand-signature" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-            <div className="icon-shield-rotating">
-              <img src="/png/logosam.png" alt="SAM LOGISTIC" />
+            <div className="icon-shield-rotating brand-logo-large">
+              <img src={BRAND_LOGO} alt="SAM LOGISTIC" />
               <div className="spinning-ring"></div>
             </div>
             <div className="brand-info">
@@ -96,8 +92,11 @@ const Home = () => {
 
           <nav className={`navigation-drawer ${isMenuOpen ? "drawer-visible" : ""}`}>
             <div className="link-cluster">
+              <a href="#about" onClick={(e) => { e.preventDefault(); handleScrollTo("#about"); }}>
+                <span className="link-dot"></span>{t("homeCompanySection")}
+              </a>
               <a href="#services" onClick={(e) => { e.preventDefault(); handleScrollTo("#services"); }}>
-                <span className="link-dot"></span>{t("Services")}
+                <span className="link-dot"></span>{t("homeServicesTitle")}
               </a>
               <a href="#solutions" onClick={(e) => { e.preventDefault(); handleScrollTo("#solutions"); }}>
                 <span className="link-dot"></span>{t("Solutions")}
@@ -127,26 +126,26 @@ const Home = () => {
       </div>
 
       <main>
+        {/* Hero Section with Logo */}
         <section className="asymmetric-hero">
-          {/* Constantly Rotating Tech Geometric Wireframe in background */}
           <div className="infinite-bg-rotation"></div>
-          
+
           <div className="hero-split-grid">
             <div className="hero-text-panel">
               <div className="status-tagline">
                 <span className="pulse-dot"></span>
-                <span className="tag-text">{t("Next-Gen Logistics Framework")}</span>
+                <span className="tag-text">{t("homeHeroTagline")}</span>
               </div>
               <h1 className="hero-display-title">
-                {t("Global Supply Flows.")} <br />
-                <span className="gradient-highlight">{t("Executed Flawlessly.")}</span>
+                {t("homeHeroTitle")} <br />
+                <span className="gradient-highlight">{t("homeHeroSubtitle")}</span>
               </h1>
               <p className="hero-descriptive-text">
-                {t("Tailored B2B cargo systems, precise customs coordination, and streamlined cross-border delivery infrastructure built for enterprise performance.")}
+                {t("homeHeroDescription")}
               </p>
               <div className="hero-interactive-buttons">
-                <button className="primary-glass-btn" onClick={() => navigate("/login")}>
-                  {t("Initialize Request")} <span className="arrow-vector">→</span>
+                <button className="primary-glass-btn" onClick={() => navigate("/signup")}>
+                  {t("homeCTA")} <span className="arrow-vector">→</span>
                 </button>
                 <button className="secondary-blur-btn" onClick={() => window.open("https://wa.me/21625294513", "_blank")}>
                   {t("Live Engineering Support")}
@@ -155,8 +154,8 @@ const Home = () => {
             </div>
 
             <div className="hero-media-panel">
-              <div className="geometric-frame">
-                <img src={tracking} alt="Tracking System" className="parallax-asset" />
+              <div className="geometric-frame logo-showcase">
+                <img src={BRAND_LOGO} alt="SAM LOGISTIC" className="hero-logo" />
                 <div className="floating-metric-badge">
                   <span className="badge-value">99.8%</span>
                   <span className="badge-label">{t("SLA Integrity")}</span>
@@ -166,104 +165,122 @@ const Home = () => {
           </div>
         </section>
 
-        <section className="offset-features reveal-view">
-          <div className="features-inner-container">
-            <div className="feature-blade">
-              <div className="blade-index">01</div>
-              <div className="blade-content">
-                <h3>{t("Enterprise B2B Delivery")}</h3>
-                <p>{t("High-capacity scheduled distribution pathways optimized for merchant and commercial cargo networks.")}</p>
-              </div>
+        {/* KPIs Section */}
+        <section className="analytics-nodes reveal-view" id="kpis">
+          <div className="nodes-container">
+            <div className="node-block">
+              <div className="node-metric"><CountingNumber target={10000} suffix="+" /></div>
+              <div className="node-caption">{t("homeKPI1Label")}</div>
             </div>
-            <div className="feature-blade">
-              <div className="blade-index">02</div>
-              <div className="blade-content">
-                <h3>{t("Global Customs Matrix")}</h3>
-                <p>{t("End-to-end import and export compliance architecture navigating borders with frictionless speed.")}</p>
-              </div>
+            <div className="node-block">
+              <div className="node-metric"><CountingNumber target={500} suffix="+" /></div>
+              <div className="node-caption">{t("homeKPI2Label")}</div>
             </div>
-            <div className="feature-blade">
-              <div className="blade-index">03</div>
-              <div className="blade-content">
-                <h3>{t("Continuous Dispatch")}</h3>
-                <p>{t("Round-the-clock structural oversight ensuring systemic movement remains operational at any hour.")}</p>
-              </div>
+            <div className="node-block highlight-node">
+              <div className="node-metric"><CountingNumber target={99} suffix="%" /></div>
+              <div className="node-caption">{t("homeKPI3Label")}</div>
+            </div>
+            <div className="node-block">
+              <div className="node-metric">24/7</div>
+              <div className="node-caption">{t("homeKPI4Label")}</div>
             </div>
           </div>
         </section>
 
-        <section className="intersect-showcase reveal-view" id="services">
+        {/* About / Company Section */}
+        <section className="intersect-showcase reveal-view" id="about">
           <div className="intersect-grid">
-            <div className="intersect-visual">
-              <img src={warehouse} alt="Hub Operations" />
+            <div className="intersect-visual logo-showcase-large">
+              <img src={BRAND_LOGO} alt="SAM LOGISTIC" className="about-logo" />
             </div>
             <div className="intersect-copy-deck">
-              <div className="context-eyebrow">{t("SYSTEM OVERVIEW")}</div>
-              <h2>{t("Highly synchronized asset distribution operations.")}</h2>
+              <div className="context-eyebrow">{t("homeCompanySection")}</div>
+              <h2>SAM LOGISTIC</h2>
               <div className="divider-line"></div>
-              <p>{t("We establish reliable transportation channels covering key domestic and international hubs.")}</p>
-              <p>{t("By integrating real-time node validation, SAM LOGISTIC changes the scope of freight coordination for regional vendors and distributors.")}</p>
-              <button className="text-link-btn" onClick={() => navigate("/login")}>
-                {t("Review Capabilities")} <span className="link-arrow">→</span>
+              <p>{t("homeCompanyDesc")}</p>
+              <button className="text-link-btn" onClick={() => navigate("/signup")}>
+                {t("homeCTA")} <span className="link-arrow">→</span>
               </button>
             </div>
           </div>
         </section>
 
-        <section className="analytics-nodes reveal-view">
-          <div className="nodes-container">
-            <div className="node-block">
-              <div className="node-metric"><CountingNumber target={500} suffix="+" /></div>
-              <div className="node-caption">{t("Processed Convocations")}</div>
+        {/* Services Section */}
+        <section className="offset-features reveal-view" id="services">
+          <div className="section-header-centered">
+            <span className="context-eyebrow">{t("homeServicesTitle")}</span>
+            <h2>{t("Operational models configured to scale.")}</h2>
+          </div>
+          <div className="features-inner-container">
+            <div className="feature-blade">
+              <div className="blade-index">01</div>
+              <div className="blade-content">
+                <h3>{t("homeService1Title")}</h3>
+                <p>{t("homeService1Desc")}</p>
+              </div>
             </div>
-            <div className="node-block highlight-node">
-              <div className="node-metric">24/7</div>
-              <div className="node-caption">{t("Active Fleet Validation")}</div>
+            <div className="feature-blade">
+              <div className="blade-index">02</div>
+              <div className="blade-content">
+                <h3>{t("homeService2Title")}</h3>
+                <p>{t("homeService2Desc")}</p>
+              </div>
             </div>
-            <div className="node-block">
-              <div className="node-metric"><CountingNumber target={99} suffix="%" /></div>
-              <div className="node-caption">{t("On-Time Precision Rate")}</div>
+            <div className="feature-blade">
+              <div className="blade-index">03</div>
+              <div className="blade-content">
+                <h3>{t("homeService3Title")}</h3>
+                <p>{t("homeService3Desc")}</p>
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="modular-solutions reveal-view" id="solutions">
+        {/* B2B & B2C Solutions */}
+        <section className="solutions-split reveal-view" id="solutions">
           <div className="section-header-centered">
-            <span className="context-eyebrow">{t("ARCHITECTURAL SOLUTIONS")}</span>
+            <span className="context-eyebrow">{t("Solutions")}</span>
             <h2>{t("Operational models configured to scale.")}</h2>
           </div>
-          
-          <div className="modular-grid">
-            <div className="matrix-card">
-              <div className="matrix-image-area">
-                <img src={plane} alt="Air Transit Matrix" />
+
+          <div className="solutions-grid">
+            {/* B2B Card */}
+            <div className="solution-card solution-b2b">
+              <div className="solution-logo-area">
+                <img src={BRAND_LOGO} alt="B2B" className="solution-logo" />
+                <span className="solution-badge b2b-badge">B2B</span>
               </div>
-              <div className="matrix-body">
-                <span className="matrix-tag">{t("Transit")}</span>
-                <h3>{t("Import & Export Systems")}</h3>
-                <p>{t("Seamless cross-border custom workflows coupled with multi-modal delivery paths.")}</p>
+              <div className="solution-body">
+                <h3>{t("homeB2BSection")}</h3>
+                <p>{t("homeB2BDesc")}</p>
+                <ul className="solution-features">
+                  <li>✓ {t("homeB2BFeature1")}</li>
+                  <li>✓ {t("homeB2BFeature2")}</li>
+                  <li>✓ {t("homeB2BFeature3")}</li>
+                </ul>
+                <button className="solution-cta" onClick={() => navigate("/signup")}>
+                  {t("Initialize Request")} →
+                </button>
               </div>
             </div>
 
-            <div className="matrix-card">
-              <div className="matrix-image-area">
-                <img src={map} alt="Regional Distribution" />
+            {/* B2C Card */}
+            <div className="solution-card solution-b2c">
+              <div className="solution-logo-area">
+                <img src={BRAND_LOGO} alt="B2C" className="solution-logo" />
+                <span className="solution-badge b2c-badge">B2C</span>
               </div>
-              <div className="matrix-body">
-                <span className="matrix-tag">{t("Fulfillment")}</span>
-                <h3>{t("B2B & B2C Distribution")}</h3>
-                <p>{t("Intelligent distribution systems serving high-volume business centers and individual clients.")}</p>
-              </div>
-            </div>
-
-            <div className="matrix-card">
-              <div className="matrix-image-area">
-                <img src={client} alt="Control Center" />
-              </div>
-              <div className="matrix-body">
-                <span className="matrix-tag">{t("Operations")}</span>
-                <h3>{t("24/7 Control Center")}</h3>
-                <p>{t("Direct channel access to engineering and tracking response desks around the clock.")}</p>
+              <div className="solution-body">
+                <h3>{t("homeB2CSection")}</h3>
+                <p>{t("homeB2CDesc")}</p>
+                <ul className="solution-features">
+                  <li>✓ {t("homeB2CFeature1")}</li>
+                  <li>✓ {t("homeB2CFeature2")}</li>
+                  <li>✓ {t("homeB2CFeature3")}</li>
+                </ul>
+                <button className="solution-cta" onClick={() => navigate("/signup")}>
+                  {t("homeCTA")} →
+                </button>
               </div>
             </div>
           </div>
@@ -273,9 +290,9 @@ const Home = () => {
           <div className="gateway-inner-box">
             <div className="gateway-grid">
               <div className="gateway-text">
-                <span className="context-eyebrow">{t("MOBILE INFRASTRUCTURE")}</span>
-                <h2>{t("Track ecosystem nodes on any mobile interface.")}</h2>
-                <p>{t("Deploy and access your shipment matrix, monitor real-time node arrivals, and manage routing assignments via our native workspace application.")}</p>
+                <span className="context-eyebrow">{t("mobileInfrastructure")}</span>
+                <h2>{t("mobileInfrastructureTitle")}</h2>
+                <p>{t("mobileInfrastructureDesc")}</p>
               </div>
               <div className="gateway-action">
                 <a href="/SamLogisticApp.apk" className="industrial-download-btn" download>
@@ -290,12 +307,13 @@ const Home = () => {
       <footer className="brutalist-footer">
         <div className="footer-layout">
           <div className="footer-left">
-            <span className="footer-brand">SAM LOGISTIC</span>
-            <p className="footer-tagline">© 2026. {t("All operational interfaces reserved.")}</p>
+            <img src={BRAND_LOGO} alt="SAM LOGISTIC" className="footer-logo" />
+            <p className="footer-tagline">© 2026 SAM LOGISTIC. {t("All operational interfaces reserved.")}</p>
           </div>
           <div className="footer-right">
             <div className="footer-navigation-links">
-              <a href="#services" onClick={(e) => { e.preventDefault(); handleScrollTo("#services"); }}>{t("Services")}</a>
+              <a href="#about" onClick={(e) => { e.preventDefault(); handleScrollTo("#about"); }}>{t("homeCompanySection")}</a>
+              <a href="#services" onClick={(e) => { e.preventDefault(); handleScrollTo("#services"); }}>{t("homeServicesTitle")}</a>
               <a href="#solutions" onClick={(e) => { e.preventDefault(); handleScrollTo("#solutions"); }}>{t("Solutions")}</a>
               <a href="#tracking" onClick={(e) => { e.preventDefault(); handleScrollTo("#tracking"); }}>{t("Suivi")}</a>
             </div>

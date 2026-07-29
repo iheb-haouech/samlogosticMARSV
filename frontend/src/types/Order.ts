@@ -20,6 +20,7 @@ export type Order = {
   refrences: string[];
   deliveredBy?: any;
   shipmentPrice?: number;
+  currency?: string;
   createdByUserId?: number | null;
 
   recipient: {

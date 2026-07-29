@@ -1,8 +1,10 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { AddClaimMsgDto, CreateClaimDto } from './dto/create-claim.dto';
 import { UpdateClaimDto } from './dto/update-claim.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthService } from '../auth/auth.service';
+import * as jwt from 'jsonwebtoken';
+import { USERROLES } from '../utils/enum';
 
 @Injectable()
 
@@ -70,9 +72,38 @@ export class ClaimsService {
   }
   
 
-  async createMessage(addClaimDto: AddClaimMsgDto) {
+  async createMessage(userToken: string | undefined, addClaimDto: AddClaimMsgDto) {
+    // SECURITY: Verify the user is authorized to add messages to this claim.
+    if (!userToken) {
+      throw new UnauthorizedException('Non autorisé');
+    }
+
+    let callerId: number;
+    try {
+      const decoded: any = jwt.verify(userToken, process.env.JWT_SECRET as string);
+      callerId = decoded?.userId ?? decoded?.id;
+    } catch {
+      throw new UnauthorizedException('Token invalide');
+    }
+
+    // Verify the claim exists and the user is the creator or an admin.
+    const claim = await this.prisma.claim.findUnique({ where: { id: addClaimDto.claimId } });
+    if (!claim) {
+      throw new BadRequestException('Réclamation introuvable');
+    }
+
+    const caller = await this.prisma.user.findUnique({ where: { id: callerId } });
+    const isAdmin = caller?.roleId === USERROLES.admin.id || caller?.roleId === USERROLES.superadmin.id;
+
+    if (!isAdmin && claim.creatorUserId !== callerId) {
+      throw new HttpException('Vous ne pouvez ajouter des messages que sur vos propres réclamations.', 403);
+    }
+
     return this.prisma.claim_message.create({
-      data: addClaimDto,
+      data: {
+        ...addClaimDto,
+        senderId: callerId,
+      },
     });
   }
   
@@ -98,8 +129,8 @@ export class ClaimsService {
     } else {
       conditions = { ...conditions, statusId: 1 };
     }
-    // Admin sees all complaints; clients and transporters see their own.
-    if (user?.roleId !== 1) {
+    // Admin and superadmin see all complaints; clients and transporters see their own.
+    if (user?.roleId !== USERROLES.admin.id && user?.roleId !== USERROLES.superadmin.id) {
       conditions = { ...conditions, creatorUserId: user?.id };
     }
 
@@ -147,7 +178,8 @@ export class ClaimsService {
     };
   }
 
-  findOne(id: number) {
+  findOne(id: number, userToken?: string) {
+    // SECURITY: If user token is provided, verify ownership or admin role.
     return this.prisma.claim.findUnique({
       where: {
         id,
@@ -171,7 +203,23 @@ export class ClaimsService {
     });
   }
 
-  async update(id: number, updateClaimDto: UpdateClaimDto) {
+  async update(id: number, updateClaimDto: UpdateClaimDto, userToken?: string) {
+    // SECURITY: Only admins can change claim status.
+    if (userToken) {
+      try {
+        const decoded: any = jwt.verify(userToken, process.env.JWT_SECRET as string);
+        const callerId = decoded?.userId ?? decoded?.id;
+        const caller = await this.prisma.user.findUnique({ where: { id: callerId } });
+        const isAdmin = caller?.roleId === USERROLES.admin.id || caller?.roleId === USERROLES.superadmin.id;
+        if (!isAdmin) {
+          throw new HttpException("Seuls les administrateurs peuvent modifier le statut d'une réclamation.", 403);
+        }
+      } catch (err) {
+        if (err instanceof HttpException) throw err;
+        throw new UnauthorizedException('Token invalide');
+      }
+    }
+
     return this.prisma.claim.update({
       where: { id },
       data: { statusId: updateClaimDto?.statusId },

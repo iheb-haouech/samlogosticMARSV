@@ -12,6 +12,7 @@ import {
   IssuesCloseOutlined,
   CheckOutlined,
   CloseOutlined,
+  SyncOutlined,
 } from "@ant-design/icons";
 import Paragraph from "antd/es/typography/Paragraph";
 import { HiOutlinePhone } from "react-icons/hi";
@@ -23,7 +24,6 @@ import formatDate from "../../../services/date";
 import CreateComplaintModal from "../../molecules/Modals/CreateComplaintModal/CreateComplaintModal";
 import { generateEtiquette } from "../../../services/generate_pdf";
 import { useTranslation } from "react-i18next";
-import { SyncOutlined } from "@ant-design/icons";
 import { ApiClientWithHeaders } from "../../../api";
 import { fetchOrders, updateOrder } from "../../../features/order/orderSlice";
 import { store } from "../../../store/store";
@@ -40,23 +40,19 @@ const OrderInfo = ({ order, orderStatuses, addComplaint = () => {}, isAdmin }: O
 
   const downloadProofDelivery = (order: any) => {
     try {
-      // Construct the URL for the file based on the order's file path
       const filePath = order?.pods && order?.pods?.length > 0 ? order?.pods[0]?.podUrl : null;
+      if (!filePath) {
+        alert(t("noPodAvailable"));
+        return;
+      }
       const fileUrl = `${import.meta.env.VITE_BASE_URL}${filePath}`;
-
-      // Open the file in a new tab or window
       window.open(fileUrl, "_blank");
-
-      // Optionally, you can also log or alert to confirm the action
-      console.log("File URL:", fileUrl);
     } catch (error) {
       console.error("Error downloading proof of delivery:", error);
       alert("Failed to download POD.");
     }
   };
 
-  // @ts-ignore
-  const [orderStatusId, setOrderStatusId] = useState(order?.orderStatusId);
   const [isCreateComplaintModaOpen, setIsCreateComplaintModaOpen] = useState(false);
 
   const uploadPOD = async (order: any) => {
@@ -171,7 +167,7 @@ const OrderInfo = ({ order, orderStatuses, addComplaint = () => {}, isAdmin }: O
                 status={order?.orderStatusId - 1 == 4 ? "error" : order?.orderStatusId - 1 == 3 ? "finish" : "process"}
                 current={order?.orderStatusId - 1}
                 labelPlacement='vertical'
-                items={_orderStatuses}
+                items={getOrderStatuses(t)}
               />
             </Card>
           </div>
@@ -194,7 +190,7 @@ const OrderInfo = ({ order, orderStatuses, addComplaint = () => {}, isAdmin }: O
                   </div>
                   <div>
                     <h3 className='order-title'>{t("orderStatus")}</h3>
-                    <OrderStatusTag orderStatusId={orderStatusId} orderStatuses={orderStatuses} />
+                    <OrderStatusTag orderStatusId={order?.orderStatusId} orderStatuses={orderStatuses} />
                   </div>
                 </div>
                 <div>
@@ -231,7 +227,7 @@ const OrderInfo = ({ order, orderStatuses, addComplaint = () => {}, isAdmin }: O
                       <div>
                         <h4>{order?.deliveredBy?.firstName + " " + order?.deliveredBy?.lastName}</h4>
                         {/* TODO: Add the delivery person's disponibility and image */}
-                        <Badge key='green' color='green' text='Disponible' />
+                        <Badge key='green' color='green' text={t("available")} />
                       </div>
                     </div>
                     <div className='order--delivering-person--container-right-section'>
@@ -286,7 +282,11 @@ const OrderInfo = ({ order, orderStatuses, addComplaint = () => {}, isAdmin }: O
                 </div>
                 <div>
                   <h4 className='order-title'>{t("address")}</h4>
-                  <p>{order?.source?.streetAddress} </p>
+                  <p>{order?.source?.streetAddress}</p>
+                </div>
+                <div>
+                  <h4 className='order-title'>{t("country")}</h4>
+                  <p>{order?.source?.country || "--"}</p>
                 </div>
               </div>
             </Card>
@@ -316,6 +316,10 @@ const OrderInfo = ({ order, orderStatuses, addComplaint = () => {}, isAdmin }: O
                   <h4 className='order-title'>{t("address")}</h4>
                   <p>{order?.recipient?.streetAddress}</p>
                 </div>
+                <div>
+                  <h4 className='order-title'>{t("country")}</h4>
+                  <p>{order?.recipient?.country || "--"}</p>
+                </div>
               </div>
             </Card>
           </div>
@@ -330,7 +334,17 @@ const OrderInfo = ({ order, orderStatuses, addComplaint = () => {}, isAdmin }: O
                 </div>
                 <div>
                   <h4 className='order-title'>{t("total_quantity")}</h4>
-                  <p>{order?.totalQuantity} Colis</p>
+                  <p>{order?.totalQuantity} {t("packagesLabel")}</p>
+                </div>
+                {order?.shipmentPrice != null && (
+                  <div>
+                    <h4 className='order-title'>{t("shipmentPriceLabel")}</h4>
+                    <p>{order?.shipmentPrice} {order?.currency || "TND"}</p>
+                  </div>
+                )}
+                <div>
+                  <h4 className='order-title'>{t("currencyLabel")}</h4>
+                  <p>{order?.currency || "TND"}</p>
                 </div>
               </div>
             </Card>
@@ -401,7 +415,7 @@ const OrderInfo = ({ order, orderStatuses, addComplaint = () => {}, isAdmin }: O
                             <>
                               <Space>
                                 <h4 className='order-title' style={{ color: "red" }}>
-                                  {order?.clientPrice} TND {getOrderPriceStatus(order?.clientPriceStatusId)}
+                                  {order?.clientPrice} {order?.currency || "TND"} {getOrderPriceStatus(order?.clientPriceStatusId)}
                                 </h4>
                                 {order?.clientPriceStatusId && [1, 2].includes(order?.clientPriceStatusId) && (
                                   <>
@@ -439,7 +453,7 @@ const OrderInfo = ({ order, orderStatuses, addComplaint = () => {}, isAdmin }: O
                                 <>
                                   <Space>
                                     <h4 className='order-title' style={{ color: "red" }}>
-                                      {order?.transporterPrice} TND{" "}
+                                      {order?.transporterPrice} {order?.currency || "TND"}{" "}
                                       {getOrderPriceStatus(order?.transporterPriceStatusId)}
                                     </h4>
                                     {order?.transporterPriceStatusId &&
@@ -496,7 +510,7 @@ const OrderInfo = ({ order, orderStatuses, addComplaint = () => {}, isAdmin }: O
                 <Table
                   bordered
                   dataSource={order?.packages}
-                  columns={columns}
+                  columns={getPackageColumns(t)}
                   pagination={false}
                   rowKey='id'
                   summary={() => (
@@ -512,7 +526,7 @@ const OrderInfo = ({ order, orderStatuses, addComplaint = () => {}, isAdmin }: O
                         <Table.Summary.Cell index={3}></Table.Summary.Cell>
                         <Table.Summary.Cell index={4}></Table.Summary.Cell>
                         <Table.Summary.Cell index={5}>
-                          <b>{order?.totalQuantity} Colis</b>
+                          <b>{order?.totalQuantity} {t("packagesLabel")}</b>
                         </Table.Summary.Cell>
                       </Table.Summary.Row>
                     </>
@@ -542,7 +556,7 @@ const OrderInfo = ({ order, orderStatuses, addComplaint = () => {}, isAdmin }: O
         isCreateComplaintModaOpen={isCreateComplaintModaOpen}
         onCreateComplaintModaClose={() => setIsCreateComplaintModaOpen(false)}
         createComplaint={(values: any) => {
-        console.log("VALUES RECEIVED IN ORDER:", values); 
+ 
     addComplaint({
       subject: values.subject,
       orderId: order?.id, // ⚠️ IMPORTANT
@@ -560,53 +574,53 @@ const OrderInfo = ({ order, orderStatuses, addComplaint = () => {}, isAdmin }: O
 };
 
 export default OrderInfo;
-export const _orderStatuses = [
+export const getOrderStatuses = (t: any) => [
   {
-    title: <span style={{ fontWeight: "700" }}>Non suivi</span>,
-    description: "En attente d'attribution à un livreur.",
+    title: <span style={{ fontWeight: "700" }}>{t("statusNonSuivi")}</span>,
+    description: t("statusNonSuiviDesc"),
   },
   {
-    title: <span style={{ fontWeight: "700" }}>En attente</span>,
-    description: "Attribuée à un livreur.",
+    title: <span style={{ fontWeight: "700" }}>{t("statusEnAttente")}</span>,
+    description: t("statusEnAttenteDesc"),
   },
   {
-    title: <span style={{ fontWeight: "700" }}>En transit</span>,
-    description: "En cours de livraison.",
+    title: <span style={{ fontWeight: "700" }}>{t("statusEnTransit")}</span>,
+    description: t("statusEnTransitDesc"),
   },
   {
-    title: <span style={{ fontWeight: "700" }}>Livré</span>,
-    description: "Livraison terminée.",
+    title: <span style={{ fontWeight: "700" }}>{t("statusLivre")}</span>,
+    description: t("statusLivreDesc"),
   },
 ];
 
-const columns: any[number][] = [
+export const getPackageColumns = (t: any): any[] => [
   {
     title: "ID",
     key: "number",
     render: (_: any, _record: any, index: any) => index + 1,
   },
   {
-    title: "Poids (Kg)",
+    title: t("colisWeight"),
     dataIndex: "weight",
     key: "weight",
   },
   {
-    title: "Longeur (CM)",
+    title: t("colisLength"),
     dataIndex: "length",
     key: "length",
   },
   {
-    title: "Largeur (CM)",
+    title: t("colisWidth"),
     dataIndex: "width",
     key: "width",
   },
   {
-    title: "Hauteur (CM)",
+    title: t("colisHeight"),
     dataIndex: "height",
     key: "height",
   },
   {
-    title: "Quantity",
+    title: t("colisQuantity"),
     dataIndex: "quantity",
     key: "quantity",
   },

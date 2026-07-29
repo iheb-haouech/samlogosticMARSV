@@ -111,7 +111,7 @@ export const fetchClientKpis = createAsyncThunk<ClientKpis>(
 );
 
 const statisticsSlice = createSlice({
-  name: "complaints",
+  name: "statistics",
   initialState,
   reducers: {},
   extraReducers: (builder) => {
