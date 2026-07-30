@@ -12,6 +12,21 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
 
+  redis:
+    image: redis:7-alpine
+    container_name: sam-redis
+    restart: always
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   backend:
     build:
       context: ./backend
@@ -28,8 +43,17 @@ services:
       JWT_REFRESH_EXPIRES: ${JWT_REFRESH_EXPIRES:-7d}
       NODE_ENV: ${NODE_ENV:-production}
       PORT: ${PORT:-6001}
+      REDIS_URL: ${REDIS_URL:-redis://sam-redis:6379}
     depends_on:
-      - postgres
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:6001/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     command: sh -c "npx prisma migrate deploy && node dist/src/main.js"
 
   frontend:
@@ -49,3 +73,4 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:

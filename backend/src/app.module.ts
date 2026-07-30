@@ -20,6 +20,7 @@ import { CashflowModule } from './cashflow/cashflow.module';
 import { NotificationModule } from './notifications/notification.module';
 import { ContactModule } from './contact/contact.module';
 import { QuotationsModule } from './quotations/quotations.module';
+import { MicroservicesModule } from './microservices/microservices.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { QuotationsModule } from './quotations/quotations.module';
     NotificationModule,
     ContactModule,
     QuotationsModule,
+    MicroservicesModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, AuthService],
