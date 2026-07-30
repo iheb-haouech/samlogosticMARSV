@@ -5,11 +5,12 @@ import { RoleGuard } from '../auth/role.guard';
 import { AuthUserJWT } from '../utils/auth-user-jwt.decorator';
 import { NotificationService } from './notification.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
+import { RoleRateLimitGuard } from '../microservices/rate-limit.guard';
 
 @Controller('notifications')
 @ApiTags('notifications')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RoleRateLimitGuard)
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 

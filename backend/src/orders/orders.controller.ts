@@ -30,10 +30,14 @@ import {
 } from './dto/order-response.dto';
 import { PdfGeneratorService } from "../pdf-generator/pdf-generator.service";
 import * as QRCode from 'qrcode';
+import { UseInterceptors } from '@nestjs/common';
+import { CacheInterceptor, CacheKey, CacheTTL } from '../microservices/cache.interceptor';
+import { RoleRateLimitGuard } from '../microservices/rate-limit.guard';
 
 
 @Controller('orders')
 @ApiTags('orders')
+@UseGuards(RoleRateLimitGuard)
 export class OrdersController {
   constructor(
     private readonly ordersService: OrdersService,
@@ -78,6 +82,9 @@ export class OrdersController {
   @Get('/all-orders')
   @ApiBearerAuth()
   @UseGuards(RoleGuard)
+  @UseInterceptors(CacheInterceptor)
+  @CacheKey('orders:list')
+  @CacheTTL(30)
   @Roles(USERROLES.user.id, USERROLES.admin.id, USERROLES.transporter.id)
   @ApiOkResponse({
     description: 'Get all orders response',
@@ -102,6 +109,9 @@ export class OrdersController {
   @Get('/order-details/:id')
   @ApiBearerAuth()
   @UseGuards(RoleGuard)
+  @UseInterceptors(CacheInterceptor)
+  @CacheKey('orders:detail')
+  @CacheTTL(60)
   @Roles(USERROLES.user.id, USERROLES.admin.id, USERROLES.transporter.id)
   @ApiOkResponse({
     description: 'Get order details response',
@@ -114,6 +124,9 @@ export class OrdersController {
   @Get('/order-status-details/:id')
   @ApiBearerAuth()
   @UseGuards(RoleGuard)
+  @UseInterceptors(CacheInterceptor)
+  @CacheKey('orders:status-detail')
+  @CacheTTL(30)
   @Roles(USERROLES.user.id, USERROLES.admin.id, USERROLES.transporter.id)
   @ApiOkResponse({
     description: 'Get order details response',
@@ -124,6 +137,9 @@ export class OrdersController {
   }
 
   @Get('/track/:trackingId')
+  @UseInterceptors(CacheInterceptor)
+  @CacheKey('orders:track')
+  @CacheTTL(15)
   @ApiOkResponse({
     description: 'Public order tracking',
     type: OrderDtoResponse,

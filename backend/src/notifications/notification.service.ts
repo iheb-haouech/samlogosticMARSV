@@ -1,14 +1,84 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthService } from '../auth/auth.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
+import { EventBusService } from '../microservices/event-bus.service';
+import { OnModuleInit } from '@nestjs/common';
+import { QueueService } from '../microservices/queue.service';
 
 @Injectable()
-export class NotificationService {
+export class NotificationService implements OnModuleInit {
+  private readonly logger = new Logger(NotificationService.name);
+
   constructor(
     private prisma: PrismaService,
     private authService: AuthService,
+    private eventBus: EventBusService,
+    private queue: QueueService,
   ) {}
+
+  onModuleInit() {
+    // Subscribe to events and auto-create notifications
+    this.eventBus.subscribe('order.created', async (data: any) => {
+      await this.notifyOrderCreated(data);
+    });
+
+    this.eventBus.subscribe('order.statusChanged', async (data: any) => {
+      await this.notifyOrderStatusUpdate(data, data.newStatusId);
+    });
+
+    this.eventBus.subscribe('order.transporterAssigned', async (data: any) => {
+      await this.createDirectNotification(
+        data.deliveredByUserId,
+        'Commande assignée',
+        `Commande ${data.trackingId} vous a été assignée.`,
+        'order',
+        data.orderId,
+      );
+    });
+
+    this.eventBus.subscribe('claim.created', async (data: any) => {
+      await this.createDirectNotification(
+        data.createdByUserId,
+        'Réclamation créée',
+        `Réclamation pour la commande ${data.orderId}: ${data.subject}`,
+        'claim',
+        data.orderId,
+      );
+    });
+
+    this.eventBus.subscribe('claim.statusChanged', async (data: any) => {
+      // Notify all admins about claim status changes
+      const admins = await this.prisma.user.findMany({
+        where: { roleId: { in: [1, 4] } },
+        select: { id: true },
+      });
+      for (const admin of admins) {
+        await this.createDirectNotification(
+          admin.id,
+          'Statut réclamation mis à jour',
+          `Réclamation #${data.claimId} - Nouveau statut: ${data.newStatusId}`,
+          'claim',
+        );
+      }
+    });
+
+    // Register PDF generation queue worker
+    this.queue.process('pdf.generation', async (job: any) => {
+      this.logger.log(`Processing PDF generation for order ${job.data.trackingId}`);
+      // PDF generation is handled by the existing PdfGeneratorService
+      // This worker acts as a future hook for async PDF processing
+    });
+
+    // Register notification queue worker
+    this.queue.process('notification.send', async (job: any) => {
+      this.logger.log(`Processing notification for user ${job.data.userId}`);
+      const { userId, title, message, type, orderId } = job.data;
+      await this.createDirectNotification(userId, title, message, type, orderId);
+    });
+
+    this.logger.log('Event subscriptions and queue workers initialized');
+  }
 
   async findAll(userToken: string) {
     const { user } = await this.authService.getAuthUser(userToken);

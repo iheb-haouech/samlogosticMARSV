@@ -8,7 +8,10 @@ import {
   Delete,
   UseGuards,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
+import { CacheInterceptor, CacheKey, CacheTTL } from '../microservices/cache.interceptor';
+import { RoleRateLimitGuard } from '../microservices/rate-limit.guard';
 import { ClaimsService } from './claims.service';
 import {
   AddClaimMsgDto,
@@ -28,7 +31,7 @@ import { USERROLES } from '../utils/enum';
 @Controller('claims')
 @ApiTags('claims')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RoleRateLimitGuard)
 export class ClaimsController {
   constructor(private readonly claimsService: ClaimsService) {}
 
@@ -55,6 +58,9 @@ export class ClaimsController {
   }
 
   @Get()
+  @UseInterceptors(CacheInterceptor)
+  @CacheKey('claims:list')
+  @CacheTTL(30)
   @ApiOkResponse({
     description: 'all claims response',
     type: AllCLaimsRespDTO,

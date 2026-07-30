@@ -1,19 +1,23 @@
-import { BadRequestException, HttpException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { AddClaimMsgDto, CreateClaimDto } from './dto/create-claim.dto';
 import { UpdateClaimDto } from './dto/update-claim.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthService } from '../auth/auth.service';
 import * as jwt from 'jsonwebtoken';
 import { USERROLES } from '../utils/enum';
+import { EventBusService } from '../microservices/event-bus.service';
+import { CacheService } from '../microservices/cache.service';
 
 @Injectable()
-
 export class ClaimsService {
+  private readonly logger = new Logger(ClaimsService.name);
+
   constructor(
     private prisma: PrismaService,
     private authService: AuthService,
-  ) 
-  {}
+    private eventBus: EventBusService,
+    private cache: CacheService,
+  ) {}
   
   
   async create(userToken: string, createClaimDto: CreateClaimDto) {
@@ -32,7 +36,7 @@ export class ClaimsService {
   if (!order) {
     throw new BadRequestException("Order not found");
   }
-    return this.prisma.claim.create({
+    const claim = await this.prisma.claim.create({
   data: {
     subject: createClaimDto.subject,
     description: createClaimDto.description || "",
@@ -68,7 +72,19 @@ export class ClaimsService {
     order: { select: { id: true, trackingId: true } },
     creator: { select: { id: true, companyName: true, email: true } },
   },
-});
+  });
+
+    // Publish event & invalidate cache
+    this.eventBus.publish('claim.created', {
+      claimId: claim.id,
+      orderId: createClaimDto.orderId,
+      createdByUserId: user.id,
+      subject: createClaimDto.subject,
+    }).catch((err) => this.logger.error(`Event publish error: ${err.message}`));
+
+    await this.cache.invalidateEntity('claims').catch(() => {});
+
+    return claim;
   }
   
 
@@ -99,12 +115,21 @@ export class ClaimsService {
       throw new HttpException('Vous ne pouvez ajouter des messages que sur vos propres réclamations.', 403);
     }
 
-    return this.prisma.claim_message.create({
+    const message = await this.prisma.claim_message.create({
       data: {
         ...addClaimDto,
         senderId: callerId,
       },
     });
+
+    // Publish event
+    this.eventBus.publish('claim.messageAdded', {
+      claimId: addClaimDto.claimId,
+      senderId: callerId,
+      isAdmin,
+    }).catch((err) => this.logger.error(`Event publish error: ${err.message}`));
+
+    return message;
   }
   
 
@@ -220,10 +245,20 @@ export class ClaimsService {
       }
     }
 
-    return this.prisma.claim.update({
+    const updated = await this.prisma.claim.update({
       where: { id },
       data: { statusId: updateClaimDto?.statusId },
     });
+
+    // Publish event & invalidate cache
+    this.eventBus.publish('claim.statusChanged', {
+      claimId: id,
+      newStatusId: updateClaimDto?.statusId,
+    }).catch((err) => this.logger.error(`Event publish error: ${err.message}`));
+
+    await this.cache.invalidateEntity('claims').catch(() => {});
+
+    return updated;
   }
 
   remove(id: number) {

@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import {
   UpdateOrderDto,
@@ -11,13 +11,21 @@ import { PackagesService } from '../packages/packages.service';
 import generateCustomTrackingID from '../utils/generate-id';
 import { USERROLES } from '../utils/enum';
 import * as QRCode from 'qrcode';
+import { EventBusService } from '../microservices/event-bus.service';
+import { CacheService } from '../microservices/cache.service';
+import { QueueService } from '../microservices/queue.service';
 
 @Injectable()
 export class OrdersService {
+  private readonly logger = new Logger(OrdersService.name);
+
   constructor(
     private prisma: PrismaService,
     private authService: AuthService,
     private packagesService: PackagesService,
+    private eventBus: EventBusService,
+    private cache: CacheService,
+    private queue: QueueService,
   ) {}
 
   private async ensureSeedData() {
@@ -225,6 +233,16 @@ const createdOrder = await this.prisma.order.create({
           transporterPriceStatus: true,
         },
       });
+
+      // Publish event & invalidate cache
+      this.eventBus.publish('order.created', {
+        orderId: createdOrder.id,
+        trackingId: createdOrder.trackingId,
+        createdByUserId: createdOrder.createdByUserId,
+        totalPrice: createdOrder.totalPrice,
+      }).catch((err) => this.logger.error(`Event publish error: ${err.message}`));
+
+      await this.cache.invalidateEntity('orders').catch(() => {});
 
       return createdOrder;
     } catch (error: any) {
@@ -672,6 +690,20 @@ const createdOrder = await this.prisma.order.create({
         },
       });
       delete updatedOrder?.deliveredBy?.password;
+
+      // Publish transporter assignment event
+      if (deliveredByUserId) {
+        this.eventBus.publish('order.transporterAssigned', {
+          orderId: id,
+          trackingId: updatedOrder.trackingId,
+          deliveredByUserId,
+          previousStatusId: 1,
+          newStatusId: 2,
+        }).catch((err) => this.logger.error(`Event publish error: ${err.message}`));
+      }
+
+      await this.cache.invalidateEntity('orders').catch(() => {});
+
       return updatedOrder;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -725,8 +757,7 @@ const createdOrder = await this.prisma.order.create({
   if (data?.orderStatusId == 4) {
     data = { ...data, deliveredAt: new Date() };
   }
-
-  const updatedOrder = await this.prisma.order.update({
+  const previousStatusId = existingOrder.orderStatusId;  const updatedOrder = await this.prisma.order.update({
     where: { id: id },
     data: data as any,
     include: {
@@ -743,6 +774,29 @@ const createdOrder = await this.prisma.order.create({
       transporterPriceStatus: true,
     },
   });
+
+  // Publish status change event
+  if (previousStatusId !== data?.orderStatusId) {
+    this.eventBus.publish('order.statusChanged', {
+      orderId: updatedOrder.id,
+      trackingId: updatedOrder.trackingId,
+      previousStatusId,
+      newStatusId: data?.orderStatusId,
+      createdByUserId: updatedOrder.createdByUserId,
+      deliveredByUserId: updatedOrder.deliveredByUserId,
+    }).catch((err) => this.logger.error(`Event publish error: ${err.message}`));
+
+    await this.cache.invalidateEntity('orders').catch(() => {});
+  }
+
+  // Dispatch PDF generation to queue for delivered orders
+  if (updatedOrder.orderStatusId == 4 && previousStatusId !== 4) {
+    this.queue.dispatch('pdf.generation', {
+      orderId: updatedOrder.id,
+      trackingId: updatedOrder.trackingId,
+      type: 'delivery-receipt',
+    }).catch((err) => this.logger.error(`Queue dispatch error: ${err.message}`));
+  }
 
   if (updatedOrder.orderStatusId == 4 && existingOrder.orderStatusId !== 4) {
     const colisAmount = updatedOrder.totalPrice || 0;
