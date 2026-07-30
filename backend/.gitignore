@@ -4,6 +4,10 @@
 .env
 package-lock.json
 
+# Compiled JS in src (TypeScript outputs to dist/)
+src/**/*.js
+src/**/*.js.map
+
 /uploadedFiles/*.png
 /uploadedFiles/*.jpg
 /uploadedFiles/*.jpeg

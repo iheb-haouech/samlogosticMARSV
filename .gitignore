@@ -6,6 +6,16 @@ build/
 !.env.example
 *.log
 
+# Compiled JS in backend src
+backend/src/**/*.js
+backend/src/**/*.js.map
+
+# Misc
+.DS_Store
+*.tmp
+*.bak
+*.swp
+
 # Local deployment / debug scripts (may contain credentials)
 deploy-scripts/
 
