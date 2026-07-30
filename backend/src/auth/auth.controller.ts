@@ -16,7 +16,7 @@ import { AuthUserJWT } from '../utils/auth-user-jwt.decorator';
 import { AuthResponseDto } from './dto/auth-resp.dto';
 import { CreateTransporterDto } from '../transporters/dto/create-transporter.dto';
 import { USERROLES } from '../utils/enum';
-import * as rateLimit from 'express-rate-limit';
+import rateLimit from 'express-rate-limit';
 
 // Strict rate limiter for auth endpoints: 10 attempts per minute per IP
 const authLimiter = rateLimit({
